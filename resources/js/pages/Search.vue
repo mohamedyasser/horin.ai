@@ -1,219 +1,75 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import {
     Search,
-    ChevronDown,
     X,
     Clock,
     Loader2,
 } from 'lucide-vue-next';
-import type { MarketCode } from '@/types';
+import type { SearchResult, PaginationMeta } from '@/types';
 
 const { t } = useI18n();
 
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
+    query?: string;
+    results?: {
+        data: SearchResult[];
+        meta: PaginationMeta;
+    };
+    totalCount?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     canLogin: true,
     canRegister: true,
+    query: '',
 });
 
-// Search result type
-interface SearchResult {
-    id: number;
-    symbol: string;
-    name: string;
-    market: MarketCode;
-    sector: string;
-    last_price: number;
-    predicted_price: number;
-    gain_percent: number;
-    horizon: string;
-    confidence: number;
-}
-
-// Mock search results data
-const mockResults: SearchResult[] = [
-    {
-        id: 1,
-        symbol: 'COMI',
-        name: 'Commercial International Bank',
-        market: 'EGX',
-        sector: 'Banking',
-        last_price: 72.5,
-        predicted_price: 85.2,
-        gain_percent: 17.52,
-        horizon: '1M',
-        confidence: 87,
-    },
-    {
-        id: 2,
-        symbol: 'EAST',
-        name: 'Eastern Company',
-        market: 'EGX',
-        sector: 'Consumer',
-        last_price: 28.4,
-        predicted_price: 32.1,
-        gain_percent: 13.03,
-        horizon: '1M',
-        confidence: 82,
-    },
-    {
-        id: 3,
-        symbol: '2222',
-        name: 'Saudi Aramco',
-        market: 'TASI',
-        sector: 'Energy',
-        last_price: 32.15,
-        predicted_price: 35.8,
-        gain_percent: 11.35,
-        horizon: '1M',
-        confidence: 91,
-    },
-    {
-        id: 4,
-        symbol: '1120',
-        name: 'Al Rajhi Bank',
-        market: 'TASI',
-        sector: 'Banking',
-        last_price: 78.2,
-        predicted_price: 86.5,
-        gain_percent: 10.61,
-        horizon: '1M',
-        confidence: 85,
-    },
-    {
-        id: 5,
-        symbol: 'ADNOCDIST',
-        name: 'ADNOC Distribution',
-        market: 'ADX',
-        sector: 'Energy',
-        last_price: 4.52,
-        predicted_price: 5.15,
-        gain_percent: 13.94,
-        horizon: '1M',
-        confidence: 79,
-    },
-    {
-        id: 6,
-        symbol: 'EMAAR',
-        name: 'Emaar Properties',
-        market: 'DFM',
-        sector: 'Real Estate',
-        last_price: 8.75,
-        predicted_price: 10.2,
-        gain_percent: 16.57,
-        horizon: '1M',
-        confidence: 84,
-    },
-    {
-        id: 7,
-        symbol: 'NBK',
-        name: 'National Bank of Kuwait',
-        market: 'KW',
-        sector: 'Banking',
-        last_price: 1.05,
-        predicted_price: 1.18,
-        gain_percent: 12.38,
-        horizon: '1M',
-        confidence: 88,
-    },
-    {
-        id: 8,
-        symbol: 'QNBK',
-        name: 'QNB Group',
-        market: 'QA',
-        sector: 'Banking',
-        last_price: 15.8,
-        predicted_price: 17.5,
-        gain_percent: 10.76,
-        horizon: '1M',
-        confidence: 86,
-    },
-];
-
-// State
-const searchQuery = ref('');
-const selectedMarket = ref<string | null>(null);
-const selectedSector = ref<string | null>(null);
-const selectedHorizon = ref<string | null>(null);
+// State - initialize from props
+const searchQuery = ref(props.query);
 const isSearching = ref(false);
-const hasSearched = ref(false);
 
-// Recent searches (stored in memory for demo)
+// Recent searches (stored in memory)
 const recentSearches = ref<string[]>(['COMI', 'Aramco', 'Banking', 'EGX']);
 
-// Markets and sectors for filters
-const markets = ['EGX', 'TASI', 'ADX', 'DFM', 'KW', 'QA', 'BH'];
-const sectors = ['Banking', 'Energy', 'Consumer', 'Real Estate', 'Telecom', 'Healthcare', 'Industrial'];
-const horizons = ['1D', '1W', '1M', '3M'];
-
-// Computed: filtered results
-const searchResults = computed(() => {
-    if (!searchQuery.value && !selectedMarket.value && !selectedSector.value) {
-        return [];
-    }
-
-    let results = [...mockResults];
-
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        results = results.filter(
-            (r) =>
-                r.symbol.toLowerCase().includes(query) ||
-                r.name.toLowerCase().includes(query)
-        );
-    }
-
-    if (selectedMarket.value) {
-        results = results.filter((r) => r.market === selectedMarket.value);
-    }
-
-    if (selectedSector.value) {
-        results = results.filter((r) => r.sector === selectedSector.value);
-    }
-
-    if (selectedHorizon.value) {
-        results = results.filter((r) => r.horizon === selectedHorizon.value);
-    }
-
-    return results;
-});
+// Computed - use backend results
+const searchResults = computed(() => props.results?.data ?? []);
+const resultsMeta = computed(() => props.results?.meta);
+const hasSearched = computed(() => !!props.query);
 
 // Highlight matching text
 const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
-    const regex = new RegExp(`(${query})`, 'gi');
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
     return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-900 rounded px-0.5">$1</mark>');
 };
 
-// Watch search query for instant search simulation
+// Debounced search
 let searchTimeout: ReturnType<typeof setTimeout>;
 watch(searchQuery, (newVal) => {
     if (newVal) {
         isSearching.value = true;
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            isSearching.value = false;
-            hasSearched.value = true;
+            router.visit(`/search?q=${encodeURIComponent(newVal)}`, {
+                preserveState: true,
+                only: ['results', 'totalCount', 'query'],
+                onFinish: () => {
+                    isSearching.value = false;
+                },
+            });
         }, 300);
     } else {
-        hasSearched.value = false;
+        isSearching.value = false;
     }
 });
 
@@ -228,26 +84,24 @@ const clearRecentSearches = () => {
 };
 
 // Navigate to asset detail
-const goToAsset = (id: number) => {
+const goToAsset = (id: string) => {
     router.visit(`/assets/${id}`);
 };
 
-// Get market name
-const getMarketName = (code: MarketCode) => {
-    return t(`markets.names.${code}`);
+// Format price change
+const formatPriceChange = (pcp: string | undefined) => {
+    if (!pcp) return '-';
+    const value = parseFloat(pcp);
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
 };
 
-// Get confidence color
-const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 85) return 'text-green-600 dark:text-green-400';
-    if (confidence >= 70) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-};
-
-// Get gain color
-const getGainColor = (gain: number) => {
-    if (gain > 0) return 'text-green-600 dark:text-green-400';
-    if (gain < 0) return 'text-red-600 dark:text-red-400';
+// Get change color
+const getChangeColor = (pcp: string | undefined) => {
+    if (!pcp) return 'text-muted-foreground';
+    const value = parseFloat(pcp);
+    if (value > 0) return 'text-green-600 dark:text-green-400';
+    if (value < 0) return 'text-red-600 dark:text-red-400';
     return 'text-muted-foreground';
 };
 </script>
@@ -291,181 +145,136 @@ const getGainColor = (gain: number) => {
                             <X class="size-5" />
                         </button>
                     </div>
-
-                    <!-- Optional Filters -->
-                    <div class="flex flex-wrap items-center justify-center gap-3 mt-6">
-                        <!-- Market Filter -->
-                        <DropdownMenu>
-                            <DropdownMenuTrigger as-child>
-                                <Button variant="outline" size="sm">
-                                    {{ selectedMarket || t('search.allMarkets') }}
-                                    <ChevronDown class="ms-1 size-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="center">
-                                <DropdownMenuItem @click="selectedMarket = null">
-                                    {{ t('search.allMarkets') }}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    v-for="market in markets"
-                                    :key="market"
-                                    @click="selectedMarket = market"
-                                >
-                                    {{ market }}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <!-- Sector Filter -->
-                        <DropdownMenu>
-                            <DropdownMenuTrigger as-child>
-                                <Button variant="outline" size="sm">
-                                    {{ selectedSector || t('search.allSectors') }}
-                                    <ChevronDown class="ms-1 size-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="center">
-                                <DropdownMenuItem @click="selectedSector = null">
-                                    {{ t('search.allSectors') }}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    v-for="sector in sectors"
-                                    :key="sector"
-                                    @click="selectedSector = sector"
-                                >
-                                    {{ sector }}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <!-- Horizon Filter -->
-                        <DropdownMenu>
-                            <DropdownMenuTrigger as-child>
-                                <Button variant="outline" size="sm">
-                                    {{ selectedHorizon || t('search.allHorizons') }}
-                                    <ChevronDown class="ms-1 size-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="center">
-                                <DropdownMenuItem @click="selectedHorizon = null">
-                                    {{ t('search.allHorizons') }}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    v-for="horizon in horizons"
-                                    :key="horizon"
-                                    @click="selectedHorizon = horizon"
-                                >
-                                    {{ t(`assetDetail.horizons.${horizon}`) }}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
                 </div>
             </section>
 
             <!-- Results Section -->
             <div class="mx-auto max-w-7xl px-4 py-8">
-                <!-- Results Count -->
-                <div v-if="hasSearched && searchResults.length > 0" class="mb-4 flex items-center justify-between">
-                    <p class="text-sm text-muted-foreground">
-                        {{ t('search.resultsCount', { count: searchResults.length }) }}
-                    </p>
-                </div>
+                <Deferred data="results">
+                    <template #fallback>
+                        <!-- Loading skeleton -->
+                        <div class="rounded-lg border border-border">
+                            <div class="animate-pulse space-y-4 p-4">
+                                <div v-for="i in 10" :key="i" class="flex items-center gap-4">
+                                    <div class="h-4 w-20 rounded bg-muted" />
+                                    <div class="h-4 flex-1 rounded bg-muted" />
+                                    <div class="h-4 w-16 rounded bg-muted" />
+                                    <div class="h-4 w-16 rounded bg-muted" />
+                                </div>
+                            </div>
+                        </div>
+                    </template>
 
-                <!-- Results Table -->
-                <div v-if="searchResults.length > 0" class="rounded-lg border border-border">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-border bg-muted/50">
-                                    <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.symbol') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.name') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.market') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.lastPrice') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.predictedPrice') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.gainPercent') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.horizon') }}
-                                    </th>
-                                    <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                        {{ t('search.table.confidence') }}
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="result in searchResults"
-                                    :key="result.id"
-                                    class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                    @click="goToAsset(result.id)"
-                                >
-                                    <td class="px-4 py-3 font-medium">
-                                        <span v-html="highlightMatch(result.symbol, searchQuery)" />
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-muted-foreground">
-                                        <span v-html="highlightMatch(result.name, searchQuery)" />
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-medium">
-                                            {{ result.market }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-end font-medium">
-                                        {{ result.last_price.toFixed(2) }}
-                                    </td>
-                                    <td class="px-4 py-3 text-end font-medium">
-                                        {{ result.predicted_price.toFixed(2) }}
-                                    </td>
-                                    <td class="px-4 py-3 text-end">
-                                        <span :class="getGainColor(result.gain_percent)" class="font-semibold">
-                                            +{{ result.gain_percent.toFixed(2) }}%
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                                            {{ t(`assetDetail.horizons.${result.horizon}`) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-end">
-                                        <span :class="getConfidenceColor(result.confidence)" class="font-semibold">
-                                            {{ result.confidence }}%
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Results Count -->
+                    <div v-if="hasSearched && searchResults.length > 0" class="mb-4 flex items-center justify-between">
+                        <p class="text-sm text-muted-foreground">
+                            {{ t('search.resultsCount', { count: props.totalCount ?? searchResults.length }) }}
+                        </p>
                     </div>
-                </div>
 
-                <!-- Empty State: No Results -->
-                <div
-                    v-else-if="hasSearched && searchResults.length === 0"
-                    class="flex flex-col items-center justify-center py-16 text-center"
-                >
-                    <Search class="size-16 text-muted-foreground/30" />
-                    <h3 class="mt-4 text-lg font-semibold">
-                        {{ t('search.noResults') }}
-                    </h3>
-                    <p class="mt-2 text-muted-foreground">
-                        {{ t('search.noResultsSuggestion') }}
-                    </p>
-                </div>
+                    <!-- Results Table -->
+                    <div v-if="searchResults.length > 0" class="rounded-lg border border-border">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-border bg-muted/50">
+                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            {{ t('search.table.symbol') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            {{ t('search.table.name') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            {{ t('search.table.market') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            {{ t('search.table.sector') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            {{ t('search.table.lastPrice') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            {{ t('search.table.change') }}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="result in searchResults"
+                                        :key="result.id"
+                                        class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                                        @click="goToAsset(result.id)"
+                                    >
+                                        <td class="px-4 py-3 font-medium">
+                                            <span v-html="highlightMatch(result.symbol, searchQuery)" />
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-muted-foreground">
+                                            <span v-html="highlightMatch(result.name, searchQuery)" />
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <span
+                                                v-if="result.market"
+                                                class="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-medium"
+                                            >
+                                                {{ result.market.code }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-muted-foreground">
+                                            {{ result.sector?.name ?? '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-end font-medium">
+                                            {{ result.latestPrice?.last.toFixed(2) ?? '-' }}
+                                        </td>
+                                        <td class="px-4 py-3 text-end">
+                                            <span :class="getChangeColor(result.latestPrice?.pcp)" class="font-semibold">
+                                                {{ formatPriceChange(result.latestPrice?.pcp) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div v-if="resultsMeta && resultsMeta.lastPage > 1" class="mt-4 flex items-center justify-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="resultsMeta.currentPage <= 1"
+                        >
+                            {{ t('common.previous') }}
+                        </Button>
+                        <span class="text-sm text-muted-foreground">
+                            {{ resultsMeta.currentPage }} / {{ resultsMeta.lastPage }}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            :disabled="resultsMeta.currentPage >= resultsMeta.lastPage"
+                        >
+                            {{ t('common.next') }}
+                        </Button>
+                    </div>
+
+                    <!-- Empty State: No Results -->
+                    <div
+                        v-if="hasSearched && searchResults.length === 0"
+                        class="flex flex-col items-center justify-center py-16 text-center"
+                    >
+                        <Search class="size-16 text-muted-foreground/30" />
+                        <h3 class="mt-4 text-lg font-semibold">
+                            {{ t('search.noResults') }}
+                        </h3>
+                        <p class="mt-2 text-muted-foreground">
+                            {{ t('search.noResultsSuggestion') }}
+                        </p>
+                    </div>
+                </Deferred>
 
                 <!-- Empty State: Start Typing -->
                 <div
-                    v-else-if="!hasSearched"
+                    v-if="!hasSearched"
                     class="py-12"
                 >
                     <!-- Start typing message -->
