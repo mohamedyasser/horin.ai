@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,13 +30,26 @@ import {
     ArrowUpRight,
     ArrowDownRight,
 } from 'lucide-vue-next';
-import type { Prediction, MarketCode } from '@/types';
+import type {
+    HomeStats,
+    MarketPreview,
+    SectorPreview,
+    FeaturedPrediction,
+    TopMover,
+    RecentPrediction,
+} from '@/types';
 
 const { t } = useI18n();
 
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
+    stats: HomeStats;
+    markets: MarketPreview[];
+    sectors: SectorPreview[];
+    featuredPredictions?: FeaturedPrediction[];
+    topMovers?: TopMover[];
+    recentPredictions?: RecentPrediction[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -44,171 +57,52 @@ const props = withDefaults(defineProps<Props>(), {
     canRegister: true,
 });
 
-// Markets data
-const markets = [
-    { code: 'EGX' as MarketCode, name: 'Egypt', country: 'Egypt' },
-    { code: 'TASI' as MarketCode, name: 'Saudi', country: 'Saudi Arabia' },
-    { code: 'ADX' as MarketCode, name: 'Abu Dhabi', country: 'UAE' },
-    { code: 'DFM' as MarketCode, name: 'Dubai', country: 'UAE' },
-    { code: 'KW' as MarketCode, name: 'Kuwait', country: 'Kuwait' },
-    { code: 'QA' as MarketCode, name: 'Qatar', country: 'Qatar' },
-    { code: 'BH' as MarketCode, name: 'Bahrain', country: 'Bahrain' },
-];
-
-// Mock predictions data
-const mockPredictions: Prediction[] = [
-    {
-        id: 1,
-        symbol: 'COMI',
-        name: 'Commercial International Bank',
-        market: 'EGX',
-        sector: 'Banking',
-        last_price: 72.5,
-        predicted_price: 85.2,
-        gain_percent: 17.5,
-        horizon: '1M',
-        confidence: 87,
-        currency: 'EGP',
-        created_at: '2024-01-15T10:00:00Z',
-        updated_at: '2024-01-15T10:00:00Z',
-    },
-    {
-        id: 2,
-        symbol: '2222',
-        name: 'Saudi Aramco',
-        market: 'TASI',
-        sector: 'Energy',
-        last_price: 28.9,
-        predicted_price: 32.1,
-        gain_percent: 11.1,
-        horizon: '1W',
-        confidence: 92,
-        currency: 'SAR',
-        created_at: '2024-01-15T09:00:00Z',
-        updated_at: '2024-01-15T09:00:00Z',
-    },
-    {
-        id: 3,
-        symbol: 'ETISALAT',
-        name: 'Emirates Telecom',
-        market: 'ADX',
-        sector: 'Telecom',
-        last_price: 24.8,
-        predicted_price: 27.5,
-        gain_percent: 10.9,
-        horizon: '1M',
-        confidence: 85,
-        currency: 'AED',
-        created_at: '2024-01-14T15:00:00Z',
-        updated_at: '2024-01-14T15:00:00Z',
-    },
-    {
-        id: 4,
-        symbol: 'EMAAR',
-        name: 'Emaar Properties',
-        market: 'DFM',
-        sector: 'Real Estate',
-        last_price: 8.2,
-        predicted_price: 9.8,
-        gain_percent: 19.5,
-        horizon: '3M',
-        confidence: 78,
-        currency: 'AED',
-        created_at: '2024-01-14T12:00:00Z',
-        updated_at: '2024-01-14T12:00:00Z',
-    },
-    {
-        id: 5,
-        symbol: 'NBK',
-        name: 'National Bank of Kuwait',
-        market: 'KW',
-        sector: 'Banking',
-        last_price: 1.05,
-        predicted_price: 1.18,
-        gain_percent: 12.4,
-        horizon: '1M',
-        confidence: 89,
-        currency: 'KWD',
-        created_at: '2024-01-13T14:00:00Z',
-        updated_at: '2024-01-13T14:00:00Z',
-    },
-    {
-        id: 6,
-        symbol: 'QNBK',
-        name: 'Qatar National Bank',
-        market: 'QA',
-        sector: 'Banking',
-        last_price: 14.2,
-        predicted_price: 15.9,
-        gain_percent: 12.0,
-        horizon: '1W',
-        confidence: 91,
-        currency: 'QAR',
-        created_at: '2024-01-13T11:00:00Z',
-        updated_at: '2024-01-13T11:00:00Z',
-    },
-];
-
 // State
 const searchQuery = ref('');
-const selectedMarket = ref<MarketCode | null>(null);
+const selectedMarket = ref<string | null>(null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
 const filterOpen = ref(false);
 
-// Computed
+// Computed - use props data directly
+const markets = computed(() => props.markets);
+const featuredPredictions = computed(() => props.featuredPredictions ?? []);
+const topMovers = computed(() => props.topMovers ?? []);
+const recentPredictions = computed(() => props.recentPredictions ?? []);
+
+// Filter predictions client-side for search
 const filteredPredictions = computed(() => {
-    let result = [...mockPredictions];
+    let result = [...featuredPredictions.value];
 
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
         result = result.filter(
             (p) =>
-                p.symbol.toLowerCase().includes(query) ||
-                p.name.toLowerCase().includes(query)
+                p.asset.symbol.toLowerCase().includes(query) ||
+                p.asset.name.toLowerCase().includes(query)
         );
     }
 
     if (selectedMarket.value) {
-        result = result.filter((p) => p.market === selectedMarket.value);
+        result = result.filter((p) => p.asset.market?.code === selectedMarket.value);
     }
 
     // Sort
     if (sortBy.value === 'gain') {
-        result.sort((a, b) => b.gain_percent - a.gain_percent);
+        result.sort((a, b) => b.expectedGainPercent - a.expectedGainPercent);
     } else if (sortBy.value === 'confidence') {
         result.sort((a, b) => b.confidence - a.confidence);
     } else {
-        result.sort(
-            (a, b) =>
-                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        );
+        result.sort((a, b) => {
+            const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+            const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+            return dateB - dateA;
+        });
     }
 
     return result;
 });
 
-const topMovers = computed(() =>
-    [...mockPredictions].sort((a, b) => b.gain_percent - a.gain_percent).slice(0, 5)
-);
-
-const highestConfidence = computed(() =>
-    [...mockPredictions].sort((a, b) => b.confidence - a.confidence).slice(0, 5)
-);
-
-const recentPredictions = computed(() =>
-    [...mockPredictions]
-        .sort(
-            (a, b) =>
-                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        )
-        .slice(0, 5)
-);
-
 // Helpers
-const formatPrice = (price: number, currency: string) => {
-    return `${price.toFixed(2)} ${currency}`;
-};
-
 const formatGain = (gain: number) => {
     const sign = gain >= 0 ? '+' : '';
     return `${sign}${gain.toFixed(1)}%`;
@@ -220,8 +114,8 @@ const getConfidenceColor = (confidence: number) => {
     return 'text-red-600 dark:text-red-400';
 };
 
-const selectMarket = (market: MarketCode | null) => {
-    selectedMarket.value = market;
+const selectMarket = (marketCode: string | null) => {
+    selectedMarket.value = marketCode;
 };
 </script>
 
@@ -268,7 +162,7 @@ const selectMarket = (market: MarketCode | null) => {
                     </Button>
                     <Button
                         v-for="market in markets"
-                        :key="market.code"
+                        :key="market.id"
                         :variant="selectedMarket === market.code ? 'default' : 'outline'"
                         size="sm"
                         @click="selectMarket(market.code)"
@@ -357,95 +251,101 @@ const selectMarket = (market: MarketCode | null) => {
                         </div>
                     </div>
 
-                    <!-- Table -->
-                    <div class="rounded-lg border border-border">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="border-b border-border bg-muted/50">
-                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                            {{ t('home.table.symbol') }}
-                                        </th>
-                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                            {{ t('home.table.name') }}
-                                        </th>
-                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                            {{ t('home.table.last') }}
-                                        </th>
-                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                            {{ t('home.table.predicted') }}
-                                        </th>
-                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                            {{ t('home.table.gainPercent') }}
-                                        </th>
-                                        <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                                            {{ t('home.horizon') }}
-                                        </th>
-                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                            {{ t('home.confidence') }}
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="prediction in filteredPredictions"
-                                        :key="prediction.id"
-                                        class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                        @click="router.visit(`/assets/${prediction.id}`)"
-                                    >
-                                        <td class="px-4 py-3">
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-medium">{{ prediction.symbol }}</span>
-                                                <span class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                                                    {{ prediction.market }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-3 text-sm text-muted-foreground">
-                                            {{ prediction.name }}
-                                        </td>
-                                        <td class="px-4 py-3 text-end text-sm">
-                                            {{ formatPrice(prediction.last_price, prediction.currency) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-end text-sm font-medium">
-                                            {{ formatPrice(prediction.predicted_price, prediction.currency) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-end">
-                                            <span
-                                                class="inline-flex items-center gap-0.5 font-medium"
-                                                :class="prediction.gain_percent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
-                                            >
-                                                <ArrowUpRight v-if="prediction.gain_percent >= 0" class="size-4" />
-                                                <ArrowDownRight v-else class="size-4" />
-                                                {{ formatGain(prediction.gain_percent) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-center">
-                                            <span class="rounded-full bg-muted px-2 py-1 text-xs font-medium">
-                                                {{ prediction.horizon }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-end">
-                                            <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
-                                                {{ prediction.confidence }}%
-                                            </span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <!-- Predictions Table with Deferred Loading -->
+                    <Deferred data="featuredPredictions">
+                        <template #fallback>
+                            <div class="rounded-lg border border-border">
+                                <div class="space-y-4 p-4">
+                                    <div v-for="i in 6" :key="i" class="animate-pulse">
+                                        <div class="h-16 bg-muted rounded-lg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
 
-                        <!-- Empty State -->
-                        <div
-                            v-if="filteredPredictions.length === 0"
-                            class="flex flex-col items-center justify-center py-12 text-center"
-                        >
-                            <Search class="size-12 text-muted-foreground/50" />
-                            <p class="mt-4 text-muted-foreground">
-                                {{ t('home.noResults') }}
-                            </p>
+                        <div class="rounded-lg border border-border">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-border bg-muted/50">
+                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                                {{ t('home.table.symbol') }}
+                                            </th>
+                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                                {{ t('home.table.name') }}
+                                            </th>
+                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                                {{ t('home.table.predicted') }}
+                                            </th>
+                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                                {{ t('home.table.gainPercent') }}
+                                            </th>
+                                            <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
+                                                {{ t('home.horizon') }}
+                                            </th>
+                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                                {{ t('home.confidence') }}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="prediction in filteredPredictions"
+                                            :key="prediction.id"
+                                            class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                                            @click="router.visit(`/assets/${prediction.asset.id}`)"
+                                        >
+                                            <td class="px-4 py-3">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-medium">{{ prediction.asset.symbol }}</span>
+                                                    <span v-if="prediction.asset.market" class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                                                        {{ prediction.asset.market.code }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-muted-foreground">
+                                                {{ prediction.asset.name }}
+                                            </td>
+                                            <td class="px-4 py-3 text-end text-sm font-medium">
+                                                {{ prediction.predictedPrice.toFixed(2) }}
+                                            </td>
+                                            <td class="px-4 py-3 text-end">
+                                                <span
+                                                    class="inline-flex items-center gap-0.5 font-medium"
+                                                    :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                                >
+                                                    <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
+                                                    <ArrowDownRight v-else class="size-4" />
+                                                    {{ formatGain(prediction.expectedGainPercent) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                <span class="rounded-full bg-muted px-2 py-1 text-xs font-medium">
+                                                    {{ prediction.horizonLabel }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-end">
+                                                <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                                    {{ prediction.confidence }}%
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div
+                                v-if="filteredPredictions.length === 0"
+                                class="flex flex-col items-center justify-center py-12 text-center"
+                            >
+                                <Search class="size-12 text-muted-foreground/50" />
+                                <p class="mt-4 text-muted-foreground">
+                                    {{ t('home.noResults') }}
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    </Deferred>
 
                     <!-- Pagination placeholder -->
                     <div class="mt-4 flex items-center justify-center gap-2">
@@ -467,25 +367,36 @@ const selectMarket = (market: MarketCode | null) => {
                                 {{ t('home.topMovers') }}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent class="space-y-3">
-                            <Link
-                                v-for="prediction in topMovers"
-                                :key="prediction.id"
-                                :href="`/assets/${prediction.id}`"
-                                class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
-                            >
-                                <div>
-                                    <span class="font-medium">{{ prediction.symbol }}</span>
-                                    <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
+                        <CardContent>
+                            <Deferred data="topMovers">
+                                <template #fallback>
+                                    <div class="space-y-3">
+                                        <div v-for="i in 5" :key="i" class="animate-pulse">
+                                            <div class="h-8 bg-muted rounded"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="space-y-3">
+                                    <Link
+                                        v-for="mover in topMovers"
+                                        :key="mover.id"
+                                        :href="`/assets/${mover.id}`"
+                                        class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    >
+                                        <div>
+                                            <span class="font-medium">{{ mover.symbol }}</span>
+                                            <span class="ms-1 text-xs text-muted-foreground">{{ mover.market.code }}</span>
+                                        </div>
+                                        <span class="font-medium text-green-600 dark:text-green-400">
+                                            {{ formatGain(mover.priceChangePercent) }}
+                                        </span>
+                                    </Link>
                                 </div>
-                                <span class="font-medium text-green-600 dark:text-green-400">
-                                    {{ formatGain(prediction.gain_percent) }}
-                                </span>
-                            </Link>
+                            </Deferred>
                         </CardContent>
                     </Card>
 
-                    <!-- Highest Confidence -->
+                    <!-- Highest Confidence (derived from featuredPredictions) -->
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
@@ -493,21 +404,32 @@ const selectMarket = (market: MarketCode | null) => {
                                 {{ t('home.highestConfidence') }}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent class="space-y-3">
-                            <Link
-                                v-for="prediction in highestConfidence"
-                                :key="prediction.id"
-                                :href="`/assets/${prediction.id}`"
-                                class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
-                            >
-                                <div>
-                                    <span class="font-medium">{{ prediction.symbol }}</span>
-                                    <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
+                        <CardContent>
+                            <Deferred data="featuredPredictions">
+                                <template #fallback>
+                                    <div class="space-y-3">
+                                        <div v-for="i in 5" :key="i" class="animate-pulse">
+                                            <div class="h-8 bg-muted rounded"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="space-y-3">
+                                    <Link
+                                        v-for="prediction in [...featuredPredictions].sort((a, b) => b.confidence - a.confidence).slice(0, 5)"
+                                        :key="prediction.id"
+                                        :href="`/assets/${prediction.asset.id}`"
+                                        class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    >
+                                        <div>
+                                            <span class="font-medium">{{ prediction.asset.symbol }}</span>
+                                            <span v-if="prediction.asset.market" class="ms-1 text-xs text-muted-foreground">{{ prediction.asset.market.code }}</span>
+                                        </div>
+                                        <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                            {{ prediction.confidence }}%
+                                        </span>
+                                    </Link>
                                 </div>
-                                <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
-                                    {{ prediction.confidence }}%
-                                </span>
-                            </Link>
+                            </Deferred>
                         </CardContent>
                     </Card>
 
@@ -519,21 +441,32 @@ const selectMarket = (market: MarketCode | null) => {
                                 {{ t('home.recentUpdates') }}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent class="space-y-3">
-                            <Link
-                                v-for="prediction in recentPredictions"
-                                :key="prediction.id"
-                                :href="`/assets/${prediction.id}`"
-                                class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
-                            >
-                                <div>
-                                    <span class="font-medium">{{ prediction.symbol }}</span>
-                                    <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
+                        <CardContent>
+                            <Deferred data="recentPredictions">
+                                <template #fallback>
+                                    <div class="space-y-3">
+                                        <div v-for="i in 5" :key="i" class="animate-pulse">
+                                            <div class="h-8 bg-muted rounded"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <div class="space-y-3">
+                                    <Link
+                                        v-for="prediction in recentPredictions"
+                                        :key="prediction.id"
+                                        :href="`/assets/${prediction.asset.id}`"
+                                        class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    >
+                                        <div>
+                                            <span class="font-medium">{{ prediction.asset.symbol }}</span>
+                                            <span v-if="prediction.asset.market" class="ms-1 text-xs text-muted-foreground">{{ prediction.asset.market.code }}</span>
+                                        </div>
+                                        <span class="text-xs text-muted-foreground">
+                                            {{ prediction.horizonLabel }}
+                                        </span>
+                                    </Link>
                                 </div>
-                                <span class="text-xs text-muted-foreground">
-                                    {{ prediction.horizon }}
-                                </span>
-                            </Link>
+                            </Deferred>
                         </CardContent>
                     </Card>
                 </div>
