@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { router, usePage } from '@inertiajs/vue3';
 import { Languages } from 'lucide-vue-next';
 import {
     DropdownMenu,
@@ -10,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 const { locale } = useI18n();
+const page = usePage();
 
 const languages = [
     { code: 'ar', name: 'العربية', dir: 'rtl' },
@@ -21,6 +23,26 @@ const currentLanguage = () => {
 };
 
 const switchLanguage = (code: string) => {
+    const currentUrl = window.location.pathname;
+    const currentLocale = (page.props.locale as string) || locale.value;
+
+    // Build new URL by replacing only the locale segment at the start
+    // Pattern: /{locale}/rest/of/path or /{locale}
+    const localePattern = new RegExp(`^/${currentLocale}(/|$)`);
+    let newUrl: string;
+
+    if (localePattern.test(currentUrl)) {
+        // Replace the locale prefix while preserving the rest of the path
+        newUrl = currentUrl.replace(localePattern, `/${code}$1`);
+    } else {
+        // No locale prefix found, add one
+        newUrl = `/${code}${currentUrl}`;
+    }
+
+    // Ensure we don't have double slashes
+    newUrl = newUrl.replace(/\/+/g, '/');
+
+    // Update local state
     locale.value = code;
     localStorage.setItem('locale', code);
 
@@ -29,6 +51,9 @@ const switchLanguage = (code: string) => {
         document.documentElement.lang = code;
         document.documentElement.dir = lang.dir;
     }
+
+    // Navigate to the new URL
+    router.visit(newUrl);
 };
 </script>
 

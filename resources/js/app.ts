@@ -5,7 +5,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
-import i18n, { initializeLocale } from './i18n';
+import i18n from './i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -17,6 +17,14 @@ createInertiaApp({
             import.meta.glob<DefineComponent>('./pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
+        // Sync i18n locale with server-provided locale
+        const serverLocale = props.initialPage.props.locale as string | undefined;
+        if (serverLocale && (serverLocale === 'ar' || serverLocale === 'en')) {
+            i18n.global.locale.value = serverLocale;
+            document.documentElement.lang = serverLocale;
+            document.documentElement.dir = serverLocale === 'ar' ? 'rtl' : 'ltr';
+        }
+
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(i18n)
@@ -29,6 +37,3 @@ createInertiaApp({
 
 // This will set light / dark mode on page load...
 initializeTheme();
-
-// This will set locale and direction (RTL/LTR) on page load...
-initializeLocale();

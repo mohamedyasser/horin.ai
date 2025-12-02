@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { locale } = useI18n();
+const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
 
 defineProps<{
     title?: string;
@@ -12,6 +17,8 @@ defineProps<{
 <template>
     <div
         class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10"
+        :dir="currentDir"
+        :lang="locale"
     >
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">

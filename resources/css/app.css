@@ -12,6 +12,10 @@
         Instrument Sans, ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-cairo:
+        'Cairo', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -169,4 +173,15 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Arabic font - Cairo */
+html[dir='rtl'],
+html[lang='ar'] {
+    font-family: var(--font-cairo);
+}
+
+html[dir='rtl'] *,
+html[lang='ar'] * {
+    font-family: inherit;
 }
