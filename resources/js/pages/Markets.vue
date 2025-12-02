@@ -19,16 +19,16 @@ import {
     Clock,
     Flame,
     Building2,
-    Globe,
     ArrowRight,
 } from 'lucide-vue-next';
-import type { Market, MarketCode } from '@/types';
+import type { MarketPreview } from '@/types';
 
 const { t } = useI18n();
 
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
+    markets: MarketPreview[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,164 +36,64 @@ const props = withDefaults(defineProps<Props>(), {
     canRegister: true,
 });
 
-// Mock markets data
-const mockMarkets: Market[] = [
-    {
-        id: 1,
-        code: 'EGX',
-        name: 'EGX',
-        full_name: 'Egyptian Exchange',
-        country: 'Egypt',
-        timezone: 'Africa/Cairo',
-        trading_hours: { open: '10:00', close: '14:30' },
-        status: 'closed',
-        prediction_count: 156,
-    },
-    {
-        id: 2,
-        code: 'TASI',
-        name: 'TASI',
-        full_name: 'Tadawul',
-        country: 'Saudi Arabia',
-        timezone: 'Asia/Riyadh',
-        trading_hours: { open: '10:00', close: '15:00' },
-        status: 'open',
-        prediction_count: 243,
-    },
-    {
-        id: 3,
-        code: 'ADX',
-        name: 'ADX',
-        full_name: 'Abu Dhabi Securities Exchange',
-        country: 'UAE',
-        timezone: 'Asia/Dubai',
-        trading_hours: { open: '10:00', close: '14:00' },
-        status: 'open',
-        prediction_count: 89,
-    },
-    {
-        id: 4,
-        code: 'DFM',
-        name: 'DFM',
-        full_name: 'Dubai Financial Market',
-        country: 'UAE',
-        timezone: 'Asia/Dubai',
-        trading_hours: { open: '10:00', close: '14:00' },
-        status: 'open',
-        prediction_count: 112,
-    },
-    {
-        id: 5,
-        code: 'KW',
-        name: 'KW',
-        full_name: 'Boursa Kuwait',
-        country: 'Kuwait',
-        timezone: 'Asia/Kuwait',
-        trading_hours: { open: '09:00', close: '12:40' },
-        status: 'closed',
-        prediction_count: 67,
-    },
-    {
-        id: 6,
-        code: 'QA',
-        name: 'QA',
-        full_name: 'Qatar Stock Exchange',
-        country: 'Qatar',
-        timezone: 'Asia/Qatar',
-        trading_hours: { open: '09:30', close: '13:15' },
-        status: 'closed',
-        prediction_count: 54,
-    },
-    {
-        id: 7,
-        code: 'BH',
-        name: 'BH',
-        full_name: 'Bahrain Bourse',
-        country: 'Bahrain',
-        timezone: 'Asia/Bahrain',
-        trading_hours: { open: '09:30', close: '13:00' },
-        status: 'closed',
-        prediction_count: 32,
-    },
-];
-
 // State
 const searchQuery = ref('');
 const sortBy = ref<'alphabetical' | 'predictions'>('predictions');
 const selectedCountry = ref<string | null>(null);
 
-// Get unique countries
+// Get unique countries from backend data
 const countries = computed(() => {
-    const uniqueCountries = [...new Set(mockMarkets.map((m) => m.country))];
+    const uniqueCountries = [...new Set(props.markets.map((m) => m.country.name))];
     return uniqueCountries.sort();
 });
 
 // Computed
 const filteredMarkets = computed(() => {
-    let result = [...mockMarkets];
+    let result = [...props.markets];
 
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
         result = result.filter(
             (m) =>
                 m.code.toLowerCase().includes(query) ||
-                m.full_name.toLowerCase().includes(query) ||
-                m.country.toLowerCase().includes(query)
+                m.name.toLowerCase().includes(query) ||
+                m.country.name.toLowerCase().includes(query)
         );
     }
 
     if (selectedCountry.value) {
-        result = result.filter((m) => m.country === selectedCountry.value);
+        result = result.filter((m) => m.country.name === selectedCountry.value);
     }
 
     // Sort
     if (sortBy.value === 'alphabetical') {
-        result.sort((a, b) => a.full_name.localeCompare(b.full_name));
+        result.sort((a, b) => a.name.localeCompare(b.name));
     } else {
-        result.sort((a, b) => b.prediction_count - a.prediction_count);
+        result.sort((a, b) => b.predictionCount - a.predictionCount);
     }
 
     return result;
 });
 
 const topMarkets = computed(() =>
-    [...mockMarkets].sort((a, b) => b.prediction_count - a.prediction_count).slice(0, 3)
+    [...props.markets].sort((a, b) => b.predictionCount - a.predictionCount).slice(0, 3)
 );
 
 const trendingMarket = computed(() =>
-    mockMarkets.find((m) => m.code === 'TASI')
+    props.markets.length > 0
+        ? [...props.markets].sort((a, b) => b.predictionCount - a.predictionCount)[0]
+        : null
 );
 
 const recentlyUpdatedMarkets = computed(() =>
-    mockMarkets.filter((m) => m.status === 'open').slice(0, 3)
+    props.markets.filter((m) => m.isOpen).slice(0, 3)
 );
 
 // Helpers
-const getStatusColor = (status: string) => {
-    return status === 'open'
+const getStatusColor = (isOpen: boolean) => {
+    return isOpen
         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
         : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400';
-};
-
-const getMarketName = (code: MarketCode) => {
-    return t(`markets.names.${code}`);
-};
-
-const getCountryKey = (country: string): string => {
-    const countryMap: Record<string, string> = {
-        'Egypt': 'egypt',
-        'Saudi Arabia': 'saudiArabia',
-        'UAE': 'uae',
-        'Kuwait': 'kuwait',
-        'Qatar': 'qatar',
-        'Bahrain': 'bahrain',
-    };
-    return countryMap[country] || country.toLowerCase();
-};
-
-const getCountryName = (country: string) => {
-    const key = getCountryKey(country);
-    return t(`markets.countries.${key}`);
 };
 </script>
 
@@ -293,38 +193,33 @@ const getCountryName = (country: string) => {
                                         <div>
                                             <CardTitle class="text-lg">{{ market.code }}</CardTitle>
                                             <p class="text-sm text-muted-foreground">
-                                                {{ getMarketName(market.code) }}
+                                                {{ market.name }}
                                             </p>
                                         </div>
                                     </div>
                                     <span
-                                        :class="getStatusColor(market.status)"
+                                        :class="getStatusColor(market.isOpen)"
                                         class="rounded-full px-2.5 py-1 text-xs font-medium"
                                     >
-                                        {{ market.status === 'open' ? t('markets.open') : t('markets.closed') }}
+                                        {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
                                     </span>
                                 </div>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <p class="text-muted-foreground">{{ t('markets.countries.' + getCountryKey(market.country)) }}</p>
-                                        <p class="font-medium flex items-center gap-1">
-                                            <Globe class="size-3.5" />
-                                            {{ market.timezone.split('/')[1] }}
-                                        </p>
+                                        <p class="text-muted-foreground">{{ t('markets.country') }}</p>
+                                        <p class="font-medium">{{ market.country.name }}</p>
                                     </div>
                                     <div>
-                                        <p class="text-muted-foreground">{{ t('markets.tradingHours') }}</p>
-                                        <p class="font-medium">
-                                            {{ market.trading_hours.open }} - {{ market.trading_hours.close }}
-                                        </p>
+                                        <p class="text-muted-foreground">{{ t('markets.assets') }}</p>
+                                        <p class="font-medium">{{ market.assetCount }}</p>
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-between border-t border-border pt-4">
                                     <div>
-                                        <p class="text-2xl font-bold">{{ market.prediction_count }}</p>
+                                        <p class="text-2xl font-bold">{{ market.predictionCount }}</p>
                                         <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
                                     </div>
                                     <Button as-child size="sm">
@@ -372,11 +267,11 @@ const getCountryName = (country: string) => {
                                 <div>
                                     <span class="font-medium">{{ market.code }}</span>
                                     <span class="ms-1 text-xs text-muted-foreground">
-                                        {{ getCountryName(market.country) }}
+                                        {{ market.country.name }}
                                     </span>
                                 </div>
                                 <span class="text-sm font-medium text-green-600 dark:text-green-400">
-                                    {{ market.prediction_count }}
+                                    {{ market.predictionCount }}
                                 </span>
                             </div>
                         </CardContent>
@@ -398,7 +293,7 @@ const getCountryName = (country: string) => {
                                 <div>
                                     <p class="font-medium">{{ trendingMarket.code }}</p>
                                     <p class="text-sm text-muted-foreground">
-                                        {{ getMarketName(trendingMarket.code) }}
+                                        {{ trendingMarket.name }}
                                     </p>
                                 </div>
                                 <Button as-child variant="outline" size="sm">
@@ -430,14 +325,14 @@ const getCountryName = (country: string) => {
                                 <div>
                                     <span class="font-medium">{{ market.code }}</span>
                                     <span class="ms-1 text-xs text-muted-foreground">
-                                        {{ getCountryName(market.country) }}
+                                        {{ market.country.name }}
                                     </span>
                                 </div>
                                 <span
-                                    :class="getStatusColor(market.status)"
+                                    :class="getStatusColor(market.isOpen)"
                                     class="rounded-full px-2 py-0.5 text-xs font-medium"
                                 >
-                                    {{ market.status === 'open' ? t('markets.open') : t('markets.closed') }}
+                                    {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
                                 </span>
                             </div>
                         </CardContent>
