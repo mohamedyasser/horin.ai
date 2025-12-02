@@ -17,18 +17,26 @@ import {
     ChevronDown,
     TrendingUp,
     Target,
-    Clock,
     Layers,
-    Building2,
     ArrowRight,
 } from 'lucide-vue-next';
-import type { Sector, SectorCode, MarketCode } from '@/types';
+import type { MarketsBreakdown } from '@/types';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
+
+interface SectorListItem {
+    id: string;
+    name: string;
+    description: string | null;
+    assetCount: number;
+    predictionCount: number;
+    marketsBreakdown: MarketsBreakdown[];
+}
 
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
+    sectors: SectorListItem[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,285 +44,42 @@ const props = withDefaults(defineProps<Props>(), {
     canRegister: true,
 });
 
-// Mock sectors data
-const mockSectors: Sector[] = [
-    {
-        id: 1,
-        code: 'banking',
-        name: 'Banking',
-        description: 'Commercial and investment banks',
-        asset_count: 45,
-        prediction_count: 38,
-        markets: [
-            { market: 'EGX', count: 12 },
-            { market: 'TASI', count: 15 },
-            { market: 'ADX', count: 8 },
-            { market: 'DFM', count: 10 },
-        ],
-        avg_gain_percent: 12.5,
-        updated_at: '2024-01-15T10:00:00Z',
-    },
-    {
-        id: 2,
-        code: 'energy',
-        name: 'Energy',
-        description: 'Oil, gas, and renewable energy',
-        asset_count: 32,
-        prediction_count: 28,
-        markets: [
-            { market: 'TASI', count: 18 },
-            { market: 'ADX', count: 8 },
-            { market: 'QA', count: 6 },
-        ],
-        avg_gain_percent: 15.2,
-        updated_at: '2024-01-15T09:30:00Z',
-    },
-    {
-        id: 3,
-        code: 'telecom',
-        name: 'Telecom',
-        description: 'Telecommunications and internet services',
-        asset_count: 18,
-        prediction_count: 15,
-        markets: [
-            { market: 'EGX', count: 4 },
-            { market: 'TASI', count: 5 },
-            { market: 'KW', count: 3 },
-            { market: 'QA', count: 3 },
-        ],
-        avg_gain_percent: 8.7,
-        updated_at: '2024-01-14T14:00:00Z',
-    },
-    {
-        id: 4,
-        code: 'realEstate',
-        name: 'Real Estate',
-        description: 'Property development and management',
-        asset_count: 52,
-        prediction_count: 42,
-        markets: [
-            { market: 'EGX', count: 15 },
-            { market: 'DFM', count: 20 },
-            { market: 'ADX', count: 10 },
-            { market: 'TASI', count: 7 },
-        ],
-        avg_gain_percent: 11.3,
-        updated_at: '2024-01-15T08:00:00Z',
-    },
-    {
-        id: 5,
-        code: 'healthcare',
-        name: 'Healthcare',
-        description: 'Hospitals, pharmaceuticals, and medical devices',
-        asset_count: 22,
-        prediction_count: 18,
-        markets: [
-            { market: 'EGX', count: 6 },
-            { market: 'TASI', count: 10 },
-            { market: 'ADX', count: 4 },
-            { market: 'KW', count: 2 },
-        ],
-        avg_gain_percent: 9.8,
-        updated_at: '2024-01-13T16:00:00Z',
-    },
-    {
-        id: 6,
-        code: 'industrial',
-        name: 'Industrial',
-        description: 'Manufacturing and industrial goods',
-        asset_count: 38,
-        prediction_count: 30,
-        markets: [
-            { market: 'EGX', count: 12 },
-            { market: 'TASI', count: 14 },
-            { market: 'KW', count: 6 },
-            { market: 'BH', count: 6 },
-        ],
-        avg_gain_percent: 10.5,
-        updated_at: '2024-01-14T11:00:00Z',
-    },
-    {
-        id: 7,
-        code: 'materials',
-        name: 'Materials',
-        description: 'Raw materials and basic resources',
-        asset_count: 28,
-        prediction_count: 22,
-        markets: [
-            { market: 'EGX', count: 8 },
-            { market: 'TASI', count: 12 },
-            { market: 'QA', count: 8 },
-        ],
-        avg_gain_percent: 13.1,
-        updated_at: '2024-01-15T07:30:00Z',
-    },
-    {
-        id: 8,
-        code: 'consumer',
-        name: 'Consumer',
-        description: 'Consumer goods and retail',
-        asset_count: 35,
-        prediction_count: 28,
-        markets: [
-            { market: 'EGX', count: 10 },
-            { market: 'TASI', count: 12 },
-            { market: 'DFM', count: 8 },
-            { market: 'KW', count: 5 },
-        ],
-        avg_gain_percent: 7.9,
-        updated_at: '2024-01-14T15:00:00Z',
-    },
-    {
-        id: 9,
-        code: 'technology',
-        name: 'Technology',
-        description: 'Software, hardware, and IT services',
-        asset_count: 15,
-        prediction_count: 12,
-        markets: [
-            { market: 'TASI', count: 8 },
-            { market: 'ADX', count: 4 },
-            { market: 'DFM', count: 3 },
-        ],
-        avg_gain_percent: 18.4,
-        updated_at: '2024-01-15T10:30:00Z',
-    },
-    {
-        id: 10,
-        code: 'utilities',
-        name: 'Utilities',
-        description: 'Electricity, water, and gas utilities',
-        asset_count: 20,
-        prediction_count: 16,
-        markets: [
-            { market: 'EGX', count: 5 },
-            { market: 'TASI', count: 8 },
-            { market: 'ADX', count: 4 },
-            { market: 'QA', count: 3 },
-        ],
-        avg_gain_percent: 6.2,
-        updated_at: '2024-01-13T12:00:00Z',
-    },
-];
-
-const marketCodes: MarketCode[] = ['EGX', 'TASI', 'ADX', 'DFM', 'KW', 'QA', 'BH'];
-const countries = ['Egypt', 'Saudi Arabia', 'UAE', 'Kuwait', 'Qatar', 'Bahrain'];
-
 // State
 const searchQuery = ref('');
 const sortBy = ref<'alphabetical' | 'predictions'>('predictions');
-const selectedMarket = ref<MarketCode | null>(null);
-const selectedCountry = ref<string | null>(null);
 
-// Computed
+// Computed - use props.sectors directly
 const filteredSectors = computed(() => {
-    let result = [...mockSectors];
+    let result = [...props.sectors];
 
     if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase();
         result = result.filter(
             (s) =>
-                t(`sectors.names.${s.code}`).toLowerCase().includes(query) ||
-                t(`sectors.descriptions.${s.code}`).toLowerCase().includes(query)
-        );
-    }
-
-    if (selectedMarket.value) {
-        result = result.filter((s) =>
-            s.markets.some((m) => m.market === selectedMarket.value)
+                s.name.toLowerCase().includes(query) ||
+                (s.description && s.description.toLowerCase().includes(query))
         );
     }
 
     // Sort
     if (sortBy.value === 'predictions') {
-        result.sort((a, b) => b.prediction_count - a.prediction_count);
+        result.sort((a, b) => b.predictionCount - a.predictionCount);
     } else {
-        result.sort((a, b) =>
-            t(`sectors.names.${a.code}`).localeCompare(t(`sectors.names.${b.code}`))
-        );
+        result.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return result;
 });
 
 const topSectors = computed(() =>
-    [...mockSectors].sort((a, b) => b.prediction_count - a.prediction_count).slice(0, 5)
+    [...props.sectors].sort((a, b) => b.predictionCount - a.predictionCount).slice(0, 5)
 );
 
 const trendingSector = computed(() =>
-    [...mockSectors].sort((a, b) => (b.avg_gain_percent || 0) - (a.avg_gain_percent || 0))[0]
+    props.sectors.length > 0
+        ? [...props.sectors].sort((a, b) => b.predictionCount - a.predictionCount)[0]
+        : null
 );
-
-const recentlyUpdated = computed(() =>
-    [...mockSectors]
-        .sort(
-            (a, b) =>
-                new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-        )
-        .slice(0, 5)
-);
-
-// Helpers
-const getSectorName = (code: SectorCode) => {
-    return t(`sectors.names.${code}`);
-};
-
-const getSectorDescription = (code: SectorCode) => {
-    return t(`sectors.descriptions.${code}`);
-};
-
-const getMarketName = (code: MarketCode) => {
-    return t(`markets.names.${code}`);
-};
-
-const getCountryKey = (country: string): string => {
-    const countryMap: Record<string, string> = {
-        'Egypt': 'egypt',
-        'Saudi Arabia': 'saudiArabia',
-        'UAE': 'uae',
-        'Kuwait': 'kuwait',
-        'Qatar': 'qatar',
-        'Bahrain': 'bahrain',
-    };
-    return countryMap[country] || country.toLowerCase();
-};
-
-const getCountryName = (country: string) => {
-    const key = getCountryKey(country);
-    return t(`markets.countries.${key}`);
-};
-
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(locale.value === 'ar' ? 'ar-EG' : 'en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
-
-const formatGain = (gain: number) => {
-    const sign = gain >= 0 ? '+' : '';
-    return `${sign}${gain.toFixed(1)}%`;
-};
-
-const getSectorIcon = (code: SectorCode) => {
-    // Return a consistent icon for visual variety
-    const icons: Record<string, typeof Building2> = {
-        banking: Building2,
-        energy: TrendingUp,
-        telecom: Layers,
-        realEstate: Building2,
-        healthcare: Target,
-        industrial: Layers,
-        materials: Layers,
-        consumer: Layers,
-        technology: Layers,
-        utilities: Layers,
-    };
-    return icons[code] || Layers;
-};
 </script>
 
 <template>
@@ -350,54 +115,7 @@ const getSectorIcon = (code: SectorCode) => {
             <!-- Filter Bar -->
             <section class="border-b border-border/40">
                 <div class="mx-auto max-w-7xl px-4 py-4">
-                    <div class="flex flex-wrap items-center justify-between gap-4">
-                        <!-- Filters -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <!-- Market Filter -->
-                            <DropdownMenu>
-                                <DropdownMenuTrigger as-child>
-                                    <Button variant="outline" size="sm">
-                                        {{ selectedMarket ? getMarketName(selectedMarket) : t('sectors.allMarkets') }}
-                                        <ChevronDown class="ms-1 size-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                    <DropdownMenuItem @click="selectedMarket = null">
-                                        {{ t('sectors.allMarkets') }}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        v-for="market in marketCodes"
-                                        :key="market"
-                                        @click="selectedMarket = market"
-                                    >
-                                        {{ getMarketName(market) }}
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-
-                            <!-- Country Filter -->
-                            <DropdownMenu>
-                                <DropdownMenuTrigger as-child>
-                                    <Button variant="outline" size="sm">
-                                        {{ selectedCountry ? getCountryName(selectedCountry) : t('sectors.allCountries') }}
-                                        <ChevronDown class="ms-1 size-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                    <DropdownMenuItem @click="selectedCountry = null">
-                                        {{ t('sectors.allCountries') }}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        v-for="country in countries"
-                                        :key="country"
-                                        @click="selectedCountry = country"
-                                    >
-                                        {{ getCountryName(country) }}
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-
+                    <div class="flex flex-wrap items-center justify-end gap-4">
                         <!-- Sort Dropdown -->
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
@@ -459,29 +177,29 @@ const getSectorIcon = (code: SectorCode) => {
                                                         <Layers class="size-5" />
                                                     </div>
                                                     <div>
-                                                        <p class="font-medium">{{ getSectorName(sector.code) }}</p>
-                                                        <p class="text-sm text-muted-foreground">
-                                                            {{ getSectorDescription(sector.code) }}
+                                                        <p class="font-medium">{{ sector.name }}</p>
+                                                        <p v-if="sector.description" class="text-sm text-muted-foreground">
+                                                            {{ sector.description }}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="px-4 py-4 text-end">
-                                                <span class="font-medium">{{ sector.asset_count }}</span>
+                                                <span class="font-medium">{{ sector.assetCount }}</span>
                                                 <span class="ms-1 text-sm text-muted-foreground">{{ t('sectors.assets') }}</span>
                                             </td>
                                             <td class="px-4 py-4 text-end">
-                                                <span class="font-medium text-primary">{{ sector.prediction_count }}</span>
+                                                <span class="font-medium text-primary">{{ sector.predictionCount }}</span>
                                                 <span class="ms-1 text-sm text-muted-foreground">{{ t('sectors.predictions') }}</span>
                                             </td>
                                             <td class="px-4 py-4">
                                                 <div class="flex flex-wrap gap-1">
                                                     <span
-                                                        v-for="m in sector.markets.slice(0, 4)"
-                                                        :key="m.market"
+                                                        v-for="m in sector.marketsBreakdown.slice(0, 4)"
+                                                        :key="m.marketId"
                                                         class="rounded bg-muted px-2 py-0.5 text-xs font-medium"
                                                     >
-                                                        {{ m.market }}: {{ m.count }}
+                                                        {{ m.marketCode }}: {{ m.count }}
                                                     </span>
                                                 </div>
                                             </td>
@@ -538,9 +256,9 @@ const getSectorIcon = (code: SectorCode) => {
                                     :href="`/sectors/${sector.id}`"
                                     class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                 >
-                                    <span class="font-medium">{{ getSectorName(sector.code) }}</span>
+                                    <span class="font-medium">{{ sector.name }}</span>
                                     <span class="text-sm text-muted-foreground">
-                                        {{ sector.prediction_count }} {{ t('sectors.predictions') }}
+                                        {{ sector.predictionCount }} {{ t('sectors.predictions') }}
                                     </span>
                                 </Link>
                             </CardContent>
@@ -568,42 +286,13 @@ const getSectorIcon = (code: SectorCode) => {
                                                 <Layers class="size-5" />
                                             </div>
                                             <div>
-                                                <p class="font-medium">{{ getSectorName(trendingSector.code) }}</p>
+                                                <p class="font-medium">{{ trendingSector.name }}</p>
                                                 <p class="text-sm text-muted-foreground">
-                                                    {{ trendingSector.prediction_count }} {{ t('sectors.predictions') }}
+                                                    {{ trendingSector.predictionCount }} {{ t('sectors.predictions') }}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span class="font-medium text-green-600 dark:text-green-400">
-                                            {{ formatGain(trendingSector.avg_gain_percent || 0) }}
-                                        </span>
                                     </div>
-                                </Link>
-                            </CardContent>
-                        </Card>
-
-                        <!-- Recently Updated -->
-                        <Card>
-                            <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <Clock class="size-4 text-orange-500" />
-                                    {{ t('sectors.recentlyUpdated') }}
-                                </CardTitle>
-                                <p class="text-xs text-muted-foreground">
-                                    {{ t('sectors.recentlyUpdatedDesc') }}
-                                </p>
-                            </CardHeader>
-                            <CardContent class="space-y-3">
-                                <Link
-                                    v-for="sector in recentlyUpdated"
-                                    :key="sector.id"
-                                    :href="`/sectors/${sector.id}`"
-                                    class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
-                                >
-                                    <span class="font-medium">{{ getSectorName(sector.code) }}</span>
-                                    <span class="text-xs text-muted-foreground">
-                                        {{ formatDate(sector.updated_at) }}
-                                    </span>
                                 </Link>
                             </CardContent>
                         </Card>
