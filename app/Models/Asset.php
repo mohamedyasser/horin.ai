@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Builder;
 
 class Asset extends Model
 {
@@ -41,7 +41,7 @@ class Asset extends Model
         'sector_id',
     ];
 
-    protected $appends = ['name'];
+    protected $appends = ['name', 'description'];
 
     /**
      * Indicates if the model's ID is auto-incrementing.
@@ -126,11 +126,40 @@ class Asset extends Model
         return $this->hasOne(AssetPrice::class, 'pid', 'inv_id')->ofMany('timestamp', 'max');
     }
 
+    public function latestPrediction(): HasOne
+    {
+        return $this->hasOne(PredictedAssetPrice::class, 'pid', 'inv_id')
+            ->ofMany('timestamp', 'max');
+    }
+
+    public function predictions(): HasMany
+    {
+        return $this->hasMany(PredictedAssetPrice::class, 'pid', 'inv_id');
+    }
+
+    public function latestIndicator(): HasOne
+    {
+        return $this->hasOne(InstantIndicator::class, 'pid', 'inv_id')
+            ->ofMany('timestamp', 'max');
+    }
+
+    public function priceHistory(): HasMany
+    {
+        return $this->hasMany(AssetPrice::class, 'pid', 'inv_id');
+    }
+
     public function getNameAttribute()
     {
         return app()->getLocale() === 'ar'
             ? $this->name_ar
             : $this->name_en;
+    }
+
+    public function getDescriptionAttribute(): ?string
+    {
+        return app()->getLocale() === 'ar'
+            ? $this->description_ar
+            : $this->description_en;
     }
 
     public function scopeCrypto(Builder $q): Builder
