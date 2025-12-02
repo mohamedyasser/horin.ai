@@ -68,10 +68,11 @@ class HomeController extends Controller
         $sortBy = $request->input('sort', 'confidence');
         $sortBy = in_array($sortBy, ['confidence', 'timestamp']) ? $sortBy : 'confidence';
 
-        return PredictedAssetPrice::with(['asset.market'])
+        return PredictedAssetPrice::with(['asset.market', 'asset.latestPrice'])
             ->orderByDesc($sortBy)
             ->limit(5)
             ->get()
+            ->filter(fn ($p) => $p->asset !== null)
             ->map(fn ($p) => $this->formatPrediction($p))
             ->toArray();
     }
@@ -114,6 +115,7 @@ class HomeController extends Controller
             ->orderByDesc('timestamp')
             ->limit(5)
             ->get()
+            ->filter(fn ($p) => $p->asset !== null)
             ->map(fn ($p) => [
                 'id' => $p->pid.'-'.$p->timestamp,
                 'asset' => [
