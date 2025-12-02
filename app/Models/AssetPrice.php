@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssetPrice extends Model
 {
@@ -28,4 +29,9 @@ class AssetPrice extends Model
      * The primary key type.
      */
     protected $keyType = 'int';
+
+    public function asset(): BelongsTo
+    {
+        return $this->belongsTo(Asset::class, 'pid', 'inv_id');
+    }
 }
