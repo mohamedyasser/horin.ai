@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"  @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="{{ $locale ?? 'ar' }}" dir="{{ ($locale ?? 'ar') === 'ar' ? 'rtl' : 'ltr' }}" @class(['dark' => ($appearance ?? 'light') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,7 +7,7 @@
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
-                const appearance = '{{ $appearance ?? "system" }}';
+                const appearance = '{{ $appearance ?? "light" }}';
 
                 if (appearance === 'system') {
                     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -15,6 +15,13 @@
                     if (prefersDark) {
                         document.documentElement.classList.add('dark');
                     }
+                }
+
+                // Handle locale and direction from localStorage
+                const storedLocale = localStorage.getItem('locale');
+                if (storedLocale === 'ar' || storedLocale === 'en') {
+                    document.documentElement.lang = storedLocale;
+                    document.documentElement.dir = storedLocale === 'ar' ? 'rtl' : 'ltr';
                 }
             })();
         </script>

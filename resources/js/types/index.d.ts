@@ -37,3 +37,41 @@ export interface User {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+// Market types
+export type MarketCode = 'EGX' | 'TASI' | 'ADX' | 'DFM' | 'KW' | 'QA' | 'BH';
+
+export interface Market {
+    code: MarketCode;
+    name: string;
+    country: string;
+}
+
+// Prediction types
+export type PredictionHorizon = '1D' | '1W' | '1M' | '3M';
+
+export interface Prediction {
+    id: number;
+    symbol: string;
+    name: string;
+    market: MarketCode;
+    sector: string;
+    last_price: number;
+    predicted_price: number;
+    gain_percent: number;
+    horizon: PredictionHorizon;
+    confidence: number;
+    currency: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PredictionFilters {
+    market?: MarketCode;
+    sector?: string;
+    horizon?: PredictionHorizon;
+    min_price?: number;
+    max_price?: number;
+    search?: string;
+    sort_by?: 'gain' | 'confidence' | 'newest';
+}

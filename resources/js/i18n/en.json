@@ -1,0 +1,52 @@
+{
+    "common": {
+        "login": "Login",
+        "getStarted": "Get Started",
+        "about": "About",
+        "contact": "Contact",
+        "allRightsReserved": "All rights reserved.",
+        "previous": "Previous",
+        "next": "Next",
+        "clear": "Clear",
+        "apply": "Apply"
+    },
+    "home": {
+        "title": "Price Predictions",
+        "heroTitle": "Price Predictions for Middle East Markets",
+        "heroSubtitle": "Updated forecasts for stocks in Egypt, Saudi Arabia, UAE, Kuwait, Qatar, and Bahrain.",
+        "searchPlaceholder": "Search by symbol or company name",
+        "allMarkets": "All Markets",
+        "predictions": "Predictions",
+        "sortBy": "Sort by",
+        "highestGain": "Highest Gain",
+        "confidence": "Confidence",
+        "newest": "Newest",
+        "filters": "Filters",
+        "filterPredictions": "Filter Predictions",
+        "sector": "Sector",
+        "sectorPlaceholder": "e.g., Banking, Energy",
+        "minPrice": "Min Price",
+        "maxPrice": "Max Price",
+        "horizon": "Horizon",
+        "table": {
+            "symbol": "Symbol",
+            "name": "Name",
+            "last": "Last",
+            "predicted": "Predicted",
+            "gainPercent": "Gain %"
+        },
+        "noResults": "No predictions available for your filters.",
+        "topMovers": "Top Movers",
+        "highestConfidence": "Highest Confidence",
+        "recentUpdates": "Recent Updates"
+    },
+    "markets": {
+        "egypt": "Egypt",
+        "saudi": "Saudi",
+        "abuDhabi": "Abu Dhabi",
+        "dubai": "Dubai",
+        "kuwait": "Kuwait",
+        "qatar": "Qatar",
+        "bahrain": "Bahrain"
+    }
+}

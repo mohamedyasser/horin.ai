@@ -1,0 +1,52 @@
+{
+    "common": {
+        "login": "تسجيل الدخول",
+        "getStarted": "ابدأ الآن",
+        "about": "عن الموقع",
+        "contact": "اتصل بنا",
+        "allRightsReserved": "جميع الحقوق محفوظة.",
+        "previous": "السابق",
+        "next": "التالي",
+        "clear": "مسح",
+        "apply": "تطبيق"
+    },
+    "home": {
+        "title": "توقعات الأسعار",
+        "heroTitle": "توقعات الأسعار لأسواق الشرق الأوسط",
+        "heroSubtitle": "توقعات محدثة للأسهم في مصر والسعودية والإمارات والكويت وقطر والبحرين.",
+        "searchPlaceholder": "ابحث بالرمز أو اسم الشركة",
+        "allMarkets": "جميع الأسواق",
+        "predictions": "التوقعات",
+        "sortBy": "ترتيب حسب",
+        "highestGain": "أعلى ربح",
+        "confidence": "الثقة",
+        "newest": "الأحدث",
+        "filters": "الفلاتر",
+        "filterPredictions": "تصفية التوقعات",
+        "sector": "القطاع",
+        "sectorPlaceholder": "مثال: البنوك، الطاقة",
+        "minPrice": "أقل سعر",
+        "maxPrice": "أعلى سعر",
+        "horizon": "المدة",
+        "table": {
+            "symbol": "الرمز",
+            "name": "الاسم",
+            "last": "الأخير",
+            "predicted": "المتوقع",
+            "gainPercent": "نسبة الربح"
+        },
+        "noResults": "لا توجد توقعات متاحة للفلاتر المحددة.",
+        "topMovers": "الأكثر ارتفاعاً",
+        "highestConfidence": "الأعلى ثقة",
+        "recentUpdates": "آخر التحديثات"
+    },
+    "markets": {
+        "egypt": "مصر",
+        "saudi": "السعودية",
+        "abuDhabi": "أبوظبي",
+        "dubai": "دبي",
+        "kuwait": "الكويت",
+        "qatar": "قطر",
+        "bahrain": "البحرين"
+    }
+}
