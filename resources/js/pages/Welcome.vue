@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,9 +19,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
-import { login, register, dashboard } from '@/routes';
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import {
     Search,
     SlidersHorizontal,
@@ -32,7 +30,7 @@ import {
     ArrowUpRight,
     ArrowDownRight,
 } from 'lucide-vue-next';
-import type { Prediction, MarketCode, PredictionFilters } from '@/types';
+import type { Prediction, MarketCode } from '@/types';
 
 const { t } = useI18n();
 
@@ -41,7 +39,7 @@ interface Props {
     canRegister: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     canLogin: true,
     canRegister: true,
 });
@@ -233,356 +231,313 @@ const selectMarket = (market: MarketCode | null) => {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
 
-    <div class="min-h-screen bg-background">
-        <!-- Header -->
-        <header class="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-                <Link href="/" class="flex items-center gap-2">
-                    <div class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                        <AppLogoIcon class="size-5 fill-current" />
-                    </div>
-                    <span class="text-lg font-semibold">Horin</span>
-                </Link>
+    <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
+        <!-- Hero Section -->
+        <section class="border-b border-border/40 bg-muted/30">
+            <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                    {{ t('home.heroTitle') }}
+                </h1>
+                <p class="mt-3 text-lg text-muted-foreground">
+                    {{ t('home.heroSubtitle') }}
+                </p>
 
-                <nav class="flex items-center gap-2">
-                    <LanguageSwitcher />
-                    <Link
-                        v-if="canLogin"
-                        :href="login()"
-                        class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                <!-- Search Bar -->
+                <div class="relative mx-auto mt-8 max-w-xl">
+                    <Search class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        v-model="searchQuery"
+                        type="text"
+                        :placeholder="t('home.searchPlaceholder')"
+                        class="h-12 ps-10 text-base"
+                    />
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Filter Bar -->
+        <section class="border-b border-border/40">
+            <div class="mx-auto max-w-7xl px-4 py-4">
+                <div class="flex flex-wrap items-center gap-2">
+                    <Button
+                        :variant="selectedMarket === null ? 'default' : 'outline'"
+                        size="sm"
+                        @click="selectMarket(null)"
                     >
-                        {{ t('common.login') }}
-                    </Link>
-                    <Button v-if="canRegister" as-child>
-                        <Link :href="register()">{{ t('common.getStarted') }}</Link>
+                        {{ t('home.allMarkets') }}
                     </Button>
-                </nav>
+                    <Button
+                        v-for="market in markets"
+                        :key="market.code"
+                        :variant="selectedMarket === market.code ? 'default' : 'outline'"
+                        size="sm"
+                        @click="selectMarket(market.code)"
+                    >
+                        {{ market.code }}
+                    </Button>
+                </div>
             </div>
-        </header>
+        </section>
 
-        <main>
-            <!-- Hero Section -->
-            <section class="border-b border-border/40 bg-muted/30">
-                <div class="mx-auto max-w-7xl px-4 py-12 text-center">
-                    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
-                        {{ t('home.heroTitle') }}
-                    </h1>
-                    <p class="mt-3 text-lg text-muted-foreground">
-                        {{ t('home.heroSubtitle') }}
-                    </p>
+        <!-- Main Content -->
+        <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="grid gap-8 lg:grid-cols-4">
+                <!-- Predictions Table -->
+                <div class="lg:col-span-3">
+                    <!-- Controls -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <h2 class="text-xl font-semibold">{{ t('home.predictions') }}</h2>
+                        <div class="flex items-center gap-2">
+                            <!-- Sort Dropdown -->
+                            <DropdownMenu>
+                                <DropdownMenuTrigger as-child>
+                                    <Button variant="outline" size="sm">
+                                        {{ t('home.sortBy') }}
+                                        <ChevronDown class="ms-1 size-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem @click="sortBy = 'gain'">
+                                        {{ t('home.highestGain') }}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem @click="sortBy = 'confidence'">
+                                        {{ t('home.confidence') }}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem @click="sortBy = 'newest'">
+                                        {{ t('home.newest') }}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
-                    <!-- Search Bar -->
-                    <div class="relative mx-auto mt-8 max-w-xl">
-                        <Search class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            v-model="searchQuery"
-                            type="text"
-                            :placeholder="t('home.searchPlaceholder')"
-                            class="h-12 ps-10 text-base"
-                        />
-                    </div>
-                </div>
-            </section>
-
-            <!-- Market Filter Bar -->
-            <section class="border-b border-border/40">
-                <div class="mx-auto max-w-7xl px-4 py-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Button
-                            :variant="selectedMarket === null ? 'default' : 'outline'"
-                            size="sm"
-                            @click="selectMarket(null)"
-                        >
-                            {{ t('home.allMarkets') }}
-                        </Button>
-                        <Button
-                            v-for="market in markets"
-                            :key="market.code"
-                            :variant="selectedMarket === market.code ? 'default' : 'outline'"
-                            size="sm"
-                            @click="selectMarket(market.code)"
-                        >
-                            {{ market.code }}
-                        </Button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Main Content -->
-            <div class="mx-auto max-w-7xl px-4 py-8">
-                <div class="grid gap-8 lg:grid-cols-4">
-                    <!-- Predictions Table -->
-                    <div class="lg:col-span-3">
-                        <!-- Controls -->
-                        <div class="mb-4 flex items-center justify-between">
-                            <h2 class="text-xl font-semibold">{{ t('home.predictions') }}</h2>
-                            <div class="flex items-center gap-2">
-                                <!-- Sort Dropdown -->
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger as-child>
-                                        <Button variant="outline" size="sm">
-                                            {{ t('home.sortBy') }}
-                                            <ChevronDown class="ms-1 size-4" />
+                            <!-- Filter Button -->
+                            <Dialog v-model:open="filterOpen">
+                                <DialogTrigger as-child>
+                                    <Button variant="outline" size="sm">
+                                        <SlidersHorizontal class="me-1 size-4" />
+                                        {{ t('home.filters') }}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>{{ t('home.filterPredictions') }}</DialogTitle>
+                                    </DialogHeader>
+                                    <div class="grid gap-4 py-4">
+                                        <div class="grid gap-2">
+                                            <Label>{{ t('home.sector') }}</Label>
+                                            <Input :placeholder="t('home.sectorPlaceholder')" />
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="grid gap-2">
+                                                <Label>{{ t('home.minPrice') }}</Label>
+                                                <Input type="number" placeholder="0" />
+                                            </div>
+                                            <div class="grid gap-2">
+                                                <Label>{{ t('home.maxPrice') }}</Label>
+                                                <Input type="number" placeholder="1000" />
+                                            </div>
+                                        </div>
+                                        <div class="grid gap-2">
+                                            <Label>{{ t('home.horizon') }}</Label>
+                                            <div class="flex gap-2">
+                                                <Button variant="outline" size="sm">1D</Button>
+                                                <Button variant="outline" size="sm">1W</Button>
+                                                <Button variant="outline" size="sm">1M</Button>
+                                                <Button variant="outline" size="sm">3M</Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-end gap-2">
+                                        <Button variant="outline" @click="filterOpen = false">
+                                            {{ t('common.clear') }}
                                         </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem @click="sortBy = 'gain'">
-                                            {{ t('home.highestGain') }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem @click="sortBy = 'confidence'">
+                                        <Button @click="filterOpen = false">{{ t('common.apply') }}</Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="rounded-lg border border-border">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-border bg-muted/50">
+                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            {{ t('home.table.symbol') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            {{ t('home.table.name') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            {{ t('home.table.last') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            {{ t('home.table.predicted') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            {{ t('home.table.gainPercent') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
+                                            {{ t('home.horizon') }}
+                                        </th>
+                                        <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
                                             {{ t('home.confidence') }}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem @click="sortBy = 'newest'">
-                                            {{ t('home.newest') }}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-
-                                <!-- Filter Button -->
-                                <Dialog v-model:open="filterOpen">
-                                    <DialogTrigger as-child>
-                                        <Button variant="outline" size="sm">
-                                            <SlidersHorizontal class="me-1 size-4" />
-                                            {{ t('home.filters') }}
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>{{ t('home.filterPredictions') }}</DialogTitle>
-                                        </DialogHeader>
-                                        <div class="grid gap-4 py-4">
-                                            <div class="grid gap-2">
-                                                <Label>{{ t('home.sector') }}</Label>
-                                                <Input :placeholder="t('home.sectorPlaceholder')" />
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="prediction in filteredPredictions"
+                                        :key="prediction.id"
+                                        class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                                        @click="router.visit(`/assets/${prediction.id}`)"
+                                    >
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-medium">{{ prediction.symbol }}</span>
+                                                <span class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                                                    {{ prediction.market }}
+                                                </span>
                                             </div>
-                                            <div class="grid grid-cols-2 gap-4">
-                                                <div class="grid gap-2">
-                                                    <Label>{{ t('home.minPrice') }}</Label>
-                                                    <Input type="number" placeholder="0" />
-                                                </div>
-                                                <div class="grid gap-2">
-                                                    <Label>{{ t('home.maxPrice') }}</Label>
-                                                    <Input type="number" placeholder="1000" />
-                                                </div>
-                                            </div>
-                                            <div class="grid gap-2">
-                                                <Label>{{ t('home.horizon') }}</Label>
-                                                <div class="flex gap-2">
-                                                    <Button variant="outline" size="sm">1D</Button>
-                                                    <Button variant="outline" size="sm">1W</Button>
-                                                    <Button variant="outline" size="sm">1M</Button>
-                                                    <Button variant="outline" size="sm">3M</Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="flex justify-end gap-2">
-                                            <Button variant="outline" @click="filterOpen = false">
-                                                {{ t('common.clear') }}
-                                            </Button>
-                                            <Button @click="filterOpen = false">{{ t('common.apply') }}</Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-muted-foreground">
+                                            {{ prediction.name }}
+                                        </td>
+                                        <td class="px-4 py-3 text-end text-sm">
+                                            {{ formatPrice(prediction.last_price, prediction.currency) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-end text-sm font-medium">
+                                            {{ formatPrice(prediction.predicted_price, prediction.currency) }}
+                                        </td>
+                                        <td class="px-4 py-3 text-end">
+                                            <span
+                                                class="inline-flex items-center gap-0.5 font-medium"
+                                                :class="prediction.gain_percent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                            >
+                                                <ArrowUpRight v-if="prediction.gain_percent >= 0" class="size-4" />
+                                                <ArrowDownRight v-else class="size-4" />
+                                                {{ formatGain(prediction.gain_percent) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-center">
+                                            <span class="rounded-full bg-muted px-2 py-1 text-xs font-medium">
+                                                {{ prediction.horizon }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 text-end">
+                                            <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                                {{ prediction.confidence }}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
-                        <!-- Table -->
-                        <div class="rounded-lg border border-border">
-                            <div class="overflow-x-auto">
-                                <table class="w-full">
-                                    <thead>
-                                        <tr class="border-b border-border bg-muted/50">
-                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                                {{ t('home.table.symbol') }}
-                                            </th>
-                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                                {{ t('home.table.name') }}
-                                            </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                                {{ t('home.table.last') }}
-                                            </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                                {{ t('home.table.predicted') }}
-                                            </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                                {{ t('home.table.gainPercent') }}
-                                            </th>
-                                            <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                                                {{ t('home.horizon') }}
-                                            </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                                {{ t('home.confidence') }}
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="prediction in filteredPredictions"
-                                            :key="prediction.id"
-                                            class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
-                                        >
-                                            <td class="px-4 py-3">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="font-medium">{{ prediction.symbol }}</span>
-                                                    <span class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                                                        {{ prediction.market }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="px-4 py-3 text-sm text-muted-foreground">
-                                                {{ prediction.name }}
-                                            </td>
-                                            <td class="px-4 py-3 text-end text-sm">
-                                                {{ formatPrice(prediction.last_price, prediction.currency) }}
-                                            </td>
-                                            <td class="px-4 py-3 text-end text-sm font-medium">
-                                                {{ formatPrice(prediction.predicted_price, prediction.currency) }}
-                                            </td>
-                                            <td class="px-4 py-3 text-end">
-                                                <span
-                                                    class="inline-flex items-center gap-0.5 font-medium"
-                                                    :class="prediction.gain_percent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
-                                                >
-                                                    <ArrowUpRight v-if="prediction.gain_percent >= 0" class="size-4" />
-                                                    <ArrowDownRight v-else class="size-4" />
-                                                    {{ formatGain(prediction.gain_percent) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-3 text-center">
-                                                <span class="rounded-full bg-muted px-2 py-1 text-xs font-medium">
-                                                    {{ prediction.horizon }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-3 text-end">
-                                                <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
-                                                    {{ prediction.confidence }}%
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <!-- Empty State -->
+                        <div
+                            v-if="filteredPredictions.length === 0"
+                            class="flex flex-col items-center justify-center py-12 text-center"
+                        >
+                            <Search class="size-12 text-muted-foreground/50" />
+                            <p class="mt-4 text-muted-foreground">
+                                {{ t('home.noResults') }}
+                            </p>
+                        </div>
+                    </div>
 
-                            <!-- Empty State -->
-                            <div
-                                v-if="filteredPredictions.length === 0"
-                                class="flex flex-col items-center justify-center py-12 text-center"
+                    <!-- Pagination placeholder -->
+                    <div class="mt-4 flex items-center justify-center gap-2">
+                        <Button variant="outline" size="sm" disabled>{{ t('common.previous') }}</Button>
+                        <Button variant="outline" size="sm" class="bg-primary text-primary-foreground">1</Button>
+                        <Button variant="outline" size="sm">2</Button>
+                        <Button variant="outline" size="sm">3</Button>
+                        <Button variant="outline" size="sm">{{ t('common.next') }}</Button>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <!-- Top Movers -->
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <CardTitle class="flex items-center gap-2 text-base">
+                                <TrendingUp class="size-4 text-green-500" />
+                                {{ t('home.topMovers') }}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="space-y-3">
+                            <Link
+                                v-for="prediction in topMovers"
+                                :key="prediction.id"
+                                :href="`/assets/${prediction.id}`"
+                                class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                             >
-                                <Search class="size-12 text-muted-foreground/50" />
-                                <p class="mt-4 text-muted-foreground">
-                                    {{ t('home.noResults') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Pagination placeholder -->
-                        <div class="mt-4 flex items-center justify-center gap-2">
-                            <Button variant="outline" size="sm" disabled>{{ t('common.previous') }}</Button>
-                            <Button variant="outline" size="sm" class="bg-primary text-primary-foreground">1</Button>
-                            <Button variant="outline" size="sm">2</Button>
-                            <Button variant="outline" size="sm">3</Button>
-                            <Button variant="outline" size="sm">{{ t('common.next') }}</Button>
-                        </div>
-                    </div>
-
-                    <!-- Sidebar -->
-                    <div class="space-y-6">
-                        <!-- Top Movers -->
-                        <Card>
-                            <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingUp class="size-4 text-green-500" />
-                                    {{ t('home.topMovers') }}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent class="space-y-3">
-                                <div
-                                    v-for="prediction in topMovers"
-                                    :key="prediction.id"
-                                    class="flex items-center justify-between"
-                                >
-                                    <div>
-                                        <span class="font-medium">{{ prediction.symbol }}</span>
-                                        <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
-                                    </div>
-                                    <span class="font-medium text-green-600 dark:text-green-400">
-                                        {{ formatGain(prediction.gain_percent) }}
-                                    </span>
+                                <div>
+                                    <span class="font-medium">{{ prediction.symbol }}</span>
+                                    <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <span class="font-medium text-green-600 dark:text-green-400">
+                                    {{ formatGain(prediction.gain_percent) }}
+                                </span>
+                            </Link>
+                        </CardContent>
+                    </Card>
 
-                        <!-- Highest Confidence -->
-                        <Card>
-                            <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <Target class="size-4 text-blue-500" />
-                                    {{ t('home.highestConfidence') }}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent class="space-y-3">
-                                <div
-                                    v-for="prediction in highestConfidence"
-                                    :key="prediction.id"
-                                    class="flex items-center justify-between"
-                                >
-                                    <div>
-                                        <span class="font-medium">{{ prediction.symbol }}</span>
-                                        <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
-                                    </div>
-                                    <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
-                                        {{ prediction.confidence }}%
-                                    </span>
+                    <!-- Highest Confidence -->
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <CardTitle class="flex items-center gap-2 text-base">
+                                <Target class="size-4 text-blue-500" />
+                                {{ t('home.highestConfidence') }}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="space-y-3">
+                            <Link
+                                v-for="prediction in highestConfidence"
+                                :key="prediction.id"
+                                :href="`/assets/${prediction.id}`"
+                                class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                            >
+                                <div>
+                                    <span class="font-medium">{{ prediction.symbol }}</span>
+                                    <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
                                 </div>
-                            </CardContent>
-                        </Card>
+                                <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                    {{ prediction.confidence }}%
+                                </span>
+                            </Link>
+                        </CardContent>
+                    </Card>
 
-                        <!-- Recent Predictions -->
-                        <Card>
-                            <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <Clock class="size-4 text-orange-500" />
-                                    {{ t('home.recentUpdates') }}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent class="space-y-3">
-                                <div
-                                    v-for="prediction in recentPredictions"
-                                    :key="prediction.id"
-                                    class="flex items-center justify-between"
-                                >
-                                    <div>
-                                        <span class="font-medium">{{ prediction.symbol }}</span>
-                                        <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
-                                    </div>
-                                    <span class="text-xs text-muted-foreground">
-                                        {{ prediction.horizon }}
-                                    </span>
+                    <!-- Recent Predictions -->
+                    <Card>
+                        <CardHeader class="pb-3">
+                            <CardTitle class="flex items-center gap-2 text-base">
+                                <Clock class="size-4 text-orange-500" />
+                                {{ t('home.recentUpdates') }}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent class="space-y-3">
+                            <Link
+                                v-for="prediction in recentPredictions"
+                                :key="prediction.id"
+                                :href="`/assets/${prediction.id}`"
+                                class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                            >
+                                <div>
+                                    <span class="font-medium">{{ prediction.symbol }}</span>
+                                    <span class="ms-1 text-xs text-muted-foreground">{{ prediction.market }}</span>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                <span class="text-xs text-muted-foreground">
+                                    {{ prediction.horizon }}
+                                </span>
+                            </Link>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="border-t border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-7xl px-4 py-6">
-                <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <p class="text-sm text-muted-foreground">
-                        &copy; {{ new Date().getFullYear() }} Horin. {{ t('common.allRightsReserved') }}
-                    </p>
-                    <nav class="flex items-center gap-4">
-                        <Link href="/about" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                            {{ t('common.about') }}
-                        </Link>
-                        <a href="mailto:contact@horin.com" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                            {{ t('common.contact') }}
-                        </a>
-                    </nav>
-                </div>
-            </div>
-        </footer>
-    </div>
+        </div>
+    </GuestLayout>
 </template>
