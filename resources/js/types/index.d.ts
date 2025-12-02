@@ -174,3 +174,248 @@ export interface Sector {
     avg_gain_percent?: number;
     updated_at: string;
 }
+
+// Pagination types (matches PaginationHelper output)
+export interface PaginationMeta {
+    currentPage: number;
+    lastPage: number;
+    perPage: number;
+    total: number;
+}
+
+export interface PaginatedResponse<T> {
+    data: T[];
+    meta: PaginationMeta;
+}
+
+// Home page types
+export interface HomeStats {
+    totalMarkets: number;
+    totalAssets: number;
+    totalPredictions: number;
+    totalSectors: number;
+}
+
+export interface CountryPreview {
+    id: string;
+    name: string;
+    code: string;
+}
+
+export interface MarketPreview {
+    id: string;
+    name: string;
+    code: string;
+    country: CountryPreview;
+    isOpen: boolean;
+    assetCount: number;
+    predictionCount: number;
+}
+
+export interface SectorPreview {
+    id: string;
+    name: string;
+    assetCount: number;
+    predictionCount: number;
+}
+
+export interface AssetPreview {
+    id: string;
+    symbol: string;
+    name: string;
+    market?: { code: string };
+}
+
+export interface FeaturedPrediction {
+    id: string;
+    asset: AssetPreview;
+    predictedPrice: number;
+    confidence: number;
+    horizon: number;
+    horizonLabel: string;
+    expectedGainPercent: number;
+    timestamp: string | null;
+}
+
+export interface TopMover {
+    id: string;
+    symbol: string;
+    name: string;
+    market: { code: string };
+    currentPrice: number;
+    priceChangePercent: number;
+}
+
+export interface RecentPrediction {
+    id: string;
+    asset: AssetPreview;
+    predictedPrice: number;
+    confidence: number;
+    horizon: number;
+    horizonLabel: string;
+    timestamp: string | null;
+}
+
+// Market detail types
+export interface MarketDetail {
+    id: string;
+    name: string;
+    code: string;
+    country: CountryPreview | null;
+    isOpen: boolean;
+    openAt: string | null;
+    closeAt: string | null;
+    tvLink: string | null;
+    assetCount: number;
+    predictionCount: number;
+}
+
+export interface AssetListItem {
+    id: string;
+    symbol: string;
+    name: string;
+    sector?: { id: string; name: string } | null;
+    market?: { id: string; code: string; name: string } | null;
+    latestPrice?: { last: number; pcp: string } | null;
+    latestPrediction?: {
+        predictedPrice: number;
+        confidence: number;
+        horizon: number;
+        horizonLabel: string;
+    } | null;
+}
+
+// Sector detail types
+export interface MarketsBreakdown {
+    marketId: string;
+    marketCode: string;
+    marketName: string;
+    count: number;
+}
+
+export interface SectorDetail {
+    id: string;
+    name: string;
+    description: string | null;
+    assetCount: number;
+    predictionCount: number;
+    marketsBreakdown: MarketsBreakdown[];
+}
+
+// Predictions page types
+export interface HorizonOption {
+    value: number;
+    label: string;
+}
+
+export interface PredictionFilterOptions {
+    markets: { id: string; code: string; name: string }[];
+    sectors: { id: string; name: string }[];
+    horizons: HorizonOption[];
+}
+
+export interface PredictionFiltersState {
+    marketId: string | null;
+    sectorId: string | null;
+    horizon: number | null;
+    minConfidence: number;
+}
+
+export interface PredictionSortState {
+    field: 'confidence' | 'timestamp';
+    direction: 'asc' | 'desc';
+}
+
+export interface PredictionListItem {
+    id: string;
+    asset: {
+        id: string;
+        symbol: string;
+        name: string;
+        market: { id: string; code: string; name: string } | null;
+        sector: { id: string; name: string } | null;
+        currentPrice: number | null;
+    };
+    predictedPrice: number;
+    expectedGainPercent: number;
+    confidence: number;
+    horizon: number;
+    horizonLabel: string;
+    timestamp: string;
+}
+
+// Search page types
+export interface SearchResult {
+    id: string;
+    symbol: string;
+    name: string;
+    market: { id: string; code: string; name: string } | null;
+    sector: { id: string; name: string } | null;
+    latestPrice: { last: number; pcp: string } | null;
+}
+
+// Asset detail types
+export interface AssetDetailData {
+    id: string;
+    symbol: string;
+    name: string;
+    type: string;
+    currency: string;
+    market: { id: string; code: string; name: string } | null;
+    sector: { id: string; name: string } | null;
+    country: CountryPreview | null;
+}
+
+export interface AssetPriceData {
+    last: number;
+    changePercent: string;
+    high: number;
+    low: number;
+    previousClose: number;
+    volume: string;
+    updatedAt: string;
+}
+
+export interface AssetPredictionData {
+    horizon: number;
+    horizonLabel: string;
+    predictedPrice: number;
+    confidence: number;
+    expectedGainPercent: number;
+    timestamp: string | null;
+}
+
+export interface AssetIndicatorsData {
+    rsi: number | null;
+    macd: {
+        line: number | null;
+        signal: number | null;
+        histogram: number | null;
+    };
+    ema: number | null;
+    sma: number | null;
+    atr: number | null;
+    bollingerBands: {
+        upper: number | null;
+        middle: number | null;
+        lower: number | null;
+    };
+    updatedAt: string;
+}
+
+export interface PriceHistoryPoint {
+    timestamp: number;
+    close: number;
+    high: number;
+    low: number;
+    open: number;
+    volume: number;
+}
+
+export interface PredictionHistoryItem {
+    predictedPrice: number;
+    confidence: number;
+    horizon: number;
+    horizonLabel: string;
+    timestamp: string | null;
+}
