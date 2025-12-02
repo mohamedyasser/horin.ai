@@ -5,34 +5,15 @@ import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import {
     Search,
-    SlidersHorizontal,
-    ChevronDown,
     ChevronLeft,
     ChevronRight,
     TrendingUp,
     Target,
-    Clock,
     Building2,
     ExternalLink,
-    ArrowUpRight,
-    ArrowDownRight,
     BarChart3,
 } from 'lucide-vue-next';
 import type { MarketDetail, AssetListItem, PaginationMeta } from '@/types';
@@ -56,7 +37,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 // State
 const searchQuery = ref('');
-const filterOpen = ref(false);
 
 // Computed - use props data directly
 const assets = computed(() => props.assets?.data ?? []);
@@ -117,10 +97,6 @@ const getStatusColor = (isOpen: boolean) => {
     return isOpen
         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
         : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400';
-};
-
-const clearFilters = () => {
-    filterOpen.value = false;
 };
 
 const calculateGainPercent = (asset: AssetListItem) => {

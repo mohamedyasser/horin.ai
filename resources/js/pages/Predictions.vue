@@ -20,7 +20,7 @@ import {
     ArrowUpRight,
     ArrowDownRight,
 } from 'lucide-vue-next';
-import type { PredictionListItem, PredictionFilterOptions, PaginationMeta } from '@/types';
+import type { PredictionListItem, PaginationMeta } from '@/types';
 
 const { t } = useI18n();
 
@@ -31,7 +31,6 @@ interface Props {
         data: PredictionListItem[];
         meta: PaginationMeta;
     };
-    filterOptions?: PredictionFilterOptions;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -45,7 +44,6 @@ const searchQuery = ref('');
 // Computed - use props data directly
 const predictions = computed(() => props.predictions?.data ?? []);
 const predictionsMeta = computed(() => props.predictions?.meta);
-const filterOptions = computed(() => props.filterOptions);
 
 // Filter predictions client-side for search
 const filteredPredictions = computed(() => {
