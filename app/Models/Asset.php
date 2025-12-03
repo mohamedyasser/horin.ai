@@ -129,7 +129,7 @@ class Asset extends Model
     public function latestPrediction(): HasOne
     {
         return $this->hasOne(PredictedAssetPrice::class, 'pid', 'inv_id')
-            ->ofMany('timestamp', 'max');
+            ->whereRaw('timestamp = (SELECT MAX(timestamp) FROM predicted_asset_prices AS sub WHERE sub.pid = predicted_asset_prices.pid)');
     }
 
     public function predictions(): HasMany

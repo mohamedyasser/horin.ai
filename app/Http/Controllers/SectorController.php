@@ -108,7 +108,7 @@ class SectorController extends Controller
     private function getSectorAssets(Sector $sector, Request $request): array
     {
         $query = Asset::where('sector_id', $sector->id)
-            ->with(['market', 'latestPrice', 'latestPrediction']);
+            ->with(['market', 'latestPrice']);
 
         if ($request->filled('market_id')) {
             $query->where('market_id', $request->input('market_id'));
@@ -116,27 +116,42 @@ class SectorController extends Controller
 
         $assets = $query->paginate(10);
 
+        // Fetch latest predictions separately (composite PK table, can't use ofMany)
+        $invIds = $assets->pluck('inv_id')->filter()->toArray();
+        $latestPredictions = [];
+        if (! empty($invIds)) {
+            $latestPredictions = DB::table('predicted_asset_prices as p1')
+                ->whereIn('p1.pid', $invIds)
+                ->whereRaw('p1.timestamp = (SELECT MAX(p2.timestamp) FROM predicted_asset_prices p2 WHERE p2.pid = p1.pid)')
+                ->get()
+                ->keyBy('pid');
+        }
+
         return [
-            'data' => $assets->map(fn ($asset) => [
-                'id' => $asset->id,
-                'symbol' => $asset->symbol,
-                'name' => $asset->name,
-                'market' => $asset->market ? [
-                    'id' => $asset->market->id,
-                    'code' => $asset->market->code,
-                    'name' => $asset->market->name,
-                ] : null,
-                'latestPrice' => $asset->latestPrice ? [
-                    'last' => (float) $asset->latestPrice->last,
-                    'pcp' => $asset->latestPrice->pcp,
-                ] : null,
-                'latestPrediction' => $asset->latestPrediction ? [
-                    'predictedPrice' => $asset->latestPrediction->price_prediction,
-                    'confidence' => $asset->latestPrediction->confidence,
-                    'horizon' => $asset->latestPrediction->horizon,
-                    'horizonLabel' => Horizon::label($asset->latestPrediction->horizon),
-                ] : null,
-            ])->toArray(),
+            'data' => $assets->map(function ($asset) use ($latestPredictions) {
+                $prediction = $latestPredictions[$asset->inv_id] ?? null;
+
+                return [
+                    'id' => $asset->id,
+                    'symbol' => $asset->symbol,
+                    'name' => $asset->name,
+                    'market' => $asset->market ? [
+                        'id' => $asset->market->id,
+                        'code' => $asset->market->code,
+                        'name' => $asset->market->name,
+                    ] : null,
+                    'latestPrice' => $asset->latestPrice ? [
+                        'last' => (float) $asset->latestPrice->last,
+                        'pcp' => $asset->latestPrice->pcp,
+                    ] : null,
+                    'latestPrediction' => $prediction ? [
+                        'predictedPrice' => (float) $prediction->price_prediction,
+                        'confidence' => (float) $prediction->confidence,
+                        'horizon' => (int) $prediction->horizon,
+                        'horizonLabel' => Horizon::label($prediction->horizon),
+                    ] : null,
+                ];
+            })->toArray(),
             'meta' => PaginationHelper::meta($assets),
         ];
     }
