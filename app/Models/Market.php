@@ -12,6 +12,14 @@ class Market extends Model
     use HasUuids;
 
     /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'code';
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

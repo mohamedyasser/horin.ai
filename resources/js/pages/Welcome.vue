@@ -294,7 +294,7 @@ const selectMarket = (marketCode: string | null) => {
                                             v-for="prediction in filteredPredictions"
                                             :key="prediction.id"
                                             class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                            @click="router.visit(`/${locale}/assets/${prediction.asset.id}`)"
+                                            @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
                                         >
                                             <td class="px-4 py-3">
                                                 <div class="flex items-center gap-2">
@@ -381,7 +381,7 @@ const selectMarket = (marketCode: string | null) => {
                                     <LocalizedLink
                                         v-for="mover in topMovers"
                                         :key="mover.id"
-                                        :href="`/assets/${mover.id}`"
+                                        :href="`/assets/${mover.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
                                         <div>
@@ -418,7 +418,7 @@ const selectMarket = (marketCode: string | null) => {
                                     <LocalizedLink
                                         v-for="prediction in [...featuredPredictions].sort((a, b) => b.confidence - a.confidence).slice(0, 5)"
                                         :key="prediction.id"
-                                        :href="`/assets/${prediction.asset.id}`"
+                                        :href="`/assets/${prediction.asset.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
                                         <div>
@@ -455,7 +455,7 @@ const selectMarket = (marketCode: string | null) => {
                                     <LocalizedLink
                                         v-for="prediction in recentPredictions"
                                         :key="prediction.id"
-                                        :href="`/assets/${prediction.asset.id}`"
+                                        :href="`/assets/${prediction.asset.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
                                         <div>

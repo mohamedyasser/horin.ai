@@ -224,7 +224,7 @@ const getStatusColor = (isOpen: boolean) => {
                                         <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
                                     </div>
                                     <Button as-child size="sm">
-                                        <LocalizedLink :href="`/markets/${market.id}`">
+                                        <LocalizedLink :href="`/markets/${market.code}`">
                                             {{ t('markets.viewPredictions') }}
                                             <ArrowRight class="ms-1 size-4 rtl:rotate-180" />
                                         </LocalizedLink>
@@ -298,7 +298,7 @@ const getStatusColor = (isOpen: boolean) => {
                                     </p>
                                 </div>
                                 <Button as-child variant="outline" size="sm">
-                                    <LocalizedLink :href="`/markets/${trendingMarket.id}`">
+                                    <LocalizedLink :href="`/markets/${trendingMarket.code}`">
                                         {{ t('markets.viewPredictions') }}
                                     </LocalizedLink>
                                 </Button>

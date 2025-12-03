@@ -206,7 +206,7 @@ const getConfidenceColor = (confidence: number) => {
                                                 v-for="prediction in filteredPredictions"
                                                 :key="prediction.id"
                                                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                                @click="router.visit(`/${locale}/assets/${prediction.asset.id}`)"
+                                                @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
                                             >
                                                 <td class="px-4 py-3">
                                                     <div class="flex items-center gap-2">
@@ -263,7 +263,7 @@ const getConfidenceColor = (confidence: number) => {
                                                         size="sm"
                                                         @click.stop
                                                     >
-                                                        <LocalizedLink :href="`/assets/${prediction.asset.id}`">
+                                                        <LocalizedLink :href="`/assets/${prediction.asset.symbol}`">
                                                             {{ t('predictions.viewDetails') }}
                                                         </LocalizedLink>
                                                     </Button>
@@ -325,7 +325,7 @@ const getConfidenceColor = (confidence: number) => {
                                 <LocalizedLink
                                     v-for="prediction in topGainers"
                                     :key="prediction.id"
-                                    :href="`/assets/${prediction.asset.id}`"
+                                    :href="`/assets/${prediction.asset.symbol}`"
                                     class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                 >
                                     <div>
@@ -356,7 +356,7 @@ const getConfidenceColor = (confidence: number) => {
                                 <LocalizedLink
                                     v-for="prediction in mostConfident"
                                     :key="prediction.id"
-                                    :href="`/assets/${prediction.asset.id}`"
+                                    :href="`/assets/${prediction.asset.symbol}`"
                                     class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                 >
                                     <div>

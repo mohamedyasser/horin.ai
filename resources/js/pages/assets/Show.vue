@@ -139,7 +139,7 @@ const getMacdSignal = (macdLine?: number | null) => {
             <div class="flex flex-wrap items-center gap-4 mb-6">
                 <LocalizedLink
                     v-if="asset.market"
-                    :href="`/markets/${asset.market.id}`"
+                    :href="`/markets/${asset.market.code}`"
                     class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                     <component :is="locale === 'ar' ? ChevronRight : ChevronLeft" class="size-4" />

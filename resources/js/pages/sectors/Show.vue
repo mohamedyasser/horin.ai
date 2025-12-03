@@ -219,7 +219,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                                 v-for="asset in filteredAssets"
                                                 :key="asset.id"
                                                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                                @click="router.visit(`/${locale}/assets/${asset.id}`)"
+                                                @click="router.visit(`/${locale}/assets/${asset.symbol}`)"
                                             >
                                                 <td class="px-4 py-3">
                                                     <span class="font-medium">{{ asset.symbol }}</span>
@@ -344,7 +344,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                     <LocalizedLink
                                         v-for="asset in topGainers"
                                         :key="asset.id"
-                                        :href="`/assets/${asset.id}`"
+                                        :href="`/assets/${asset.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
                                         <div>
@@ -385,7 +385,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                     <LocalizedLink
                                         v-for="asset in mostConfident"
                                         :key="asset.id"
-                                        :href="`/assets/${asset.id}`"
+                                        :href="`/assets/${asset.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
                                         <div>
