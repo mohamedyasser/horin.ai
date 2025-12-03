@@ -233,7 +233,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                                 v-for="asset in filteredAssets"
                                                 :key="asset.id"
                                                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                                @click="router.visit(`/assets/${asset.id}`)"
+                                                @click="router.visit(`/${locale}/assets/${asset.id}`)"
                                             >
                                                 <td class="px-4 py-3">
                                                     <div class="flex items-center gap-2">

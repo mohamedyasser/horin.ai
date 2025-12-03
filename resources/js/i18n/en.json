@@ -152,7 +152,8 @@
         "backToAll": "Back to All Predictions",
         "assetType": {
             "stock": "Stock",
-            "etf": "ETF"
+            "etf": "ETF",
+            "index": "Index"
         },
         "price": {
             "title": "Current Price",
