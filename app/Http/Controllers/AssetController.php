@@ -16,7 +16,7 @@ class AssetController extends Controller
 {
     public function show(string $locale, Asset $asset, Request $request): Response
     {
-        $asset->load(['market', 'sector', 'country', 'latestPrice']);
+        $asset->load(['market', 'sector', 'country', 'cachedPrice']);
         $chartPeriod = in_array((int) $request->input('period', 30), [30, 90, 365]) ? (int) $request->input('period', 30) : 30;
 
         return Inertia::render('assets/Show', [
@@ -41,14 +41,16 @@ class AssetController extends Controller
                     'code' => $asset->country->code,
                 ] : null,
             ],
-            'price' => $asset->latestPrice ? [
-                'last' => (float) $asset->latestPrice->last,
-                'changePercent' => $asset->latestPrice->pcp,
-                'high' => (float) $asset->latestPrice->high,
-                'low' => (float) $asset->latestPrice->low,
-                'previousClose' => (float) $asset->latestPrice->last_close,
-                'volume' => $asset->latestPrice->turnover,
-                'updatedAt' => Carbon::createFromTimestampMs($asset->latestPrice->timestamp)->toISOString(),
+            'price' => $asset->cachedPrice ? [
+                'last' => $asset->cachedPrice->price,
+                'changePercent' => $asset->cachedPrice->percent_change,
+                'high' => $asset->cachedPrice->high,
+                'low' => $asset->cachedPrice->low,
+                'previousClose' => $asset->cachedPrice->last_close,
+                'volume' => $asset->cachedPrice->volume,
+                'updatedAt' => $asset->cachedPrice->price_time?->toISOString(),
+                'freshness' => $asset->cachedPrice->freshness,
+                'hoursAgo' => $asset->cachedPrice->hours_ago,
             ] : null,
             'chartPeriod' => $chartPeriod,
             'predictions' => Inertia::defer(fn () => $this->getAssetPredictions($asset)),

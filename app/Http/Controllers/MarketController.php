@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Market;
 use App\Services\PredictionStatsService;
-use App\Support\Horizon;
 use App\Support\PaginationHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -68,7 +67,7 @@ class MarketController extends Controller
     private function getMarketAssets(Market $market): array
     {
         $assets = Asset::where('market_id', $market->id)
-            ->with(['sector', 'latestPrice', 'latestPrediction'])
+            ->with(['sector', 'cachedPrice', 'cachedPrediction'])
             ->paginate(10);
 
         return [
@@ -80,15 +79,18 @@ class MarketController extends Controller
                     'id' => $asset->sector->id,
                     'name' => $asset->sector->name,
                 ] : null,
-                'latestPrice' => $asset->latestPrice ? [
-                    'last' => (float) $asset->latestPrice->last,
-                    'pcp' => $asset->latestPrice->pcp,
+                'latestPrice' => $asset->cachedPrice ? [
+                    'last' => $asset->cachedPrice->price,
+                    'pcp' => $asset->cachedPrice->percent_change,
+                    'freshness' => $asset->cachedPrice->freshness,
+                    'hoursAgo' => $asset->cachedPrice->hours_ago,
                 ] : null,
-                'latestPrediction' => $asset->latestPrediction ? [
-                    'predictedPrice' => $asset->latestPrediction->price_prediction,
-                    'confidence' => $asset->latestPrediction->confidence,
-                    'horizon' => $asset->latestPrediction->horizon,
-                    'horizonLabel' => Horizon::label($asset->latestPrediction->horizon),
+                'latestPrediction' => $asset->cachedPrediction ? [
+                    'predictedPrice' => $asset->cachedPrediction->price_prediction,
+                    'confidence' => $asset->cachedPrediction->confidence,
+                    'horizon' => $asset->cachedPrediction->horizon,
+                    'horizonLabel' => $asset->cachedPrediction->horizon_label,
+                    'freshness' => $asset->cachedPrediction->freshness,
                 ] : null,
             ])->toArray(),
             'meta' => PaginationHelper::meta($assets),

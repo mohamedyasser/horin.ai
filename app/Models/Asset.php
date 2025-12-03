@@ -132,6 +132,24 @@ class Asset extends Model
             ->whereRaw('timestamp = (SELECT MAX(timestamp) FROM predicted_asset_prices AS sub WHERE sub.pid = predicted_asset_prices.pid)');
     }
 
+    /**
+     * Get the cached latest price from materialized view.
+     * Use this for better performance on listing pages.
+     */
+    public function cachedPrice(): HasOne
+    {
+        return $this->hasOne(LatestAssetPrice::class, 'pid', 'inv_id');
+    }
+
+    /**
+     * Get the cached latest prediction from materialized view.
+     * Use this for better performance on listing pages.
+     */
+    public function cachedPrediction(): HasOne
+    {
+        return $this->hasOne(LatestPrediction::class, 'pid', 'inv_id');
+    }
+
     public function predictions(): HasMany
     {
         return $this->hasMany(PredictedAssetPrice::class, 'pid', 'inv_id');

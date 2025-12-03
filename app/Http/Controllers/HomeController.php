@@ -9,7 +9,6 @@ use App\Models\Sector;
 use App\Services\PredictionStatsService;
 use App\Support\Horizon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -79,32 +78,21 @@ class HomeController extends Controller
 
     private function getTopMovers(): array
     {
-        // LATERAL JOIN efficiently finds latest price per asset using index
-        $results = DB::select("
-            SELECT a.id, a.symbol, a.name_en, a.name_ar, m.code as market_code,
-                   ap.last as current_price, ap.pcp as price_change_percent
-            FROM assets a
-            JOIN markets m ON a.market_id = m.id
-            JOIN LATERAL (
-                SELECT last, pcp
-                FROM asset_prices
-                WHERE pid = a.inv_id
-                ORDER BY timestamp DESC
-                LIMIT 1
-            ) ap ON true
-            ORDER BY NULLIF(REPLACE(ap.pcp, '%', ''), '')::DECIMAL DESC NULLS LAST
-            LIMIT 5
-        ");
-
-        return collect($results)
-            ->map(fn ($row) => [
-                'id' => $row->id,
-                'symbol' => $row->symbol,
-                'name' => app()->getLocale() === 'ar' ? $row->name_ar : $row->name_en,
-                'market' => ['code' => $row->market_code],
-                'currentPrice' => (float) $row->current_price,
-                'priceChangePercent' => (float) str_replace('%', '', $row->price_change_percent),
+        return Asset::with(['market', 'cachedPrice'])
+            ->whereHas('cachedPrice')
+            ->get()
+            ->sortByDesc(fn ($a) => (float) str_replace('%', '', $a->cachedPrice->percent_change ?? '0'))
+            ->take(5)
+            ->map(fn ($asset) => [
+                'id' => $asset->id,
+                'symbol' => $asset->symbol,
+                'name' => $asset->name,
+                'market' => ['code' => $asset->market->code],
+                'currentPrice' => $asset->cachedPrice->price,
+                'priceChangePercent' => (float) str_replace('%', '', $asset->cachedPrice->percent_change ?? '0'),
+                'freshness' => $asset->cachedPrice->freshness,
             ])
+            ->values()
             ->toArray();
     }
 
