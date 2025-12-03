@@ -57,9 +57,9 @@ class HomeController extends Controller
             'stats' => $stats,
             'markets' => $markets,
             'sectors' => $sectors,
-            'featuredPredictions' => Inertia::lazy(fn () => $this->getFeaturedPredictions($request)),
-            'topMovers' => Inertia::lazy(fn () => $this->getTopMovers()),
-            'recentPredictions' => Inertia::lazy(fn () => $this->getRecentPredictions()),
+            'featuredPredictions' => Inertia::defer(fn () => $this->getFeaturedPredictions($request)),
+            'topMovers' => Inertia::defer(fn () => $this->getTopMovers()),
+            'recentPredictions' => Inertia::defer(fn () => $this->getRecentPredictions()),
         ]);
     }
 
@@ -79,32 +79,31 @@ class HomeController extends Controller
 
     private function getTopMovers(): array
     {
-        return DB::table('asset_prices as ap')
-            ->joinSub(
-                DB::table('asset_prices')
-                    ->select('pid', DB::raw('MAX(timestamp) as max_ts'))
-                    ->groupBy('pid'),
-                'latest',
-                fn ($join) => $join->on('ap.pid', '=', 'latest.pid')
-                    ->on('ap.timestamp', '=', 'latest.max_ts')
-            )
-            ->join('assets as a', 'ap.pid', '=', 'a.inv_id')
-            ->join('markets as m', 'a.market_id', '=', 'm.id')
-            ->orderByDesc(DB::raw('CAST(ap.pcp AS DECIMAL)'))
-            ->limit(5)
-            ->select([
-                'a.id', 'a.symbol', 'a.name_en', 'a.name_ar',
-                'm.code as market_code',
-                'ap.last as current_price', 'ap.pcp as price_change_percent',
-            ])
-            ->get()
+        // LATERAL JOIN efficiently finds latest price per asset using index
+        $results = DB::select("
+            SELECT a.id, a.symbol, a.name_en, a.name_ar, m.code as market_code,
+                   ap.last as current_price, ap.pcp as price_change_percent
+            FROM assets a
+            JOIN markets m ON a.market_id = m.id
+            JOIN LATERAL (
+                SELECT last, pcp
+                FROM asset_prices
+                WHERE pid = a.inv_id
+                ORDER BY timestamp DESC
+                LIMIT 1
+            ) ap ON true
+            ORDER BY NULLIF(REPLACE(ap.pcp, '%', ''), '')::DECIMAL DESC NULLS LAST
+            LIMIT 5
+        ");
+
+        return collect($results)
             ->map(fn ($row) => [
                 'id' => $row->id,
                 'symbol' => $row->symbol,
                 'name' => app()->getLocale() === 'ar' ? $row->name_ar : $row->name_en,
                 'market' => ['code' => $row->market_code],
                 'currentPrice' => (float) $row->current_price,
-                'priceChangePercent' => (float) $row->price_change_percent,
+                'priceChangePercent' => (float) str_replace('%', '', $row->price_change_percent),
             ])
             ->toArray();
     }
@@ -123,8 +122,8 @@ class HomeController extends Controller
                     'symbol' => $p->asset->symbol,
                     'name' => $p->asset->name,
                 ],
-                'predictedPrice' => $p->price_prediction,
-                'confidence' => $p->confidence,
+                'predictedPrice' => (float) $p->price_prediction,
+                'confidence' => (float) $p->confidence,
                 'horizon' => $p->horizon,
                 'horizonLabel' => Horizon::label($p->horizon),
                 'timestamp' => $p->created_at?->toISOString(),
@@ -147,8 +146,8 @@ class HomeController extends Controller
                 'name' => $prediction->asset->name,
                 'market' => ['code' => $prediction->asset->market->code],
             ],
-            'predictedPrice' => $prediction->price_prediction,
-            'confidence' => $prediction->confidence,
+            'predictedPrice' => (float) $prediction->price_prediction,
+            'confidence' => (float) $prediction->confidence,
             'horizon' => $prediction->horizon,
             'horizonLabel' => Horizon::label($prediction->horizon),
             'expectedGainPercent' => round($expectedGain, 2),

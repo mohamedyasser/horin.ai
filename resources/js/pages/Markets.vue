@@ -147,7 +147,7 @@ const getStatusColor = (isOpen: boolean) => {
                             size="sm"
                             @click="selectedCountry = country"
                         >
-                            {{ getCountryName(country) }}
+                            {{ country }}
                         </Button>
                     </div>
 

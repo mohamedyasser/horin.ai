@@ -24,8 +24,8 @@ class SearchController extends Controller
 
         return Inertia::render('Search', [
             'query' => $query,
-            'results' => Inertia::lazy(fn () => $this->searchAssets($query)),
-            'totalCount' => Inertia::lazy(fn () => $this->countAssets($query)),
+            'results' => Inertia::defer(fn () => $this->searchAssets($query)),
+            'totalCount' => Inertia::defer(fn () => $this->countAssets($query)),
         ]);
     }
 

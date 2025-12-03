@@ -42,7 +42,7 @@ class PredictionController extends Controller
             'filterOptions' => $filterOptions,
             'filters' => $filters,
             'sort' => $sort,
-            'predictions' => Inertia::lazy(fn () => $this->getPredictions($filters, $sort)),
+            'predictions' => Inertia::defer(fn () => $this->getPredictions($filters, $sort)),
         ]);
     }
 

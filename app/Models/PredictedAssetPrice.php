@@ -31,6 +31,16 @@ class PredictedAssetPrice extends Model
         'created_at',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'price_prediction' => 'float',
+            'confidence' => 'float',
+            'horizon' => 'integer',
+            'created_at' => 'datetime',
+        ];
+    }
+
     /**
      * Indicates if the model's ID is auto-incrementing.
      *

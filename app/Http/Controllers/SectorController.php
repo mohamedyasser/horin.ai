@@ -101,7 +101,7 @@ class SectorController extends Controller
             'filters' => [
                 'marketId' => $request->input('market_id'),
             ],
-            'assets' => Inertia::lazy(fn () => $this->getSectorAssets($sector, $request)),
+            'assets' => Inertia::defer(fn () => $this->getSectorAssets($sector, $request)),
         ]);
     }
 

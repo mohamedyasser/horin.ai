@@ -51,10 +51,10 @@ class AssetController extends Controller
                 'updatedAt' => Carbon::createFromTimestampMs($asset->latestPrice->timestamp)->toISOString(),
             ] : null,
             'chartPeriod' => $chartPeriod,
-            'predictions' => Inertia::lazy(fn () => $this->getAssetPredictions($asset)),
-            'indicators' => Inertia::lazy(fn () => $this->getAssetIndicators($asset)),
-            'priceHistory' => Inertia::lazy(fn () => $this->getPriceHistory($asset, $chartPeriod)),
-            'predictionHistory' => Inertia::lazy(fn () => $this->getPredictionHistory($asset)),
+            'predictions' => Inertia::defer(fn () => $this->getAssetPredictions($asset)),
+            'indicators' => Inertia::defer(fn () => $this->getAssetIndicators($asset)),
+            'priceHistory' => Inertia::defer(fn () => $this->getPriceHistory($asset, $chartPeriod)),
+            'predictionHistory' => Inertia::defer(fn () => $this->getPredictionHistory($asset)),
         ]);
     }
 

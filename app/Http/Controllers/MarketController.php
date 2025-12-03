@@ -61,7 +61,7 @@ class MarketController extends Controller
                 'assetCount' => $market->assets_count,
                 'predictionCount' => PredictionStatsService::countForMarket($market->id),
             ],
-            'assets' => Inertia::lazy(fn () => $this->getMarketAssets($market)),
+            'assets' => Inertia::defer(fn () => $this->getMarketAssets($market)),
         ]);
     }
 
