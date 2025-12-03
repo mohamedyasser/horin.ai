@@ -8,7 +8,8 @@
         "previous": "السابق",
         "next": "التالي",
         "clear": "مسح",
-        "apply": "تطبيق"
+        "apply": "تطبيق",
+        "noData": "لا توجد بيانات متاحة"
     },
     "home": {
         "title": "توقعات الأسعار",
@@ -58,6 +59,8 @@
         "open": "مفتوح",
         "closed": "مغلق",
         "noResults": "لم يتم العثور على أسواق مطابقة للبحث.",
+        "assets": "الأصول",
+        "country": "الدولة",
         "topMarkets": "أفضل الأسواق",
         "topMarketsDesc": "الأسواق ذات أعلى نشاط للتوقعات",
         "trendingMarket": "السوق الرائج",
@@ -404,9 +407,11 @@
             "symbol": "الرمز",
             "name": "الاسم",
             "market": "السوق",
+            "sector": "القطاع",
             "lastPrice": "السعر الأخير",
             "predictedPrice": "السعر المتوقع",
             "gainPercent": "نسبة الربح",
+            "change": "التغير",
             "horizon": "المدة",
             "confidence": "الثقة",
             "action": "الإجراء"

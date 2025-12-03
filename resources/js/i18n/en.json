@@ -8,7 +8,8 @@
         "previous": "Previous",
         "next": "Next",
         "clear": "Clear",
-        "apply": "Apply"
+        "apply": "Apply",
+        "noData": "No data available"
     },
     "home": {
         "title": "Price Predictions",
@@ -58,6 +59,8 @@
         "open": "Open",
         "closed": "Closed",
         "noResults": "No markets found matching your search.",
+        "assets": "Assets",
+        "country": "Country",
         "topMarkets": "Top Markets",
         "topMarketsDesc": "Markets with highest prediction activity",
         "trendingMarket": "Trending Market",
@@ -404,9 +407,11 @@
             "symbol": "Symbol",
             "name": "Name",
             "market": "Market",
+            "sector": "Sector",
             "lastPrice": "Last Price",
             "predictedPrice": "Predicted Price",
             "gainPercent": "Gain %",
+            "change": "Change",
             "horizon": "Horizon",
             "confidence": "Confidence",
             "action": "Action"
