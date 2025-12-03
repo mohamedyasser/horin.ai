@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link, router, Deferred } from '@inertiajs/vue3';
+import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,7 @@ import {
 } from 'lucide-vue-next';
 import type { PredictionListItem, PaginationMeta } from '@/types';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 interface Props {
     canLogin: boolean;
@@ -205,7 +206,7 @@ const getConfidenceColor = (confidence: number) => {
                                                 v-for="prediction in filteredPredictions"
                                                 :key="prediction.id"
                                                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                                @click="router.visit(`/assets/${prediction.asset.id}`)"
+                                                @click="router.visit(`/${locale}/assets/${prediction.asset.id}`)"
                                             >
                                                 <td class="px-4 py-3">
                                                     <div class="flex items-center gap-2">
@@ -262,9 +263,9 @@ const getConfidenceColor = (confidence: number) => {
                                                         size="sm"
                                                         @click.stop
                                                     >
-                                                        <Link :href="`/assets/${prediction.asset.id}`">
+                                                        <LocalizedLink :href="`/assets/${prediction.asset.id}`">
                                                             {{ t('predictions.viewDetails') }}
-                                                        </Link>
+                                                        </LocalizedLink>
                                                     </Button>
                                                 </td>
                                             </tr>
@@ -321,7 +322,7 @@ const getConfidenceColor = (confidence: number) => {
                                 </p>
                             </CardHeader>
                             <CardContent class="space-y-3">
-                                <Link
+                                <LocalizedLink
                                     v-for="prediction in topGainers"
                                     :key="prediction.id"
                                     :href="`/assets/${prediction.asset.id}`"
@@ -336,7 +337,7 @@ const getConfidenceColor = (confidence: number) => {
                                     <span class="font-medium text-green-600 dark:text-green-400">
                                         {{ formatGain(prediction.expectedGainPercent) }}
                                     </span>
-                                </Link>
+                                </LocalizedLink>
                             </CardContent>
                         </Card>
 
@@ -352,7 +353,7 @@ const getConfidenceColor = (confidence: number) => {
                                 </p>
                             </CardHeader>
                             <CardContent class="space-y-3">
-                                <Link
+                                <LocalizedLink
                                     v-for="prediction in mostConfident"
                                     :key="prediction.id"
                                     :href="`/assets/${prediction.asset.id}`"
@@ -367,7 +368,7 @@ const getConfidenceColor = (confidence: number) => {
                                     <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                         {{ prediction.confidence }}%
                                     </span>
-                                </Link>
+                                </LocalizedLink>
                             </CardContent>
                         </Card>
                     </div>

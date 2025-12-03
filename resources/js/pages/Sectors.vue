@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +23,7 @@ import {
 } from 'lucide-vue-next';
 import type { MarketsBreakdown } from '@/types';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 interface SectorListItem {
     id: string;
@@ -205,10 +206,10 @@ const trendingSector = computed(() =>
                                             </td>
                                             <td class="px-4 py-4 text-center">
                                                 <Button as-child variant="ghost" size="sm">
-                                                    <Link :href="`/sectors/${sector.id}`">
+                                                    <LocalizedLink :href="`/sectors/${sector.id}`">
                                                         {{ t('sectors.viewPredictions') }}
                                                         <ArrowRight class="ms-1 size-4" />
-                                                    </Link>
+                                                    </LocalizedLink>
                                                 </Button>
                                             </td>
                                         </tr>
@@ -250,7 +251,7 @@ const trendingSector = computed(() =>
                                 </p>
                             </CardHeader>
                             <CardContent class="space-y-3">
-                                <Link
+                                <LocalizedLink
                                     v-for="sector in topSectors"
                                     :key="sector.id"
                                     :href="`/sectors/${sector.id}`"
@@ -260,7 +261,7 @@ const trendingSector = computed(() =>
                                     <span class="text-sm text-muted-foreground">
                                         {{ sector.predictionCount }} {{ t('sectors.predictions') }}
                                     </span>
-                                </Link>
+                                </LocalizedLink>
                             </CardContent>
                         </Card>
 
@@ -276,7 +277,7 @@ const trendingSector = computed(() =>
                                 </p>
                             </CardHeader>
                             <CardContent>
-                                <Link
+                                <LocalizedLink
                                     :href="`/sectors/${trendingSector.id}`"
                                     class="block hover:bg-muted/30 -mx-2 px-2 py-2 rounded transition-colors"
                                 >
@@ -293,7 +294,7 @@ const trendingSector = computed(() =>
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
+                                </LocalizedLink>
                             </CardContent>
                         </Card>
                     </div>

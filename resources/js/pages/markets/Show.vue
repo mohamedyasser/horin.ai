@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link, router, Deferred } from '@inertiajs/vue3';
+import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -116,13 +117,13 @@ const calculateGainPercent = (asset: AssetListItem) => {
             <section class="border-b border-border/40 bg-muted/30">
                 <div class="mx-auto max-w-7xl px-4 py-8">
                     <!-- Back Link -->
-                    <Link
+                    <LocalizedLink
                         href="/markets"
                         class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
                     >
                         <component :is="locale === 'ar' ? ChevronRight : ChevronLeft" class="size-4" />
                         {{ t('marketDetail.backToMarkets') }}
-                    </Link>
+                    </LocalizedLink>
 
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <!-- Market Info -->
@@ -353,7 +354,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                             <div v-for="i in 5" :key="i" class="animate-pulse h-6 bg-muted rounded"></div>
                                         </div>
                                     </template>
-                                    <Link
+                                    <LocalizedLink
                                         v-for="asset in topGainers"
                                         :key="asset.id"
                                         :href="`/assets/${asset.id}`"
@@ -368,7 +369,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                         <span class="font-medium text-green-600 dark:text-green-400">
                                             {{ formatGain(calculateGainPercent(asset)) }}
                                         </span>
-                                    </Link>
+                                    </LocalizedLink>
                                     <p v-if="topGainers.length === 0" class="text-sm text-muted-foreground text-center py-2">
                                         {{ t('common.noData') }}
                                     </p>
@@ -394,7 +395,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                             <div v-for="i in 5" :key="i" class="animate-pulse h-6 bg-muted rounded"></div>
                                         </div>
                                     </template>
-                                    <Link
+                                    <LocalizedLink
                                         v-for="asset in mostConfident"
                                         :key="asset.id"
                                         :href="`/assets/${asset.id}`"
@@ -409,7 +410,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                         <span v-if="asset.latestPrediction" :class="getConfidenceColor(asset.latestPrediction.confidence)" class="font-medium">
                                             {{ asset.latestPrediction.confidence }}%
                                         </span>
-                                    </Link>
+                                    </LocalizedLink>
                                     <p v-if="mostConfident.length === 0" class="text-sm text-muted-foreground text-center py-2">
                                         {{ t('common.noData') }}
                                     </p>

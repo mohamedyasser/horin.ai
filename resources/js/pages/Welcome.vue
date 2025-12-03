@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link, router, Deferred } from '@inertiajs/vue3';
+import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,7 +40,7 @@ import type {
     RecentPrediction,
 } from '@/types';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 interface Props {
     canLogin: boolean;
@@ -293,7 +294,7 @@ const selectMarket = (marketCode: string | null) => {
                                             v-for="prediction in filteredPredictions"
                                             :key="prediction.id"
                                             class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                            @click="router.visit(`/assets/${prediction.asset.id}`)"
+                                            @click="router.visit(`/${locale}/assets/${prediction.asset.id}`)"
                                         >
                                             <td class="px-4 py-3">
                                                 <div class="flex items-center gap-2">
@@ -377,7 +378,7 @@ const selectMarket = (marketCode: string | null) => {
                                     </div>
                                 </template>
                                 <div class="space-y-3">
-                                    <Link
+                                    <LocalizedLink
                                         v-for="mover in topMovers"
                                         :key="mover.id"
                                         :href="`/assets/${mover.id}`"
@@ -390,7 +391,7 @@ const selectMarket = (marketCode: string | null) => {
                                         <span class="font-medium text-green-600 dark:text-green-400">
                                             {{ formatGain(mover.priceChangePercent) }}
                                         </span>
-                                    </Link>
+                                    </LocalizedLink>
                                 </div>
                             </Deferred>
                         </CardContent>
@@ -414,7 +415,7 @@ const selectMarket = (marketCode: string | null) => {
                                     </div>
                                 </template>
                                 <div class="space-y-3">
-                                    <Link
+                                    <LocalizedLink
                                         v-for="prediction in [...featuredPredictions].sort((a, b) => b.confidence - a.confidence).slice(0, 5)"
                                         :key="prediction.id"
                                         :href="`/assets/${prediction.asset.id}`"
@@ -427,7 +428,7 @@ const selectMarket = (marketCode: string | null) => {
                                         <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                             {{ prediction.confidence }}%
                                         </span>
-                                    </Link>
+                                    </LocalizedLink>
                                 </div>
                             </Deferred>
                         </CardContent>
@@ -451,7 +452,7 @@ const selectMarket = (marketCode: string | null) => {
                                     </div>
                                 </template>
                                 <div class="space-y-3">
-                                    <Link
+                                    <LocalizedLink
                                         v-for="prediction in recentPredictions"
                                         :key="prediction.id"
                                         :href="`/assets/${prediction.asset.id}`"
@@ -464,7 +465,7 @@ const selectMarket = (marketCode: string | null) => {
                                         <span class="text-xs text-muted-foreground">
                                             {{ prediction.horizonLabel }}
                                         </span>
-                                    </Link>
+                                    </LocalizedLink>
                                 </div>
                             </Deferred>
                         </CardContent>

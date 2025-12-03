@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Head, Link, Deferred } from '@inertiajs/vue3';
+import { Head, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import GuestLayout from '@/layouts/GuestLayout.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import {
     ChevronLeft,
     ChevronRight,
@@ -136,29 +137,29 @@ const getMacdSignal = (macdLine?: number | null) => {
         <div class="mx-auto max-w-7xl px-4 py-8">
             <!-- Back Links -->
             <div class="flex flex-wrap items-center gap-4 mb-6">
-                <Link
+                <LocalizedLink
                     v-if="asset.market"
                     :href="`/markets/${asset.market.id}`"
                     class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                     <component :is="locale === 'ar' ? ChevronRight : ChevronLeft" class="size-4" />
                     {{ t('assetDetail.backToMarket') }}
-                </Link>
+                </LocalizedLink>
                 <span v-if="asset.market && asset.sector" class="text-muted-foreground">|</span>
-                <Link
+                <LocalizedLink
                     v-if="asset.sector"
                     :href="`/sectors/${asset.sector.id}`"
                     class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                     {{ t('assetDetail.backToSector') }}
-                </Link>
+                </LocalizedLink>
                 <span class="text-muted-foreground">|</span>
-                <Link
+                <LocalizedLink
                     href="/predictions"
                     class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                     {{ t('assetDetail.backToAll') }}
-                </Link>
+                </LocalizedLink>
             </div>
 
             <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import GuestLayout from '@/layouts/GuestLayout.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +24,7 @@ import {
 } from 'lucide-vue-next';
 import type { MarketPreview } from '@/types';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 interface Props {
     canLogin: boolean;
@@ -223,10 +224,10 @@ const getStatusColor = (isOpen: boolean) => {
                                         <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
                                     </div>
                                     <Button as-child size="sm">
-                                        <Link :href="`/markets/${market.id}`">
+                                        <LocalizedLink :href="`/markets/${market.id}`">
                                             {{ t('markets.viewPredictions') }}
                                             <ArrowRight class="ms-1 size-4" />
-                                        </Link>
+                                        </LocalizedLink>
                                     </Button>
                                 </div>
                             </CardContent>
@@ -297,9 +298,9 @@ const getStatusColor = (isOpen: boolean) => {
                                     </p>
                                 </div>
                                 <Button as-child variant="outline" size="sm">
-                                    <Link :href="`/markets/${trendingMarket.id}`">
+                                    <LocalizedLink :href="`/markets/${trendingMarket.id}`">
                                         {{ t('markets.viewPredictions') }}
-                                    </Link>
+                                    </LocalizedLink>
                                 </Button>
                             </div>
                         </CardContent>
