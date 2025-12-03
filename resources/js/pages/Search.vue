@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { Head, router, Deferred } from '@inertiajs/vue3';
+import { Head, router, Deferred, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,8 +13,12 @@ import {
     Loader2,
 } from 'lucide-vue-next';
 import type { SearchResult, PaginationMeta } from '@/types';
+import { index as searchRoute } from '@/actions/App/Http/Controllers/SearchController';
+import { show as assetRoute } from '@/actions/App/Http/Controllers/AssetController';
 
 const { t } = useI18n();
+const page = usePage();
+const locale = computed(() => page.props.locale as string);
 
 interface Props {
     canLogin: boolean;
@@ -60,7 +64,7 @@ watch(searchQuery, (newVal) => {
         isSearching.value = true;
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            router.visit(route('search', { q: newVal }), {
+            router.visit(searchRoute.url(locale.value, { query: { q: newVal } }), {
                 preserveState: true,
                 only: ['results', 'totalCount', 'query'],
                 onFinish: () => {
@@ -85,7 +89,7 @@ const clearRecentSearches = () => {
 
 // Navigate to asset detail
 const goToAsset = (id: string) => {
-    router.visit(route('assets.show', { asset: id }));
+    router.visit(assetRoute.url({ locale: locale.value, asset: id }));
 };
 
 // Format price change

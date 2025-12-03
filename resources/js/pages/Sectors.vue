@@ -208,7 +208,7 @@ const trendingSector = computed(() =>
                                                 <Button as-child variant="ghost" size="sm">
                                                     <LocalizedLink :href="`/sectors/${sector.id}`">
                                                         {{ t('sectors.viewPredictions') }}
-                                                        <ArrowRight class="ms-1 size-4" />
+                                                        <ArrowRight class="ms-1 size-4 rtl:rotate-180" />
                                                     </LocalizedLink>
                                                 </Button>
                                             </td>

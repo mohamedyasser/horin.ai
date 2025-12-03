@@ -226,7 +226,7 @@ const getStatusColor = (isOpen: boolean) => {
                                     <Button as-child size="sm">
                                         <LocalizedLink :href="`/markets/${market.id}`">
                                             {{ t('markets.viewPredictions') }}
-                                            <ArrowRight class="ms-1 size-4" />
+                                            <ArrowRight class="ms-1 size-4 rtl:rotate-180" />
                                         </LocalizedLink>
                                     </Button>
                                 </div>
