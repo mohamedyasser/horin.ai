@@ -47,6 +47,10 @@ Route::prefix('{locale}')
             return Inertia::render('Terms');
         })->name('terms');
 
+        Route::get('contact', function () {
+            return Inertia::render('Contact');
+        })->name('contact');
+
         // Dashboard (authenticated)
         Route::get('dashboard', function () {
             return Inertia::render('Dashboard');

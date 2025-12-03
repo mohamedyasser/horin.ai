@@ -468,6 +468,23 @@
             }
         }
     },
+    "contact": {
+        "title": "Contact Us",
+        "message": "If you have questions about predictions, your account, or technical issues, send us a message.",
+        "responseTime": {
+            "title": "Response Time",
+            "content": "We aim to reply within 1-2 business days."
+        },
+        "include": {
+            "title": "What to Include",
+            "email": "Your email address",
+            "page": "The page you were on",
+            "description": "A short description of the issue"
+        },
+        "links": {
+            "text": "You may also want to review our"
+        }
+    },
     "terms": {
         "title": "Terms of Service",
         "lastUpdated": "Last updated: December 2024",

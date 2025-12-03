@@ -102,9 +102,9 @@ withDefaults(defineProps<Props>(), {
                         <LocalizedLink href="/terms" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             {{ t('terms.title') }}
                         </LocalizedLink>
-                        <a href="mailto:contact@horin.com" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <LocalizedLink href="/contact" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             {{ t('common.contact') }}
-                        </a>
+                        </LocalizedLink>
                     </nav>
                 </div>
             </div>
