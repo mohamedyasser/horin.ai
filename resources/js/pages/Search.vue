@@ -60,7 +60,7 @@ watch(searchQuery, (newVal) => {
         isSearching.value = true;
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            router.visit(`/search?q=${encodeURIComponent(newVal)}`, {
+            router.visit(route('search', { q: newVal }), {
                 preserveState: true,
                 only: ['results', 'totalCount', 'query'],
                 onFinish: () => {
@@ -85,7 +85,7 @@ const clearRecentSearches = () => {
 
 // Navigate to asset detail
 const goToAsset = (id: string) => {
-    router.visit(`/assets/${id}`);
+    router.visit(route('assets.show', { asset: id }));
 };
 
 // Format price change

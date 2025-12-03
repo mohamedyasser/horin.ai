@@ -32,8 +32,9 @@ class SearchController extends Controller
     private function searchAssets(string $query): array
     {
         $assets = Asset::where(function ($q) use ($query) {
-            $q->whereRaw("fts @@ websearch_to_tsquery('simple', ?)", [$query])
-                ->orWhere('symbol', 'ILIKE', $query.'%');
+            $q->where('symbol', 'ILIKE', $query.'%')
+                ->orWhere('name_en', 'ILIKE', '%'.$query.'%')
+                ->orWhere('name_ar', 'ILIKE', '%'.$query.'%');
         })
             ->with(['market', 'sector', 'latestPrice'])
             ->paginate(10);
@@ -64,8 +65,9 @@ class SearchController extends Controller
     private function countAssets(string $query): int
     {
         return Asset::where(function ($q) use ($query) {
-            $q->whereRaw("fts @@ websearch_to_tsquery('simple', ?)", [$query])
-                ->orWhere('symbol', 'ILIKE', $query.'%');
+            $q->where('symbol', 'ILIKE', $query.'%')
+                ->orWhere('name_en', 'ILIKE', '%'.$query.'%')
+                ->orWhere('name_ar', 'ILIKE', '%'.$query.'%');
         })->count();
     }
 }
