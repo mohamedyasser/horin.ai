@@ -95,7 +95,16 @@ withDefaults(defineProps<Props>(), {
                     <p class="text-sm text-muted-foreground">
                         &copy; {{ new Date().getFullYear() }} Horin. {{ t('common.allRightsReserved') }}
                     </p>
-                    <nav class="flex items-center gap-4">
+                    <nav class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                        <LocalizedLink href="/about" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            {{ t('about.title') }}
+                        </LocalizedLink>
+                        <LocalizedLink href="/faq" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            {{ t('faq.title') }}
+                        </LocalizedLink>
+                        <LocalizedLink href="/methodology" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            {{ t('methodology.title') }}
+                        </LocalizedLink>
                         <LocalizedLink href="/privacy" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             {{ t('privacy.title') }}
                         </LocalizedLink>

@@ -426,6 +426,257 @@
         "recentSearches": "Recent Searches",
         "clearRecentSearches": "Clear"
     },
+    "methodology": {
+        "title": "Accuracy & Methodology",
+        "subtitle": "How predictions are generated and how to interpret them.",
+        "sections": {
+            "represent": {
+                "title": "What Predictions Represent",
+                "meaning": {
+                    "label": "Meaning",
+                    "value": "Predictions are estimated future prices based on historical data patterns."
+                },
+                "scope": {
+                    "label": "Scope",
+                    "value": "Only price movement. No sentiment. No fundamentals. No external events."
+                },
+                "output": {
+                    "label": "Output",
+                    "value": "A predicted price and a confidence score for each horizon."
+                }
+            },
+            "generated": {
+                "title": "How Predictions Are Generated",
+                "steps": {
+                    "collection": {
+                        "label": "Data collection",
+                        "value": "The system reads historical price data for each asset."
+                    },
+                    "extraction": {
+                        "label": "Feature extraction",
+                        "value": "It calculates volatility, trend direction, momentum, and price behavior over different periods."
+                    },
+                    "evaluation": {
+                        "label": "Model evaluation",
+                        "value": "Multiple models run in parallel. The system selects the most stable model for each asset."
+                    },
+                    "prediction": {
+                        "label": "Prediction generation",
+                        "value": "The chosen model outputs a future estimated price for each horizon."
+                    },
+                    "confidence": {
+                        "label": "Confidence calculation",
+                        "value": "Score reflects how consistent the model's pattern detection was for that specific asset."
+                    }
+                }
+            },
+            "horizons": {
+                "title": "Horizons",
+                "horizon": "Horizon",
+                "meaning": "Meaning",
+                "items": {
+                    "short": {
+                        "label": "Short",
+                        "value": "Near-term movement. More sensitive to volatility."
+                    },
+                    "medium": {
+                        "label": "Medium",
+                        "value": "Captures trend continuation."
+                    },
+                    "long": {
+                        "label": "Long",
+                        "value": "Captures broader movement patterns."
+                    }
+                },
+                "note": "Only the horizons displayed on each asset page are supported."
+            },
+            "confidence": {
+                "title": "Confidence Score",
+                "purpose": {
+                    "label": "Purpose",
+                    "value": "Measure model stability for a given prediction."
+                },
+                "range": {
+                    "label": "Range",
+                    "value": "0–100. Higher means more stable patterns."
+                },
+                "notGuarantee": {
+                    "label": "Not a guarantee",
+                    "value": "The score does not mean success probability. It only reflects data consistency."
+                }
+            },
+            "factors": {
+                "title": "Factors Affecting Accuracy",
+                "factor": "Factor",
+                "effect": "Effect",
+                "items": {
+                    "news": {
+                        "label": "Sudden news",
+                        "value": "Reduces accuracy. Models cannot anticipate events."
+                    },
+                    "liquidity": {
+                        "label": "Low liquidity",
+                        "value": "Price jumps create noise."
+                    },
+                    "history": {
+                        "label": "Limited history",
+                        "value": "Models struggle with assets that have short trading history."
+                    },
+                    "instability": {
+                        "label": "Market instability",
+                        "value": "High volatility lowers prediction reliability."
+                    }
+                }
+            },
+            "limitations": {
+                "title": "Limitations",
+                "noRealtime": {
+                    "label": "No real-time insight",
+                    "value": "Predictions rely on historical patterns, not breaking news."
+                },
+                "noFundamentals": {
+                    "label": "No fundamentals",
+                    "value": "Earnings, announcements, or macro factors are not included."
+                },
+                "notAdvice": {
+                    "label": "Not investment advice",
+                    "value": "Predictions are informational. User decisions are their responsibility."
+                }
+            },
+            "updates": {
+                "title": "Update Frequency",
+                "dataRefresh": {
+                    "label": "Data refresh",
+                    "value": "Prices update as new market data arrives."
+                },
+                "predictionRefresh": {
+                    "label": "Prediction refresh",
+                    "value": "Predictions regenerate after new data is processed."
+                },
+                "variation": {
+                    "label": "Variation",
+                    "value": "Some assets update more frequently depending on data quality."
+                }
+            },
+            "safeUse": {
+                "title": "How to Use Predictions Safely",
+                "compare": {
+                    "label": "Compare horizons",
+                    "value": "Check short and long predictions to see consistency."
+                },
+                "checkConfidence": {
+                    "label": "Check confidence",
+                    "value": "Treat low confidence predictions cautiously."
+                },
+                "followTrends": {
+                    "label": "Follow trends",
+                    "value": "Use predictions as one signal, not the only one."
+                },
+                "avoidOverreliance": {
+                    "label": "Avoid overreliance",
+                    "value": "Always consider risk. Markets change quickly."
+                }
+            },
+            "contact": {
+                "title": "Questions?",
+                "content": "If you want clarification about methodology, contact support through the"
+            }
+        }
+    },
+    "faq": {
+        "title": "FAQ",
+        "questions": {
+            "whatDoes": {
+                "q": "What does this platform do?",
+                "a": "It provides AI-generated stock price predictions for Middle East markets."
+            },
+            "guaranteed": {
+                "q": "Are predictions guaranteed?",
+                "a": "No. Predictions are estimates based on historical patterns. They are not guarantees."
+            },
+            "updateFrequency": {
+                "q": "How often are predictions updated?",
+                "a": "Predictions update when new market data becomes available. Update frequency depends on each market."
+            },
+            "confidenceScore": {
+                "q": "What is the confidence score?",
+                "a": "The confidence score shows how strong or stable the model's prediction is for that asset. Higher scores reflect more consistent patterns."
+            },
+            "howToUse": {
+                "q": "How should I use predictions?",
+                "a": "Use predictions as one input when evaluating a stock. Do not rely on predictions alone."
+            },
+            "markets": {
+                "q": "Which markets do you support?",
+                "a": "Major markets in the Middle East, including Egypt, Saudi Arabia, UAE, Kuwait, Qatar, and Bahrain."
+            },
+            "trading": {
+                "q": "Do you support trading?",
+                "a": "No. The platform does not support buying or selling stocks."
+            },
+            "financialInfo": {
+                "q": "Do you store my financial information?",
+                "a": "No. We do not collect or store any trading or banking data."
+            },
+            "horizons": {
+                "q": "Why do predictions differ across horizons?",
+                "a": "Short, medium, and long horizons capture different market behaviors. Each horizon reflects a different time frame of price movement."
+            },
+            "accuracy": {
+                "q": "What affects prediction accuracy?",
+                "a": "Volatility, unusual events, lack of historical data, and sudden market changes can reduce model accuracy."
+            },
+            "negative": {
+                "q": "Can predictions be negative?",
+                "a": "Yes. If the model expects a price drop, predicted values can be lower than the current price."
+            },
+            "missing": {
+                "q": "Why is an asset missing a prediction?",
+                "a": "The model may skip assets without enough data or assets with unstable patterns that do not fit the prediction model."
+            },
+            "reportIssue": {
+                "q": "How can I report an issue?",
+                "a": "Contact support through the"
+            }
+        }
+    },
+    "about": {
+        "title": "About",
+        "sections": {
+            "whatWeDo": {
+                "title": "What we do",
+                "content": "We provide AI-powered stock price predictions for markets in the Middle East. Our system analyzes price history, market movement, and technical signals to estimate future price levels."
+            },
+            "whatWeDont": {
+                "title": "What we don't do",
+                "content": "We do not offer trading services. We do not give investment advice. Predictions are informational only."
+            },
+            "howItWorks": {
+                "title": "How predictions work",
+                "content": "Predictions are generated by automated models. These models process historical prices, volatility levels, and market patterns to produce future estimates and confidence scores."
+            },
+            "whyWeBuilt": {
+                "title": "Why we built this",
+                "content": "Investors struggle to understand market direction. We built a simple tool that gives clear forward-looking signals without noise."
+            },
+            "whatToExpect": {
+                "title": "What you can expect",
+                "content": "Fast access to upcoming price predictions. Clear gain/loss expectations. Confidence scores. Sector and market filtering. No distractions."
+            },
+            "whatWeDontTrack": {
+                "title": "What we don't track",
+                "content": "We do not track your investment accounts. We do not collect sensitive financial data."
+            },
+            "whoWeAre": {
+                "title": "Who we are",
+                "content": "A small team building simple tools for better market insight."
+            }
+        },
+        "contact": {
+            "title": "Questions?",
+            "content": "Reach out to us on our"
+        }
+    },
     "privacy": {
         "title": "Privacy Policy",
         "lastUpdated": "Last updated: December 2024",

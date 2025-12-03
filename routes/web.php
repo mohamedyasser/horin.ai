@@ -38,7 +38,19 @@ Route::prefix('{locale}')
         // Assets
         Route::get('assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
 
-        // Legal pages
+        // Info pages
+        Route::get('about', function () {
+            return Inertia::render('About');
+        })->name('about');
+
+        Route::get('faq', function () {
+            return Inertia::render('Faq');
+        })->name('faq');
+
+        Route::get('methodology', function () {
+            return Inertia::render('Methodology');
+        })->name('methodology');
+
         Route::get('privacy', function () {
             return Inertia::render('Privacy');
         })->name('privacy');
