@@ -96,6 +96,12 @@ withDefaults(defineProps<Props>(), {
                         &copy; {{ new Date().getFullYear() }} Horin. {{ t('common.allRightsReserved') }}
                     </p>
                     <nav class="flex items-center gap-4">
+                        <LocalizedLink href="/privacy" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            {{ t('privacy.title') }}
+                        </LocalizedLink>
+                        <LocalizedLink href="/terms" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                            {{ t('terms.title') }}
+                        </LocalizedLink>
                         <a href="mailto:contact@horin.com" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
                             {{ t('common.contact') }}
                         </a>
