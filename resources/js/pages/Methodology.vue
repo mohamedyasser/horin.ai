@@ -19,8 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
     <Head :title="t('methodology.title')">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <meta name="description" :content="t('meta.methodology')">
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">

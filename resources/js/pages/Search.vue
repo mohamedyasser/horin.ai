@@ -112,8 +112,7 @@ const getChangeColor = (pcp: string | undefined) => {
 
 <template>
     <Head :title="t('search.title')">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <meta name="description" :content="t('meta.search')">
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">

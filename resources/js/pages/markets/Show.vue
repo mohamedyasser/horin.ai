@@ -108,8 +108,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
 
 <template>
     <Head :title="t('marketDetail.title', { market: market.code })">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <meta name="description" :content="t('meta.marketDetail', { market: market.code, marketName: market.name })">
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -298,13 +297,23 @@ const calculateGainPercent = (asset: AssetListItem) => {
 
                         <!-- Pagination -->
                         <div v-if="assetsMeta && assetsMeta.lastPage > 1" class="mt-4 flex items-center justify-center gap-2">
-                            <Button variant="outline" size="sm" :disabled="assetsMeta.currentPage === 1">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                :disabled="assetsMeta.currentPage === 1"
+                                @click="router.visit(`/${locale}/markets/${market.code}?page=${assetsMeta.currentPage - 1}`, { only: ['assets'] })"
+                            >
                                 {{ t('common.previous') }}
                             </Button>
                             <span class="text-sm text-muted-foreground">
                                 {{ assetsMeta.currentPage }} / {{ assetsMeta.lastPage }}
                             </span>
-                            <Button variant="outline" size="sm" :disabled="assetsMeta.currentPage === assetsMeta.lastPage">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                :disabled="assetsMeta.currentPage === assetsMeta.lastPage"
+                                @click="router.visit(`/${locale}/markets/${market.code}?page=${assetsMeta.currentPage + 1}`, { only: ['assets'] })"
+                            >
                                 {{ t('common.next') }}
                             </Button>
                         </div>

@@ -101,8 +101,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
 
 <template>
     <Head :title="t('sectorDetail.title', { sector: sector.name })">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <meta name="description" :content="t('meta.sectorDetail', { sector: sector.name })">
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">

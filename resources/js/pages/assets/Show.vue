@@ -127,8 +127,7 @@ const getMacdSignal = (macdLine?: number | null) => {
 
 <template>
     <Head :title="t('assetDetail.title', { symbol: asset.symbol })">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <meta name="description" :content="t('meta.assetDetail', { symbol: asset.symbol, name: asset.name })">
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister" :show-nav="false">

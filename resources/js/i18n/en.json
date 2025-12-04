@@ -11,6 +11,22 @@
         "apply": "Apply",
         "noData": "No data available"
     },
+    "meta": {
+        "home": "AI-powered stock price predictions for Middle East markets including Egypt, Saudi Arabia, UAE, Kuwait, Qatar, and Bahrain. Updated daily forecasts with confidence scores.",
+        "markets": "Browse all Middle East stock markets including TASI, EGX, ADX, DFM, and more. View AI-powered price predictions and market statistics for each exchange.",
+        "marketDetail": "View AI-powered price predictions for {market} market. Get detailed asset statistics, top gainers, and confident forecasts for {marketName}.",
+        "sectors": "Explore stock predictions by sector including Banking, Energy, Real Estate, and more. AI-powered analysis across Middle East markets.",
+        "sectorDetail": "AI-powered price predictions for {sector} sector stocks. View forecasts, top gainers, and market analysis for {sector} companies.",
+        "predictions": "Browse all AI-generated stock price predictions across Middle East markets. Filter by market, sector, horizon, and confidence level.",
+        "assetDetail": "AI price prediction for {symbol} ({name}). View current price, predicted price, confidence score, and technical indicators.",
+        "search": "Search for any stock in Middle East markets. Find AI-powered price predictions by symbol or company name.",
+        "about": "Learn about Horin's AI-powered stock price prediction platform for Middle East markets. Discover our methodology, accuracy, and mission.",
+        "methodology": "Understand how Horin generates AI stock price predictions. Learn about our methodology, confidence scores, and how to interpret forecasts.",
+        "faq": "Frequently asked questions about Horin's AI stock predictions. Get answers about accuracy, methodology, and how to use our platform.",
+        "contact": "Contact the Horin team for support, partnerships, or questions about our AI stock prediction platform for Middle East markets.",
+        "terms": "Terms and conditions for using Horin's AI stock prediction platform. Read our user agreement, disclaimers, and service terms.",
+        "privacy": "Privacy policy for Horin's stock prediction platform. Learn how we collect, use, and protect your data."
+    },
     "home": {
         "title": "Price Predictions",
         "heroTitle": "Price Predictions for Middle East Markets",
