@@ -60,15 +60,15 @@ class MarketController extends Controller
                 'assetCount' => $market->assets_count,
                 'predictionCount' => PredictionStatsService::countForMarket($market->id),
             ],
-            'assets' => Inertia::defer(fn () => $this->getMarketAssets($market)),
+            'assets' => Inertia::defer(fn () => $this->getMarketAssets($market, $request)),
         ]);
     }
 
-    private function getMarketAssets(Market $market): array
+    private function getMarketAssets(Market $market, Request $request): array
     {
         $assets = Asset::where('market_id', $market->id)
             ->with(['sector', 'cachedPrice', 'cachedPrediction'])
-            ->paginate(10);
+            ->paginate(10, ['*'], 'page', $request->input('page', 1));
 
         return [
             'data' => $assets->map(fn ($asset) => [
