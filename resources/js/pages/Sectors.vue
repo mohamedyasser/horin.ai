@@ -227,13 +227,6 @@ const trendingSector = computed(() =>
                                 </p>
                             </div>
                         </div>
-
-                        <!-- Pagination -->
-                        <div class="mt-4 flex items-center justify-center gap-2">
-                            <Button variant="outline" size="sm" disabled>{{ t('common.previous') }}</Button>
-                            <Button variant="outline" size="sm" class="bg-primary text-primary-foreground">1</Button>
-                            <Button variant="outline" size="sm">{{ t('common.next') }}</Button>
-                        </div>
                     </div>
 
                     <!-- Sidebar -->
