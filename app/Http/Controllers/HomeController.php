@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\LatestPrediction;
 use App\Models\Market;
 use App\Models\PredictedAssetPrice;
 use App\Models\Sector;
@@ -81,9 +82,8 @@ class HomeController extends Controller
                 continue;
             }
 
-            // Get predictions for this market (latest by timestamp)
-            // Use cachedPrice (materialized view) for better performance
-            $predictions = PredictedAssetPrice::with(['asset.market', 'asset.cachedPrice'])
+            // Use LatestPrediction (materialized view) for better performance
+            $predictions = LatestPrediction::with(['asset.market', 'asset.cachedPrice'])
                 ->whereHas('asset', fn ($q) => $q->where('market_id', $market->id))
                 ->orderByDesc('timestamp')
                 ->limit($limitPerMarket)
@@ -123,15 +123,14 @@ class HomeController extends Controller
 
     private function getRecentPredictions(): array
     {
-        return PredictedAssetPrice::with('asset')
+        return LatestPrediction::with('asset')
             ->orderByDesc('timestamp')
             ->limit(5)
             ->get()
             ->filter(fn ($p) => $p->asset !== null)
             ->map(function ($p) {
-                // timestamp is in seconds, not milliseconds
                 $timestamp = $p->timestamp ? Carbon::createFromTimestamp($p->timestamp) : null;
-                $horizonMinutes = Horizon::minutes($p->horizon);
+                $horizonMinutes = $p->horizon_minutes ?? Horizon::minutes($p->horizon);
                 $targetTimestamp = $timestamp && $horizonMinutes > 0
                     ? $timestamp->copy()->addMinutes($horizonMinutes)->toISOString()
                     : null;
@@ -149,6 +148,7 @@ class HomeController extends Controller
                     'horizonLabel' => Horizon::label($p->horizon),
                     'timestamp' => $timestamp?->toISOString(),
                     'targetTimestamp' => $targetTimestamp,
+                    'freshness' => $p->freshness,
                 ];
             })
             ->toArray();
@@ -162,9 +162,9 @@ class HomeController extends Controller
             ? (($prediction->price_prediction - $currentPrice) / $currentPrice) * 100
             : 0;
 
-        // timestamp is in seconds, not milliseconds
+        // Use pre-computed fields from materialized view when available
         $timestamp = $prediction->timestamp ? Carbon::createFromTimestamp($prediction->timestamp) : null;
-        $horizonMinutes = Horizon::minutes($prediction->horizon);
+        $horizonMinutes = $prediction->horizon_minutes ?? Horizon::minutes($prediction->horizon);
         $targetTimestamp = $timestamp && $horizonMinutes > 0
             ? $timestamp->copy()->addMinutes($horizonMinutes)->toISOString()
             : null;
@@ -185,6 +185,7 @@ class HomeController extends Controller
             'expectedGainPercent' => round($expectedGain, 2),
             'timestamp' => $timestamp?->toISOString(),
             'targetTimestamp' => $targetTimestamp,
+            'freshness' => $prediction->freshness ?? null,
         ];
     }
 }
