@@ -25,10 +25,20 @@ class SearchController extends Controller
             ]);
         }
 
+        // Use a shared closure to avoid duplicate search calls
+        $searchResults = null;
+        $getResults = function () use (&$searchResults, $query, $request) {
+            if ($searchResults === null) {
+                $searchResults = $this->searchAssets($query, $request);
+            }
+
+            return $searchResults;
+        };
+
         return Inertia::render('Search', [
             'query' => $query,
-            'results' => Inertia::defer(fn () => $this->searchAssets($query, $request)),
-            'totalCount' => Inertia::defer(fn () => $this->countAssets($query)),
+            'results' => Inertia::defer(fn () => $getResults()),
+            'totalCount' => Inertia::defer(fn () => $getResults()['meta']['total'] ?? 0),
         ]);
     }
 
@@ -73,10 +83,5 @@ class SearchController extends Controller
             'data' => $data,
             'meta' => PaginationHelper::meta($results),
         ];
-    }
-
-    private function countAssets(string $query): int
-    {
-        return Asset::search($query)->count();
     }
 }
