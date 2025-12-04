@@ -50,7 +50,9 @@ class SearchController extends Controller
         $locale = app()->getLocale();
         $page = max(1, (int) $request->input('page', 1));
 
-        $results = Asset::search($query)->paginate(self::PER_PAGE, 'page', $page);
+        $results = Asset::search($query)
+            ->query(fn ($query) => $query->with(['market', 'sector']))
+            ->paginate(self::PER_PAGE, 'page', $page);
 
         // Fetch fresh prices for display (hybrid approach)
         $invIds = collect($results->items())->pluck('inv_id')->filter()->toArray();
@@ -63,14 +65,14 @@ class SearchController extends Controller
                 'id' => $asset->id,
                 'symbol' => $asset->symbol,
                 'name' => $locale === 'ar' ? $asset->name_ar : $asset->name_en,
-                'market' => $asset->market_id ? [
-                    'id' => $asset->market_id,
-                    'code' => $asset->market_code,
-                    'name' => $locale === 'ar' ? $asset->market_name_ar : $asset->market_name_en,
+                'market' => $asset->market ? [
+                    'id' => $asset->market->id,
+                    'code' => $asset->market->code,
+                    'name' => $locale === 'ar' ? $asset->market->name_ar : $asset->market->name_en,
                 ] : null,
-                'sector' => $asset->sector_id ? [
-                    'id' => $asset->sector_id,
-                    'name' => $locale === 'ar' ? $asset->sector_name_ar : $asset->sector_name_en,
+                'sector' => $asset->sector ? [
+                    'id' => $asset->sector->id,
+                    'name' => $locale === 'ar' ? $asset->sector->name_ar : $asset->sector->name_en,
                 ] : null,
                 'latestPrice' => $price ? [
                     'last' => $price->price,
