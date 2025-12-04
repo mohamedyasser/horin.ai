@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Laravel\Scout\Searchable;
 
 class Asset extends Model
 {
-    use HasUuids;
+    use HasUuids, Searchable;
 
     /**
      * Get the route key for the model.
@@ -191,5 +192,35 @@ class Asset extends Model
     public function scopeCrypto(Builder $q): Builder
     {
         return $q->where('type', 'crypto');
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     *
+     * @return array<string, mixed>
+     */
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'symbol' => $this->symbol,
+            'isin' => $this->isin,
+            'full_name' => $this->full_name,
+            'name_en' => $this->name_en,
+            'name_ar' => $this->name_ar,
+            'description_en' => $this->description_en,
+            'description_ar' => $this->description_ar,
+            // Filterable
+            'market_id' => $this->market_id,
+            'sector_id' => $this->sector_id,
+            'country_id' => $this->country_id,
+            // Denormalized market
+            'market_code' => $this->market?->code,
+            'market_name_en' => $this->market?->name_en,
+            'market_name_ar' => $this->market?->name_ar,
+            // Denormalized sector
+            'sector_name_en' => $this->sector?->name_en,
+            'sector_name_ar' => $this->sector?->name_ar,
+        ];
     }
 }
