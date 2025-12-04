@@ -88,8 +88,8 @@ const clearRecentSearches = () => {
 };
 
 // Navigate to asset detail
-const goToAsset = (id: string) => {
-    router.visit(assetRoute.url({ locale: locale.value, asset: id }));
+const goToAsset = (symbol: string) => {
+    router.visit(assetRoute.url({ locale: locale.value, asset: symbol }));
 };
 
 // Format price change
@@ -206,7 +206,7 @@ const getChangeColor = (pcp: string | undefined) => {
                                         v-for="result in searchResults"
                                         :key="result.id"
                                         class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
-                                        @click="goToAsset(result.id)"
+                                        @click="goToAsset(result.symbol)"
                                     >
                                         <td class="px-4 py-3 font-medium">
                                             <span v-html="highlightMatch(result.symbol, searchQuery)" />
