@@ -41,12 +41,16 @@ class LatestPrediction extends Model
         return [
             'price_prediction' => 'float',
             'confidence' => 'float',
+            'lower_bound' => 'float',
+            'upper_bound' => 'float',
             'horizon' => 'string',
             'horizon_minutes' => 'integer',
-            'days_old' => 'integer',
             'timestamp' => 'integer',
+            'target_timestamp' => 'integer',
             'prediction_time' => 'datetime',
             'created_at' => 'datetime',
+            'age_minutes' => 'integer',
+            'minutes_to_target' => 'integer',
         ];
     }
 
@@ -67,11 +71,19 @@ class LatestPrediction extends Model
     }
 
     /**
-     * Check if the prediction is current (from today).
+     * Check if the prediction is fresh (within last hour).
      */
-    public function isCurrent(): bool
+    public function isFresh(): bool
     {
-        return $this->freshness === 'current';
+        return $this->freshness === 'fresh';
+    }
+
+    /**
+     * Check if the prediction is from today.
+     */
+    public function isToday(): bool
+    {
+        return $this->freshness === 'today' || $this->freshness === 'fresh';
     }
 
     /**
@@ -79,6 +91,6 @@ class LatestPrediction extends Model
      */
     public function isStale(): bool
     {
-        return $this->freshness !== 'current';
+        return ! $this->isFresh();
     }
 }

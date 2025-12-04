@@ -23,11 +23,16 @@ class PredictedAssetPrice extends Model
         'pid',
         'symbol',
         'model_name',
+        'module',
+        'horizon',
+        'horizon_minutes',
         'timestamp',
+        'target_timestamp',
         'prediction_time',
         'price_prediction',
         'confidence',
-        'horizon',
+        'lower_bound',
+        'upper_bound',
         'created_at',
     ];
 
@@ -36,7 +41,13 @@ class PredictedAssetPrice extends Model
         return [
             'price_prediction' => 'float',
             'confidence' => 'float',
+            'lower_bound' => 'float',
+            'upper_bound' => 'float',
             'horizon' => 'string',
+            'horizon_minutes' => 'integer',
+            'timestamp' => 'integer',
+            'target_timestamp' => 'integer',
+            'prediction_time' => 'datetime',
             'created_at' => 'datetime',
         ];
     }
