@@ -62,10 +62,9 @@ class AssetController extends Controller
 
     private function getAssetPredictions(Asset $asset): array
     {
-        $currentPrice = $asset->latestPrice?->last ?? 0;
+        $currentPrice = $asset->cachedPrice?->price ?? $asset->latestPrice?->last ?? 0;
 
         return PredictedAssetPrice::where('pid', $asset->inv_id)
-            ->whereIn('horizon', Horizon::ALL)
             ->orderByDesc('timestamp')
             ->get()
             ->groupBy('horizon')
@@ -75,8 +74,12 @@ class AssetController extends Controller
                     ? (($p->price_prediction - $currentPrice) / $currentPrice) * 100
                     : 0;
 
-                $timestamp = $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp) : null;
-                $targetTimestamp = $timestamp ? $timestamp->copy()->addMinutes($p->horizon)->toISOString() : null;
+                // timestamp is in seconds, not milliseconds
+                $timestamp = $p->timestamp ? Carbon::createFromTimestamp($p->timestamp) : null;
+                $horizonMinutes = Horizon::minutes($p->horizon);
+                $targetTimestamp = $timestamp && $horizonMinutes > 0
+                    ? $timestamp->copy()->addMinutes($horizonMinutes)->toISOString()
+                    : null;
 
                 return [
                     'horizon' => $p->horizon,
@@ -147,8 +150,12 @@ class AssetController extends Controller
             ->limit(10)
             ->get()
             ->map(function ($p) {
-                $timestamp = $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp) : null;
-                $targetTimestamp = $timestamp ? $timestamp->copy()->addMinutes($p->horizon)->toISOString() : null;
+                // timestamp is in seconds, not milliseconds
+                $timestamp = $p->timestamp ? Carbon::createFromTimestamp($p->timestamp) : null;
+                $horizonMinutes = Horizon::minutes($p->horizon);
+                $targetTimestamp = $timestamp && $horizonMinutes > 0
+                    ? $timestamp->copy()->addMinutes($horizonMinutes)->toISOString()
+                    : null;
 
                 return [
                     'predictedPrice' => $p->price_prediction,

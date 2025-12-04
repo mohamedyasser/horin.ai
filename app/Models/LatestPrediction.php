@@ -41,7 +41,8 @@ class LatestPrediction extends Model
         return [
             'price_prediction' => 'float',
             'confidence' => 'float',
-            'horizon' => 'integer',
+            'horizon' => 'string',
+            'horizon_minutes' => 'integer',
             'days_old' => 'integer',
             'timestamp' => 'integer',
             'prediction_time' => 'datetime',

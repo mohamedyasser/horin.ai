@@ -126,8 +126,11 @@ class HomeController extends Controller
             ->get()
             ->filter(fn ($p) => $p->asset !== null)
             ->map(function ($p) {
-                $targetTimestamp = $p->timestamp
-                    ? Carbon::createFromTimestampMs($p->timestamp)->addMinutes($p->horizon)->toISOString()
+                // timestamp is in seconds, not milliseconds
+                $timestamp = $p->timestamp ? Carbon::createFromTimestamp($p->timestamp) : null;
+                $horizonMinutes = Horizon::minutes($p->horizon);
+                $targetTimestamp = $timestamp && $horizonMinutes > 0
+                    ? $timestamp->copy()->addMinutes($horizonMinutes)->toISOString()
                     : null;
 
                 return [
@@ -141,7 +144,7 @@ class HomeController extends Controller
                     'confidence' => (float) $p->confidence,
                     'horizon' => $p->horizon,
                     'horizonLabel' => Horizon::label($p->horizon),
-                    'timestamp' => $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp)->toISOString() : null,
+                    'timestamp' => $timestamp?->toISOString(),
                     'targetTimestamp' => $targetTimestamp,
                 ];
             })
@@ -156,9 +159,11 @@ class HomeController extends Controller
             ? (($prediction->price_prediction - $currentPrice) / $currentPrice) * 100
             : 0;
 
-        // Calculate target timestamp: prediction timestamp + horizon (in minutes)
-        $targetTimestamp = $prediction->timestamp
-            ? Carbon::createFromTimestampMs($prediction->timestamp)->addMinutes($prediction->horizon)->toISOString()
+        // timestamp is in seconds, not milliseconds
+        $timestamp = $prediction->timestamp ? Carbon::createFromTimestamp($prediction->timestamp) : null;
+        $horizonMinutes = Horizon::minutes($prediction->horizon);
+        $targetTimestamp = $timestamp && $horizonMinutes > 0
+            ? $timestamp->copy()->addMinutes($horizonMinutes)->toISOString()
             : null;
 
         return [
@@ -175,7 +180,7 @@ class HomeController extends Controller
             'horizon' => $prediction->horizon,
             'horizonLabel' => Horizon::label($prediction->horizon),
             'expectedGainPercent' => round($expectedGain, 2),
-            'timestamp' => $prediction->timestamp ? Carbon::createFromTimestampMs($prediction->timestamp)->toISOString() : null,
+            'timestamp' => $timestamp?->toISOString(),
             'targetTimestamp' => $targetTimestamp,
         ];
     }

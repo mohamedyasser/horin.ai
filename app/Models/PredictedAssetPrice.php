@@ -36,7 +36,7 @@ class PredictedAssetPrice extends Model
         return [
             'price_prediction' => 'float',
             'confidence' => 'float',
-            'horizon' => 'integer',
+            'horizon' => 'string',
             'created_at' => 'datetime',
         ];
     }
