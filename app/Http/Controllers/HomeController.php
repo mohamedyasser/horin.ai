@@ -72,18 +72,21 @@ class HomeController extends Controller
 
         $allPredictions = collect();
 
+        // When "All Markets" is selected, show 2 per market; when specific market, show 10
+        $limitPerMarket = $marketFilter ? 10 : 2;
+
         foreach ($markets as $market) {
             // Skip if market filter is set and doesn't match
             if ($marketFilter && $market->code !== $marketFilter) {
                 continue;
             }
 
-            // Get last 10 predictions for this market (latest by timestamp)
+            // Get predictions for this market (latest by timestamp)
             // Use cachedPrice (materialized view) for better performance
             $predictions = PredictedAssetPrice::with(['asset.market', 'asset.cachedPrice'])
                 ->whereHas('asset', fn ($q) => $q->where('market_id', $market->id))
                 ->orderByDesc('timestamp')
-                ->limit(10)
+                ->limit($limitPerMarket)
                 ->get()
                 ->filter(fn ($p) => $p->asset !== null);
 
