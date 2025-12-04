@@ -75,13 +75,17 @@ class AssetController extends Controller
                     ? (($p->price_prediction - $currentPrice) / $currentPrice) * 100
                     : 0;
 
+                $timestamp = $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp) : null;
+                $targetTimestamp = $timestamp ? $timestamp->copy()->addMinutes($p->horizon)->toISOString() : null;
+
                 return [
                     'horizon' => $p->horizon,
                     'horizonLabel' => Horizon::label($p->horizon),
                     'predictedPrice' => $p->price_prediction,
                     'confidence' => $p->confidence,
                     'expectedGainPercent' => round($expectedGain, 2),
-                    'timestamp' => $p->created_at?->toISOString(),
+                    'timestamp' => $timestamp?->toISOString(),
+                    'targetTimestamp' => $targetTimestamp,
                 ];
             })
             ->values()
@@ -142,13 +146,19 @@ class AssetController extends Controller
             ->orderByDesc('timestamp')
             ->limit(10)
             ->get()
-            ->map(fn ($p) => [
-                'predictedPrice' => $p->price_prediction,
-                'confidence' => $p->confidence,
-                'horizon' => $p->horizon,
-                'horizonLabel' => Horizon::label($p->horizon),
-                'timestamp' => $p->created_at?->toISOString(),
-            ])
+            ->map(function ($p) {
+                $timestamp = $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp) : null;
+                $targetTimestamp = $timestamp ? $timestamp->copy()->addMinutes($p->horizon)->toISOString() : null;
+
+                return [
+                    'predictedPrice' => $p->price_prediction,
+                    'confidence' => $p->confidence,
+                    'horizon' => $p->horizon,
+                    'horizonLabel' => Horizon::label($p->horizon),
+                    'timestamp' => $timestamp?->toISOString(),
+                    'targetTimestamp' => $targetTimestamp,
+                ];
+            })
             ->toArray();
     }
 }

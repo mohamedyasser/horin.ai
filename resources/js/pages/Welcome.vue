@@ -38,6 +38,7 @@ import type {
     FeaturedPrediction,
     TopMover,
     RecentPrediction,
+    PaginationMeta,
 } from '@/types';
 
 const { t, locale } = useI18n();
@@ -48,7 +49,9 @@ interface Props {
     stats: HomeStats;
     markets: MarketPreview[];
     sectors: SectorPreview[];
-    featuredPredictions?: FeaturedPrediction[];
+    featuredPredictions?: {
+        data: FeaturedPrediction[];
+    };
     topMovers?: TopMover[];
     recentPredictions?: RecentPrediction[];
 }
@@ -66,11 +69,22 @@ const filterOpen = ref(false);
 
 // Computed - use props data directly
 const markets = computed(() => props.markets);
-const featuredPredictions = computed(() => props.featuredPredictions ?? []);
+const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []);
 const topMovers = computed(() => props.topMovers ?? []);
 const recentPredictions = computed(() => props.recentPredictions ?? []);
 
-// Filter predictions client-side for search
+// Market filter - server-side
+const filterByMarket = (marketCode: string | null) => {
+    selectedMarket.value = marketCode;
+    router.visit(window.location.pathname, {
+        data: marketCode ? { market: marketCode } : {},
+        preserveState: true,
+        preserveScroll: true,
+        only: ['featuredPredictions'],
+    });
+};
+
+// Filter predictions client-side for search only (market filter is server-side)
 const filteredPredictions = computed(() => {
     let result = [...featuredPredictions.value];
 
@@ -81,10 +95,6 @@ const filteredPredictions = computed(() => {
                 p.asset.symbol.toLowerCase().includes(query) ||
                 p.asset.name.toLowerCase().includes(query)
         );
-    }
-
-    if (selectedMarket.value) {
-        result = result.filter((p) => p.asset.market?.code === selectedMarket.value);
     }
 
     // Sort
@@ -115,9 +125,6 @@ const getConfidenceColor = (confidence: number) => {
     return 'text-red-600 dark:text-red-400';
 };
 
-const selectMarket = (marketCode: string | null) => {
-    selectedMarket.value = marketCode;
-};
 </script>
 
 <template>
@@ -157,7 +164,7 @@ const selectMarket = (marketCode: string | null) => {
                     <Button
                         :variant="selectedMarket === null ? 'default' : 'outline'"
                         size="sm"
-                        @click="selectMarket(null)"
+                        @click="filterByMarket(null)"
                     >
                         {{ t('home.allMarkets') }}
                     </Button>
@@ -166,7 +173,7 @@ const selectMarket = (marketCode: string | null) => {
                         :key="market.id"
                         :variant="selectedMarket === market.code ? 'default' : 'outline'"
                         size="sm"
-                        @click="selectMarket(market.code)"
+                        @click="filterByMarket(market.code)"
                     >
                         {{ market.code }}
                     </Button>
@@ -276,6 +283,9 @@ const selectMarket = (marketCode: string | null) => {
                                                 {{ t('home.table.name') }}
                                             </th>
                                             <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                                {{ t('home.table.current') }}
+                                            </th>
+                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
                                                 {{ t('home.table.predicted') }}
                                             </th>
                                             <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
@@ -306,6 +316,12 @@ const selectMarket = (marketCode: string | null) => {
                                             </td>
                                             <td class="px-4 py-3 text-sm text-muted-foreground">
                                                 {{ prediction.asset.name }}
+                                            </td>
+                                            <td class="px-4 py-3 text-end text-sm">
+                                                <template v-if="prediction.currentPrice">
+                                                    {{ prediction.currentPrice.toFixed(2) }}
+                                                </template>
+                                                <span v-else class="text-muted-foreground">-</span>
                                             </td>
                                             <td class="px-4 py-3 text-end text-sm font-medium">
                                                 {{ prediction.predictedPrice.toFixed(2) }}
@@ -348,13 +364,9 @@ const selectMarket = (marketCode: string | null) => {
                         </div>
                     </Deferred>
 
-                    <!-- Pagination placeholder -->
-                    <div class="mt-4 flex items-center justify-center gap-2">
-                        <Button variant="outline" size="sm" disabled>{{ t('common.previous') }}</Button>
-                        <Button variant="outline" size="sm" class="bg-primary text-primary-foreground">1</Button>
-                        <Button variant="outline" size="sm">2</Button>
-                        <Button variant="outline" size="sm">3</Button>
-                        <Button variant="outline" size="sm">{{ t('common.next') }}</Button>
+                    <!-- Results count -->
+                    <div class="mt-4 text-center text-sm text-muted-foreground">
+                        {{ t('home.showingPredictions', { count: filteredPredictions.length }) }}
                     </div>
                 </div>
 

@@ -229,12 +229,14 @@ export interface AssetPreview {
 export interface FeaturedPrediction {
     id: string;
     asset: AssetPreview;
+    currentPrice: number | null;
     predictedPrice: number;
     confidence: number;
     horizon: number;
     horizonLabel: string;
     expectedGainPercent: number;
     timestamp: string | null;
+    targetTimestamp: string | null;
 }
 
 export interface TopMover {
@@ -254,6 +256,7 @@ export interface RecentPrediction {
     horizon: number;
     horizonLabel: string;
     timestamp: string | null;
+    targetTimestamp: string | null;
 }
 
 // Market detail types
@@ -342,6 +345,7 @@ export interface PredictionListItem {
     horizon: number;
     horizonLabel: string;
     timestamp: string;
+    targetTimestamp: string | null;
 }
 
 // Search page types
@@ -383,6 +387,7 @@ export interface AssetPredictionData {
     confidence: number;
     expectedGainPercent: number;
     timestamp: string | null;
+    targetTimestamp: string | null;
 }
 
 export interface AssetIndicatorsData {
@@ -418,4 +423,5 @@ export interface PredictionHistoryItem {
     horizon: number;
     horizonLabel: string;
     timestamp: string | null;
+    targetTimestamp: string | null;
 }

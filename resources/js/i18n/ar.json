@@ -33,13 +33,15 @@
             "symbol": "الرمز",
             "name": "الاسم",
             "last": "الأخير",
+            "current": "الحالي",
             "predicted": "المتوقع",
             "gainPercent": "نسبة الربح"
         },
         "noResults": "لا توجد توقعات متاحة للفلاتر المحددة.",
         "topMovers": "الأكثر ارتفاعاً",
         "highestConfidence": "الأعلى ثقة",
-        "recentUpdates": "آخر التحديثات"
+        "recentUpdates": "آخر التحديثات",
+        "showingPredictions": "عرض {count} توقعات"
     },
     "markets": {
         "title": "الأسواق",

@@ -26,17 +26,17 @@ return new class extends Migration
                 last_close,
                 turnover_numeric AS volume,
                 timestamp,
-                to_timestamp(timestamp / 1000) AS price_time,
+                to_timestamp(timestamp) AS price_time,
                 CASE
-                    WHEN timestamp >= (EXTRACT(EPOCH FROM (NOW() - INTERVAL '1 hour')) * 1000)::bigint
+                    WHEN timestamp >= EXTRACT(EPOCH FROM (NOW() - INTERVAL '1 hour'))::bigint
                     THEN 'live'
-                    WHEN timestamp >= (EXTRACT(EPOCH FROM CURRENT_DATE) * 1000)::bigint
+                    WHEN timestamp >= EXTRACT(EPOCH FROM CURRENT_DATE)::bigint
                     THEN 'today'
-                    WHEN timestamp >= (EXTRACT(EPOCH FROM (CURRENT_DATE - INTERVAL '1 day')) * 1000)::bigint
+                    WHEN timestamp >= EXTRACT(EPOCH FROM (CURRENT_DATE - INTERVAL '1 day'))::bigint
                     THEN 'yesterday'
                     ELSE 'older'
                 END AS freshness,
-                ROUND(EXTRACT(EPOCH FROM (NOW() - to_timestamp(timestamp / 1000))) / 3600)::int AS hours_ago
+                ROUND(EXTRACT(EPOCH FROM (NOW() - to_timestamp(timestamp))) / 3600)::int AS hours_ago
             FROM asset_prices
             ORDER BY pid, timestamp DESC
         ");
@@ -58,9 +58,9 @@ return new class extends Migration
                 timestamp,
                 created_at,
                 CASE
-                    WHEN timestamp >= (EXTRACT(EPOCH FROM CURRENT_DATE) * 1000)::bigint
+                    WHEN timestamp >= EXTRACT(EPOCH FROM CURRENT_DATE)::bigint
                     THEN 'current'
-                    WHEN timestamp >= (EXTRACT(EPOCH FROM (CURRENT_DATE - INTERVAL '1 day')) * 1000)::bigint
+                    WHEN timestamp >= EXTRACT(EPOCH FROM (CURRENT_DATE - INTERVAL '1 day'))::bigint
                     THEN 'yesterday'
                     ELSE 'older'
                 END AS freshness,

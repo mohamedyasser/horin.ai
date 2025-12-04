@@ -33,13 +33,15 @@
             "symbol": "Symbol",
             "name": "Name",
             "last": "Last",
+            "current": "Current",
             "predicted": "Predicted",
             "gainPercent": "Gain %"
         },
         "noResults": "No predictions available for your filters.",
         "topMovers": "Top Movers",
         "highestConfidence": "Highest Confidence",
-        "recentUpdates": "Recent Updates"
+        "recentUpdates": "Recent Updates",
+        "showingPredictions": "Showing {count} predictions"
     },
     "markets": {
         "title": "Markets",

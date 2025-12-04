@@ -8,6 +8,7 @@ use App\Models\PredictedAssetPrice;
 use App\Models\Sector;
 use App\Services\PredictionStatsService;
 use App\Support\Horizon;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -64,16 +65,37 @@ class HomeController extends Controller
 
     private function getFeaturedPredictions(Request $request): array
     {
-        $sortBy = $request->input('sort', 'confidence');
-        $sortBy = in_array($sortBy, ['confidence', 'timestamp']) ? $sortBy : 'confidence';
+        $marketFilter = $request->input('market');
 
-        return PredictedAssetPrice::with(['asset.market', 'asset.latestPrice'])
-            ->orderByDesc($sortBy)
-            ->limit(5)
-            ->get()
-            ->filter(fn ($p) => $p->asset !== null)
-            ->map(fn ($p) => $this->formatPrediction($p))
-            ->toArray();
+        // Get all markets
+        $markets = Market::all();
+
+        $allPredictions = collect();
+
+        foreach ($markets as $market) {
+            // Skip if market filter is set and doesn't match
+            if ($marketFilter && $market->code !== $marketFilter) {
+                continue;
+            }
+
+            // Get last 10 predictions for this market (latest by timestamp)
+            // Use cachedPrice (materialized view) for better performance
+            $predictions = PredictedAssetPrice::with(['asset.market', 'asset.cachedPrice'])
+                ->whereHas('asset', fn ($q) => $q->where('market_id', $market->id))
+                ->orderByDesc('timestamp')
+                ->limit(10)
+                ->get()
+                ->filter(fn ($p) => $p->asset !== null);
+
+            $allPredictions = $allPredictions->concat($predictions);
+        }
+
+        // Sort all combined predictions by timestamp (newest first)
+        $sorted = $allPredictions->sortByDesc('timestamp')->values();
+
+        return [
+            'data' => $sorted->map(fn ($p) => $this->formatPrediction($p))->toArray(),
+        ];
     }
 
     private function getTopMovers(): array
@@ -103,28 +125,41 @@ class HomeController extends Controller
             ->limit(5)
             ->get()
             ->filter(fn ($p) => $p->asset !== null)
-            ->map(fn ($p) => [
-                'id' => $p->pid.'-'.$p->timestamp,
-                'asset' => [
-                    'id' => $p->asset->id,
-                    'symbol' => $p->asset->symbol,
-                    'name' => $p->asset->name,
-                ],
-                'predictedPrice' => (float) $p->price_prediction,
-                'confidence' => (float) $p->confidence,
-                'horizon' => $p->horizon,
-                'horizonLabel' => Horizon::label($p->horizon),
-                'timestamp' => $p->created_at?->toISOString(),
-            ])
+            ->map(function ($p) {
+                $targetTimestamp = $p->timestamp
+                    ? Carbon::createFromTimestampMs($p->timestamp)->addMinutes($p->horizon)->toISOString()
+                    : null;
+
+                return [
+                    'id' => $p->pid.'-'.$p->timestamp,
+                    'asset' => [
+                        'id' => $p->asset->id,
+                        'symbol' => $p->asset->symbol,
+                        'name' => $p->asset->name,
+                    ],
+                    'predictedPrice' => (float) $p->price_prediction,
+                    'confidence' => (float) $p->confidence,
+                    'horizon' => $p->horizon,
+                    'horizonLabel' => Horizon::label($p->horizon),
+                    'timestamp' => $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp)->toISOString() : null,
+                    'targetTimestamp' => $targetTimestamp,
+                ];
+            })
             ->toArray();
     }
 
     private function formatPrediction($prediction): array
     {
-        $currentPrice = $prediction->asset->latestPrice?->last ?? 0;
+        // Use cachedPrice (from materialized view) for better performance
+        $currentPrice = $prediction->asset->cachedPrice?->price ?? 0;
         $expectedGain = $currentPrice > 0
             ? (($prediction->price_prediction - $currentPrice) / $currentPrice) * 100
             : 0;
+
+        // Calculate target timestamp: prediction timestamp + horizon (in minutes)
+        $targetTimestamp = $prediction->timestamp
+            ? Carbon::createFromTimestampMs($prediction->timestamp)->addMinutes($prediction->horizon)->toISOString()
+            : null;
 
         return [
             'id' => $prediction->pid.'-'.$prediction->timestamp,
@@ -134,12 +169,14 @@ class HomeController extends Controller
                 'name' => $prediction->asset->name,
                 'market' => ['code' => $prediction->asset->market->code],
             ],
+            'currentPrice' => $currentPrice > 0 ? (float) $currentPrice : null,
             'predictedPrice' => (float) $prediction->price_prediction,
             'confidence' => (float) $prediction->confidence,
             'horizon' => $prediction->horizon,
             'horizonLabel' => Horizon::label($prediction->horizon),
             'expectedGainPercent' => round($expectedGain, 2),
-            'timestamp' => $prediction->created_at?->toISOString(),
+            'timestamp' => $prediction->timestamp ? Carbon::createFromTimestampMs($prediction->timestamp)->toISOString() : null,
+            'targetTimestamp' => $targetTimestamp,
         ];
     }
 }

@@ -80,6 +80,9 @@ class PredictionController extends Controller
                     ? (($p->price_prediction - $currentPrice) / $currentPrice) * 100
                     : 0;
 
+                $timestamp = $p->timestamp ? Carbon::createFromTimestampMs($p->timestamp) : null;
+                $targetTimestamp = $timestamp ? $timestamp->copy()->addMinutes($p->horizon)->toISOString() : null;
+
                 return [
                     'id' => $p->pid.'-'.$p->timestamp,
                     'asset' => [
@@ -102,7 +105,8 @@ class PredictionController extends Controller
                     'confidence' => $p->confidence,
                     'horizon' => $p->horizon,
                     'horizonLabel' => Horizon::label($p->horizon),
-                    'timestamp' => Carbon::createFromTimestampMs($p->timestamp)->toISOString(),
+                    'timestamp' => $timestamp?->toISOString(),
+                    'targetTimestamp' => $targetTimestamp,
                 ];
             });
 
