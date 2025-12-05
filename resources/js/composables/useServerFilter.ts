@@ -52,6 +52,10 @@ export function useServerFilter<T = string>(options: UseServerFilterOptions<T>) 
             onFinish: () => {
                 isFiltering.value = false;
             },
+            onError: (error) => {
+                isFiltering.value = false;
+                console.error('Filter error:', error);
+            },
         });
     };
 

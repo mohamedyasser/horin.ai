@@ -244,13 +244,33 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
 
                         <!-- Pagination -->
                         <div v-if="assetsMeta && assetsMeta.lastPage > 1" class="mt-4 flex items-center justify-center gap-2">
-                            <Button variant="outline" size="sm" :disabled="assetsMeta.currentPage === 1">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                :disabled="assetsMeta.currentPage === 1"
+                                @click="router.visit(window.location.pathname, {
+                                    data: { ...Object.fromEntries(new URLSearchParams(window.location.search)), page: assetsMeta.currentPage - 1 },
+                                    preserveState: true,
+                                    preserveScroll: true,
+                                    only: ['assets', 'filters'],
+                                })"
+                            >
                                 {{ t('common.previous') }}
                             </Button>
                             <span class="text-sm text-muted-foreground">
                                 {{ assetsMeta.currentPage }} / {{ assetsMeta.lastPage }}
                             </span>
-                            <Button variant="outline" size="sm" :disabled="assetsMeta.currentPage === assetsMeta.lastPage">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                :disabled="assetsMeta.currentPage === assetsMeta.lastPage"
+                                @click="router.visit(window.location.pathname, {
+                                    data: { ...Object.fromEntries(new URLSearchParams(window.location.search)), page: assetsMeta.currentPage + 1 },
+                                    preserveState: true,
+                                    preserveScroll: true,
+                                    only: ['assets', 'filters'],
+                                })"
+                            >
                                 {{ t('common.next') }}
                             </Button>
                         </div>

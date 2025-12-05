@@ -55,6 +55,10 @@ export function useServerSearch(options: UseServerSearchOptions = {}) {
             onFinish: () => {
                 isSearching.value = false;
             },
+            onError: (error) => {
+                isSearching.value = false;
+                console.error('Search error:', error);
+            },
         });
     }, delay);
 

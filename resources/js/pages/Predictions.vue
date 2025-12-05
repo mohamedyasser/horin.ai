@@ -269,6 +269,12 @@ const { topGainers, mostConfident } = usePredictionStats(predictions);
                                     variant="outline"
                                     size="sm"
                                     :disabled="predictionsMeta.currentPage <= 1"
+                                    @click="router.visit(window.location.pathname, {
+                                        data: { ...Object.fromEntries(new URLSearchParams(window.location.search)), page: predictionsMeta.currentPage - 1 },
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                        only: ['predictions', 'filters'],
+                                    })"
                                 >
                                     {{ t('common.previous') }}
                                 </Button>
@@ -279,6 +285,12 @@ const { topGainers, mostConfident } = usePredictionStats(predictions);
                                     variant="outline"
                                     size="sm"
                                     :disabled="predictionsMeta.currentPage >= predictionsMeta.lastPage"
+                                    @click="router.visit(window.location.pathname, {
+                                        data: { ...Object.fromEntries(new URLSearchParams(window.location.search)), page: predictionsMeta.currentPage + 1 },
+                                        preserveState: true,
+                                        preserveScroll: true,
+                                        only: ['predictions', 'filters'],
+                                    })"
                                 >
                                     {{ t('common.next') }}
                                 </Button>
