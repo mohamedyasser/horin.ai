@@ -355,6 +355,7 @@
     },
     "predictions": {
         "title": "All Predictions",
+        "allPredictions": "All Predictions",
         "subtitle": "Browse all stock predictions across markets and sectors",
         "searchPlaceholder": "Search by symbol or company name",
         "filters": "Filters",
