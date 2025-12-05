@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Country;
 use App\Models\LatestPrediction;
 use App\Models\Market;
 use App\Models\PredictedAssetPrice;
@@ -54,13 +55,24 @@ class HomeController extends Controller
                 'predictionCount' => $predictionCountsBySector->get($sector->id, 0),
             ]);
 
+        $countries = Country::whereHas('markets')
+            ->get()
+            ->map(fn ($country) => [
+                'id' => $country->id,
+                'name' => $country->name,
+                'code' => $country->code,
+            ]);
+
         return Inertia::render('Welcome', [
             'stats' => $stats,
             'markets' => $markets,
             'sectors' => $sectors,
+            'countries' => $countries,
             'filters' => [
                 'search' => $request->input('search'),
                 'market' => $request->input('market'),
+                'sector' => $request->input('sector'),
+                'country' => $request->input('country'),
             ],
             'featuredPredictions' => Inertia::defer(fn () => $this->getFeaturedPredictions($request)),
             'topMovers' => Inertia::defer(fn () => $this->getTopMovers()),
@@ -71,6 +83,8 @@ class HomeController extends Controller
     private function getFeaturedPredictions(Request $request): array
     {
         $marketFilter = $request->input('market');
+        $sectorFilter = $request->input('sector');
+        $countryFilter = $request->input('country');
         $searchFilter = $request->input('search');
 
         // If search filter provided, use Scout to find matching asset IDs first
@@ -89,13 +103,29 @@ class HomeController extends Controller
         }
 
         // Build base query
-        $query = LatestPrediction::with(['asset.market', 'asset.cachedPrice']);
+        $query = LatestPrediction::with(['asset.market', 'asset.cachedPrice', 'asset.sector']);
 
         // Apply market filter
         if ($marketFilter) {
             $market = Market::where('code', $marketFilter)->first();
             if ($market) {
                 $query->whereHas('asset', fn ($q) => $q->where('market_id', $market->id));
+            }
+        }
+
+        // Apply sector filter
+        if ($sectorFilter) {
+            $sector = Sector::find($sectorFilter);
+            if ($sector) {
+                $query->whereHas('asset', fn ($q) => $q->where('sector_id', $sector->id));
+            }
+        }
+
+        // Apply country filter
+        if ($countryFilter) {
+            $country = Country::find($countryFilter);
+            if ($country) {
+                $query->whereHas('asset.market', fn ($q) => $q->where('country_id', $country->id));
             }
         }
 
@@ -117,7 +147,8 @@ class HomeController extends Controller
             ->values();
 
         // Limit results
-        $limit = $marketFilter ? 10 : 20;
+        $hasFilters = $marketFilter || $sectorFilter || $countryFilter;
+        $limit = $hasFilters ? 10 : 20;
         $limited = $uniquePredictions->take($limit);
 
         // Sort by timestamp (newest first)

@@ -39,6 +39,8 @@
         "highestGain": "Highest Gain",
         "confidence": "Confidence",
         "newest": "Newest",
+        "filters": "Filters",
+        "filterPredictions": "Filter Predictions",
         "horizon": "Horizon",
         "table": {
             "symbol": "Symbol",

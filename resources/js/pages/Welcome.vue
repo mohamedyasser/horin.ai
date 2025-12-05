@@ -4,9 +4,18 @@ import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
 import FilterButtonBar from '@/components/FilterButtonBar.vue';
+import { SearchableSelect } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,9 +32,9 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     Loader2,
+    SlidersHorizontal,
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
-import { useServerFilter } from '@/composables/useServerFilter';
 import type {
     HomeStats,
     MarketPreview,
@@ -37,15 +46,24 @@ import type {
 
 const { t, locale } = useI18n();
 
+interface CountryPreview {
+    id: string;
+    name: string;
+    code: string;
+}
+
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
     stats: HomeStats;
     markets: MarketPreview[];
     sectors: SectorPreview[];
+    countries: CountryPreview[];
     filters?: {
         search?: string | null;
         market?: string | null;
+        sector?: string | null;
+        country?: string | null;
     };
     featuredPredictions?: {
         data: FeaturedPrediction[];
@@ -62,25 +80,74 @@ const props = withDefaults(defineProps<Props>(), {
 // Server-side search
 const { searchQuery, isSearching } = useServerSearch({
     initialValue: props.filters?.search,
-    preserveParams: ['market'],
+    preserveParams: ['market', 'sector', 'country'],
     only: ['featuredPredictions', 'filters'],
 });
-
-// Server-side market filter
-const { selectedValue: selectedMarket, applyFilter: filterByMarket } = useServerFilter({
-    paramName: 'market',
-    initialValue: props.filters?.market ?? null,
-    preserveParams: ['search'],
-    only: ['featuredPredictions', 'filters'],
-});
-
-// Computed - market options for FilterButtonBar
-const marketOptions = computed(() =>
-    props.markets.map((m) => ({ value: m.code, label: m.code }))
-);
 
 // State
+const filterOpen = ref(false);
+const selectedMarket = ref<string | null>(props.filters?.market ?? null);
+const selectedSector = ref<string | null>(props.filters?.sector ?? null);
+const selectedCountry = ref<string | null>(props.filters?.country ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
+
+// Computed - options for searchable selects
+const marketOptions = computed(() =>
+    props.markets.map((m) => ({ value: m.code, label: `${m.code} - ${m.name}` }))
+);
+
+const sectorOptions = computed(() =>
+    props.sectors.map((s) => ({ value: s.id, label: s.name }))
+);
+
+const countryOptions = computed(() =>
+    props.countries.map((c) => ({ value: c.id, label: c.name }))
+);
+
+// Count active filters
+const activeFilterCount = computed(() => {
+    let count = 0;
+    if (selectedMarket.value) count++;
+    if (selectedSector.value) count++;
+    if (selectedCountry.value) count++;
+    return count;
+});
+
+// Apply filters
+const applyFilters = () => {
+    const currentParams = new URLSearchParams(window.location.search);
+    const data: Record<string, string | undefined> = {};
+
+    const search = currentParams.get('search');
+    if (search) data.search = search;
+
+    if (selectedMarket.value) data.market = selectedMarket.value;
+    if (selectedSector.value) data.sector = selectedSector.value;
+    if (selectedCountry.value) data.country = selectedCountry.value;
+
+    router.visit(window.location.pathname, {
+        data,
+        preserveState: true,
+        preserveScroll: true,
+        only: ['featuredPredictions', 'filters'],
+    });
+
+    filterOpen.value = false;
+};
+
+// Clear all filters
+const clearFilters = () => {
+    selectedMarket.value = null;
+    selectedSector.value = null;
+    selectedCountry.value = null;
+    applyFilters();
+};
+
+// Quick market filter from button bar
+const filterByMarket = (marketCode: string | null) => {
+    selectedMarket.value = marketCode;
+    applyFilters();
+};
 
 // Computed - use props data directly (already filtered by server)
 const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []);
@@ -171,6 +238,66 @@ const getConfidenceColor = (confidence: number) => {
                     <div class="mb-4 flex items-center justify-between">
                         <h2 class="text-xl font-semibold">{{ t('home.predictions') }}</h2>
                         <div class="flex items-center gap-2">
+                            <!-- Filter Button -->
+                            <Dialog v-model:open="filterOpen">
+                                <DialogTrigger as-child>
+                                    <Button variant="outline" size="sm">
+                                        <SlidersHorizontal class="me-1 size-4" />
+                                        {{ t('home.filters') }}
+                                        <span v-if="activeFilterCount > 0" class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                            {{ activeFilterCount }}
+                                        </span>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent class="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>{{ t('home.filterPredictions') }}</DialogTitle>
+                                    </DialogHeader>
+                                    <div class="grid gap-4 py-4">
+                                        <!-- Market Select -->
+                                        <div class="grid gap-2">
+                                            <Label>{{ t('predictions.market') }}</Label>
+                                            <SearchableSelect
+                                                v-model="selectedMarket"
+                                                :options="marketOptions"
+                                                :placeholder="t('predictions.allMarkets')"
+                                                :empty-text="t('home.noResults')"
+                                            />
+                                        </div>
+
+                                        <!-- Sector Select -->
+                                        <div class="grid gap-2">
+                                            <Label>{{ t('predictions.sector') }}</Label>
+                                            <SearchableSelect
+                                                v-model="selectedSector"
+                                                :options="sectorOptions"
+                                                :placeholder="t('predictions.allSectors')"
+                                                :empty-text="t('home.noResults')"
+                                            />
+                                        </div>
+
+                                        <!-- Country Select -->
+                                        <div class="grid gap-2">
+                                            <Label>{{ t('markets.country') }}</Label>
+                                            <SearchableSelect
+                                                v-model="selectedCountry"
+                                                :options="countryOptions"
+                                                :placeholder="t('markets.allCountries')"
+                                                :empty-text="t('home.noResults')"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-end gap-2">
+                                        <Button variant="outline" @click="clearFilters">
+                                            {{ t('common.clear') }}
+                                        </Button>
+                                        <Button @click="applyFilters">
+                                            {{ t('common.apply') }}
+                                        </Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+
                             <!-- Sort Dropdown -->
                             <DropdownMenu>
                                 <DropdownMenuTrigger as-child>
@@ -191,7 +318,6 @@ const getConfidenceColor = (confidence: number) => {
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-
                         </div>
                     </div>
 
