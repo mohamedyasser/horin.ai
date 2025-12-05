@@ -19,8 +19,8 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     Gauge,
-    LineChart,
 } from 'lucide-vue-next';
+import PredictionsChart from '@/components/PredictionsChart.vue';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import type {
     AssetDetailData,
@@ -31,7 +31,7 @@ import type {
 } from '@/types';
 
 const { t, locale } = useI18n();
-const { formatGain, getConfidenceColor } = usePredictionFormatters();
+const { getConfidenceColor } = usePredictionFormatters();
 
 interface Props {
     canLogin: boolean;
@@ -73,12 +73,6 @@ const formatVolume = (volume?: string) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
     return volume;
-};
-
-const getConfidenceBgColor = (confidence: number) => {
-    if (confidence >= 85) return 'bg-green-100 dark:bg-green-900/30';
-    if (confidence >= 70) return 'bg-yellow-100 dark:bg-yellow-900/30';
-    return 'bg-red-100 dark:bg-red-900/30';
 };
 
 const formatDate = (dateString: string | null) => {
@@ -253,7 +247,7 @@ const getMacdSignal = (macdLine?: number | null) => {
                     </CardContent>
                 </Card>
 
-                <!-- Predictions Card -->
+                <!-- Predictions Card with Chart -->
                 <Card>
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
@@ -265,46 +259,21 @@ const getMacdSignal = (macdLine?: number | null) => {
                         <Deferred data="predictions">
                             <template #fallback>
                                 <div class="space-y-4">
-                                    <div v-for="i in 4" :key="i" class="animate-pulse rounded-lg border border-border p-4">
-                                        <div class="h-6 w-20 rounded bg-muted mb-3" />
-                                        <div class="h-8 w-32 rounded bg-muted" />
+                                    <!-- Chart skeleton -->
+                                    <div class="h-[250px] animate-pulse rounded-lg bg-muted" />
+                                    <!-- Table skeleton -->
+                                    <div v-for="i in 3" :key="i" class="animate-pulse rounded-lg border border-border p-4">
+                                        <div class="h-6 w-full rounded bg-muted" />
                                     </div>
                                 </div>
                             </template>
 
-                            <div v-if="predictions.length > 0" class="space-y-4">
-                                <div
-                                    v-for="(prediction, index) in predictions"
-                                    :key="index"
-                                    class="rounded-lg border border-border p-4 hover:bg-muted/30 transition-colors"
-                                >
-                                    <div class="flex items-start justify-between">
-                                        <div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                                                    {{ prediction.horizonLabel }}
-                                                </span>
-                                                <span
-                                                    :class="[getConfidenceBgColor(prediction.confidence), getConfidenceColor(prediction.confidence)]"
-                                                    class="rounded-full px-2.5 py-1 text-xs font-medium"
-                                                >
-                                                    {{ prediction.confidence }}% {{ t('assetDetail.prediction.confidence') }}
-                                                </span>
-                                            </div>
-                                            <div class="mt-3 flex items-baseline gap-2">
-                                                <span class="text-2xl font-bold">{{ formatPrice(prediction.predictedPrice) }}</span>
-                                                <span
-                                                    class="flex items-center gap-0.5 text-lg font-medium"
-                                                    :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
-                                                >
-                                                    <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
-                                                    <ArrowDownRight v-else class="size-4" />
-                                                    {{ formatGain(prediction.expectedGainPercent) }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div v-if="predictions.length > 0">
+                                <PredictionsChart
+                                    :predictions="predictions"
+                                    :current-price="price?.last"
+                                    :currency="asset.currency"
+                                />
                             </div>
                             <div v-else class="flex flex-col items-center justify-center py-8 text-center">
                                 <TrendingDown class="size-12 text-muted-foreground/50" />
@@ -315,25 +284,6 @@ const getMacdSignal = (macdLine?: number | null) => {
                         </Deferred>
                     </CardContent>
                 </Card>
-
-                    <!-- Chart Placeholder -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <LineChart class="size-5 text-blue-500" />
-                                {{ t('assetDetail.chart.title') }}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="flex items-center justify-center h-64 rounded-lg bg-muted/30 border border-dashed border-border">
-                                <div class="text-center text-muted-foreground">
-                                    <LineChart class="size-12 mx-auto mb-2 opacity-50" />
-                                    <p>{{ t('assetDetail.chart.historical') }} + {{ t('assetDetail.chart.predicted') }}</p>
-                                    <p class="text-sm">{{ t('assetDetail.chart.confidenceBand') }}</p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 <!-- Right Column - Sidebar -->
