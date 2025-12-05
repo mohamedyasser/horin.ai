@@ -56,11 +56,6 @@ class SectorController extends Controller
 
         return Inertia::render('Sectors', [
             'sectors' => $sectors,
-            'markets' => $markets->map(fn ($m) => [
-                'id' => $m->id,
-                'code' => $m->code,
-                'name' => $m->name,
-            ]),
         ]);
     }
 
