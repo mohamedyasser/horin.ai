@@ -35,6 +35,7 @@ import {
     SlidersHorizontal,
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import type {
     HomeStats,
     MarketPreview,
@@ -45,6 +46,7 @@ import type {
 } from '@/types';
 
 const { t, locale } = useI18n();
+const { formatGain, getConfidenceColor } = usePredictionFormatters();
 
 interface CountryPreview {
     id: string;
@@ -172,18 +174,6 @@ const sortedPredictions = computed(() => {
 
     return result;
 });
-
-// Helpers
-const formatGain = (gain: number) => {
-    const sign = gain >= 0 ? '+' : '';
-    return `${sign}${gain.toFixed(1)}%`;
-};
-
-const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 85) return 'text-green-600 dark:text-green-400';
-    if (confidence >= 70) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-};
 
 </script>
 

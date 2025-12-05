@@ -22,9 +22,11 @@ import {
     Building2,
     ArrowRight,
 } from 'lucide-vue-next';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import type { MarketPreview } from '@/types';
 
 const { t } = useI18n();
+const { getStatusColor } = usePredictionFormatters();
 
 interface Props {
     canLogin: boolean;
@@ -89,13 +91,6 @@ const trendingMarket = computed(() =>
 const recentlyUpdatedMarkets = computed(() =>
     props.markets.filter((m) => m.isOpen).slice(0, 3)
 );
-
-// Helpers
-const getStatusColor = (isOpen: boolean) => {
-    return isOpen
-        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-        : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400';
-};
 </script>
 
 <template>

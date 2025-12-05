@@ -18,9 +18,11 @@ import {
     Loader2,
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import type { SectorDetail, AssetListItem, PaginationMeta } from '@/types';
 
 const { t, locale } = useI18n();
+const { formatGain, getConfidenceColor } = usePredictionFormatters();
 
 interface Props {
     sector: SectorDetail;
@@ -74,18 +76,7 @@ const mostConfident = computed(() =>
         .slice(0, 5)
 );
 
-// Helpers
-const formatGain = (gain: number) => {
-    const sign = gain >= 0 ? '+' : '';
-    return `${sign}${gain.toFixed(1)}%`;
-};
-
-const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 85) return 'text-green-600 dark:text-green-400';
-    if (confidence >= 70) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
-};
-
+// Helper to calculate gain percent for an asset
 const calculateGainPercent = (asset: AssetListItem) => {
     if (!asset.latestPrediction || !asset.latestPrice?.last) return 0;
     return ((asset.latestPrediction.predictedPrice - asset.latestPrice.last) / asset.latestPrice.last) * 100;

@@ -21,6 +21,7 @@ import {
     Gauge,
     LineChart,
 } from 'lucide-vue-next';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import type {
     AssetDetailData,
     AssetPriceData,
@@ -30,6 +31,7 @@ import type {
 } from '@/types';
 
 const { t, locale } = useI18n();
+const { formatGain, getConfidenceColor } = usePredictionFormatters();
 
 interface Props {
     canLogin: boolean;
@@ -60,14 +62,9 @@ const priceChangeIsPositive = computed(() => {
     return parseFloat(price.value.changePercent) >= 0;
 });
 
-// Helpers
+// Local helpers (not in composable)
 const formatPrice = (value: number) => {
     return `${value.toFixed(2)} ${asset.value.currency}`;
-};
-
-const formatGain = (gain: number) => {
-    const sign = gain >= 0 ? '+' : '';
-    return `${sign}${gain.toFixed(2)}%`;
 };
 
 const formatVolume = (volume?: string) => {
@@ -76,12 +73,6 @@ const formatVolume = (volume?: string) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(2)}K`;
     return volume;
-};
-
-const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 85) return 'text-green-600 dark:text-green-400';
-    if (confidence >= 70) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
 };
 
 const getConfidenceBgColor = (confidence: number) => {
