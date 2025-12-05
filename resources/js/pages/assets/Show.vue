@@ -284,6 +284,24 @@ const getMacdSignal = (macdLine?: number | null) => {
                         </Deferred>
                     </CardContent>
                 </Card>
+                <!-- Chart Placeholder -->
+                <Card>
+                    <CardHeader>
+                        <CardTitle class="flex items-center gap-2">
+                            <LineChart class="size-5 text-blue-500" />
+                            {{ t('assetDetail.chart.title') }}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="flex items-center justify-center h-64 rounded-lg bg-muted/30 border border-dashed border-border">
+                            <div class="text-center text-muted-foreground">
+                                <LineChart class="size-12 mx-auto mb-2 opacity-50" />
+                                <p>{{ t('assetDetail.chart.historical') }} + {{ t('assetDetail.chart.predicted') }}</p>
+                                <p class="text-sm">{{ t('assetDetail.chart.confidenceBand') }}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
                 </div>
 
                 <!-- Right Column - Sidebar -->
