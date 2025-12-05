@@ -45,6 +45,7 @@
         "minPrice": "أقل سعر",
         "maxPrice": "أعلى سعر",
         "horizon": "المدة",
+        "allHorizons": "الكل",
         "table": {
             "symbol": "الرمز",
             "name": "الاسم",

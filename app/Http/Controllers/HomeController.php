@@ -58,9 +58,11 @@ class HomeController extends Controller
             'stats' => $stats,
             'markets' => $markets,
             'sectors' => $sectors,
+            'horizons' => Horizon::options(),
             'filters' => [
                 'search' => $request->input('search'),
                 'market' => $request->input('market'),
+                'horizon' => $request->input('horizon'),
             ],
             'featuredPredictions' => Inertia::defer(fn () => $this->getFeaturedPredictions($request)),
             'topMovers' => Inertia::defer(fn () => $this->getTopMovers()),
@@ -72,6 +74,7 @@ class HomeController extends Controller
     {
         $marketFilter = $request->input('market');
         $searchFilter = $request->input('search');
+        $horizonFilter = $request->input('horizon');
 
         // If search filter provided, use Scout to find matching asset IDs first
         $searchAssetIds = null;
@@ -88,39 +91,45 @@ class HomeController extends Controller
             }
         }
 
-        // Get all markets
-        $markets = Market::all();
+        // Build base query
+        $query = LatestPrediction::with(['asset.market', 'asset.cachedPrice']);
 
-        $allPredictions = collect();
-
-        // When "All Markets" is selected, show 2 per market; when specific market, show 10
-        $limitPerMarket = $marketFilter ? 10 : 2;
-
-        foreach ($markets as $market) {
-            // Skip if market filter is set and doesn't match
-            if ($marketFilter && $market->code !== $marketFilter) {
-                continue;
+        // Apply market filter
+        if ($marketFilter) {
+            $market = Market::where('code', $marketFilter)->first();
+            if ($market) {
+                $query->whereHas('asset', fn ($q) => $q->where('market_id', $market->id));
             }
-
-            // Use LatestPrediction (materialized view) for better performance
-            $query = LatestPrediction::with(['asset.market', 'asset.cachedPrice'])
-                ->whereHas('asset', fn ($q) => $q->where('market_id', $market->id));
-
-            // Apply Scout search results filter
-            if ($searchAssetIds !== null) {
-                $query->whereIn('pid', $searchAssetIds);
-            }
-
-            $query->orderByDesc('timestamp')
-                ->limit($limitPerMarket);
-
-            $predictions = $query->get()->filter(fn ($p) => $p->asset !== null);
-
-            $allPredictions = $allPredictions->concat($predictions);
         }
 
-        // Sort all combined predictions by timestamp (newest first)
-        $sorted = $allPredictions->sortByDesc('timestamp')->values();
+        // Apply horizon filter
+        if ($horizonFilter) {
+            $query->where('horizon', $horizonFilter);
+        }
+
+        // Apply Scout search results filter
+        if ($searchAssetIds !== null) {
+            $query->whereIn('pid', $searchAssetIds);
+        }
+
+        // Order by timestamp (newest first) and get results
+        $predictions = $query->orderByDesc('timestamp')
+            ->limit(100) // Get more to allow for deduplication
+            ->get()
+            ->filter(fn ($p) => $p->asset !== null);
+
+        // Deduplicate: keep only the latest prediction per asset (pid)
+        $uniquePredictions = $predictions
+            ->groupBy('pid')
+            ->map(fn ($group) => $group->sortByDesc('timestamp')->first())
+            ->values();
+
+        // Limit results
+        $limit = $marketFilter ? 10 : 20;
+        $limited = $uniquePredictions->take($limit);
+
+        // Sort by timestamp (newest first)
+        $sorted = $limited->sortByDesc('timestamp')->values();
 
         return [
             'data' => $sorted->map(fn ($p) => $this->formatPrediction($p))->toArray(),

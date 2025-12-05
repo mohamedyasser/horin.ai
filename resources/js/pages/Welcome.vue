@@ -44,15 +44,22 @@ import type {
 
 const { t, locale } = useI18n();
 
+interface HorizonOption {
+    value: string;
+    label: string;
+}
+
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
     stats: HomeStats;
     markets: MarketPreview[];
     sectors: SectorPreview[];
+    horizons: HorizonOption[];
     filters?: {
         search?: string | null;
         market?: string | null;
+        horizon?: string | null;
     };
     featuredPredictions?: {
         data: FeaturedPrediction[];
@@ -69,12 +76,13 @@ const props = withDefaults(defineProps<Props>(), {
 // Server-side search
 const { searchQuery, isSearching } = useServerSearch({
     initialValue: props.filters?.search,
-    preserveParams: ['market'],
+    preserveParams: ['market', 'horizon'],
     only: ['featuredPredictions', 'filters'],
 });
 
 // State
 const selectedMarket = ref<string | null>(props.filters?.market ?? null);
+const selectedHorizon = ref<string | null>(props.filters?.horizon ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
 const filterOpen = ref(false);
 
@@ -84,20 +92,46 @@ const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []
 const topMovers = computed(() => props.topMovers ?? []);
 const recentPredictions = computed(() => props.recentPredictions ?? []);
 
-// Market filter - server-side
-const filterByMarket = (marketCode: string | null) => {
-    selectedMarket.value = marketCode;
+// Helper to build filter data preserving current params
+const buildFilterData = () => {
     const currentParams = new URLSearchParams(window.location.search);
     const data: Record<string, string | undefined> = {};
 
-    // Preserve search param
     const search = currentParams.get('search');
-    if (search) {
-        data.search = search;
-    }
+    if (search) data.search = search;
 
+    if (selectedMarket.value) data.market = selectedMarket.value;
+    if (selectedHorizon.value) data.horizon = selectedHorizon.value;
+
+    return data;
+};
+
+// Market filter - server-side
+const filterByMarket = (marketCode: string | null) => {
+    selectedMarket.value = marketCode;
+    const data = buildFilterData();
     if (marketCode) {
         data.market = marketCode;
+    } else {
+        delete data.market;
+    }
+
+    router.visit(window.location.pathname, {
+        data,
+        preserveState: true,
+        preserveScroll: true,
+        only: ['featuredPredictions', 'filters'],
+    });
+};
+
+// Horizon filter - server-side
+const filterByHorizon = (horizon: string | null) => {
+    selectedHorizon.value = horizon;
+    const data = buildFilterData();
+    if (horizon) {
+        data.horizon = horizon;
+    } else {
+        delete data.horizon;
     }
 
     router.visit(window.location.pathname, {
@@ -171,26 +205,50 @@ const getConfidenceColor = (confidence: number) => {
             </div>
         </section>
 
-        <!-- Market Filter Bar -->
+        <!-- Filter Bar -->
         <section class="border-b border-border/40">
             <div class="mx-auto max-w-7xl px-4 py-4">
-                <div class="flex flex-wrap items-center gap-2">
-                    <Button
-                        :variant="selectedMarket === null ? 'default' : 'outline'"
-                        size="sm"
-                        @click="filterByMarket(null)"
-                    >
-                        {{ t('home.allMarkets') }}
-                    </Button>
-                    <Button
-                        v-for="market in markets"
-                        :key="market.id"
-                        :variant="selectedMarket === market.code ? 'default' : 'outline'"
-                        size="sm"
-                        @click="filterByMarket(market.code)"
-                    >
-                        {{ market.code }}
-                    </Button>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <!-- Market Filter -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Button
+                            :variant="selectedMarket === null ? 'default' : 'outline'"
+                            size="sm"
+                            @click="filterByMarket(null)"
+                        >
+                            {{ t('home.allMarkets') }}
+                        </Button>
+                        <Button
+                            v-for="market in markets"
+                            :key="market.id"
+                            :variant="selectedMarket === market.code ? 'default' : 'outline'"
+                            size="sm"
+                            @click="filterByMarket(market.code)"
+                        >
+                            {{ market.code }}
+                        </Button>
+                    </div>
+
+                    <!-- Horizon Filter -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm text-muted-foreground">{{ t('home.horizon') }}:</span>
+                        <Button
+                            :variant="selectedHorizon === null ? 'default' : 'outline'"
+                            size="sm"
+                            @click="filterByHorizon(null)"
+                        >
+                            {{ t('home.allHorizons') }}
+                        </Button>
+                        <Button
+                            v-for="horizon in props.horizons"
+                            :key="horizon.value"
+                            :variant="selectedHorizon === horizon.value ? 'default' : 'outline'"
+                            size="sm"
+                            @click="filterByHorizon(horizon.value)"
+                        >
+                            {{ horizon.label }}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </section>

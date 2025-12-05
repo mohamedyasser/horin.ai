@@ -45,6 +45,7 @@
         "minPrice": "Min Price",
         "maxPrice": "Max Price",
         "horizon": "Horizon",
+        "allHorizons": "All",
         "table": {
             "symbol": "Symbol",
             "name": "Name",
