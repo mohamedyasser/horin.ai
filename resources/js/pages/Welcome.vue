@@ -93,7 +93,7 @@ const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
 
 // Computed - options for searchable selects
 const marketOptions = computed(() =>
-    props.markets.map((m) => ({ value: m.code, label: `${m.code} - ${m.name}` }))
+    props.markets.map((m) => ({ value: m.code, label: `${m.name}` }))
 );
 
 const sectorOptions = computed(() =>
