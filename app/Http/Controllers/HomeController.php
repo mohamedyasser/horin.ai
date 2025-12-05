@@ -102,6 +102,7 @@ class HomeController extends Controller
                     }
                 })
                 ->orderByDesc('timestamp')
+                ->distinct()
                 ->limit($limitPerMarket);
 
             $predictions = $query->get()->filter(fn ($p) => $p->asset !== null);
