@@ -145,11 +145,14 @@ class AssetController extends Controller
 
     private function getPredictionHistory(Asset $asset): array
     {
+        // Get the latest prediction per horizon (unique horizons only)
         return PredictedAssetPrice::where('pid', $asset->inv_id)
             ->orderByDesc('timestamp')
-            ->limit(10)
             ->get()
-            ->map(function ($p) {
+            ->groupBy('horizon')
+            ->map(function ($group) {
+                $p = $group->first(); // Get the latest prediction for this horizon
+
                 // timestamp is in seconds, not milliseconds
                 $timestamp = $p->timestamp ? Carbon::createFromTimestamp($p->timestamp) : null;
                 $horizonMinutes = Horizon::minutes($p->horizon);
@@ -166,6 +169,8 @@ class AssetController extends Controller
                     'targetTimestamp' => $targetTimestamp,
                 ];
             })
+            ->sortBy('horizon')
+            ->values()
             ->toArray();
     }
 }
