@@ -10,7 +10,8 @@
         "clear": "Clear",
         "apply": "Apply",
         "close": "Close",
-        "noData": "No data available"
+        "noData": "No data available",
+        "pageIndicator": "Page {current} of {total}"
     },
     "meta": {
         "home": "AI-powered stock price predictions for Middle East markets including Egypt, Saudi Arabia, UAE, Kuwait, Qatar, and Bahrain. Updated daily forecasts with confidence scores.",

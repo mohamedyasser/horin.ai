@@ -4,6 +4,7 @@ import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
 import FilterButtonBar from '@/components/FilterButtonBar.vue';
+import ClickableTableRow from '@/components/ClickableTableRow.vue';
 import { SearchableSelect } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -352,10 +353,10 @@ const sortedPredictions = computed(() => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr
+                                        <ClickableTableRow
                                             v-for="prediction in sortedPredictions"
                                             :key="prediction.id"
-                                            class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                                            :aria-label="`View details for ${prediction.asset.symbol} - ${prediction.asset.name}`"
                                             @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
                                         >
                                             <td class="px-4 py-3">
@@ -398,7 +399,7 @@ const sortedPredictions = computed(() => {
                                                     {{ prediction.confidence }}%
                                                 </span>
                                             </td>
-                                        </tr>
+                                        </ClickableTableRow>
                                     </tbody>
                                 </table>
                             </div>
