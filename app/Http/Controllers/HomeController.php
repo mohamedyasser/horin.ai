@@ -58,6 +58,10 @@ class HomeController extends Controller
             'stats' => $stats,
             'markets' => $markets,
             'sectors' => $sectors,
+            'filters' => [
+                'search' => $request->input('search'),
+                'market' => $request->input('market'),
+            ],
             'featuredPredictions' => Inertia::defer(fn () => $this->getFeaturedPredictions($request)),
             'topMovers' => Inertia::defer(fn () => $this->getTopMovers()),
             'recentPredictions' => Inertia::defer(fn () => $this->getRecentPredictions()),
@@ -67,6 +71,7 @@ class HomeController extends Controller
     private function getFeaturedPredictions(Request $request): array
     {
         $marketFilter = $request->input('market');
+        $searchFilter = $request->input('search');
 
         // Get all markets
         $markets = Market::all();
@@ -83,12 +88,23 @@ class HomeController extends Controller
             }
 
             // Use LatestPrediction (materialized view) for better performance
-            $predictions = LatestPrediction::with(['asset.market', 'asset.cachedPrice'])
-                ->whereHas('asset', fn ($q) => $q->where('market_id', $market->id))
+            $query = LatestPrediction::with(['asset.market', 'asset.cachedPrice'])
+                ->whereHas('asset', function ($q) use ($market, $searchFilter) {
+                    $q->where('market_id', $market->id);
+
+                    // Apply search filter
+                    if ($searchFilter) {
+                        $q->where(function ($subQ) use ($searchFilter) {
+                            $subQ->where('symbol', 'like', "%{$searchFilter}%")
+                                ->orWhere('name_en', 'like', "%{$searchFilter}%")
+                                ->orWhere('name_ar', 'like', "%{$searchFilter}%");
+                        });
+                    }
+                })
                 ->orderByDesc('timestamp')
-                ->limit($limitPerMarket)
-                ->get()
-                ->filter(fn ($p) => $p->asset !== null);
+                ->limit($limitPerMarket);
+
+            $predictions = $query->get()->filter(fn ($p) => $p->asset !== null);
 
             $allPredictions = $allPredictions->concat($predictions);
         }

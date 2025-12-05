@@ -24,7 +24,7 @@ import {
 } from 'lucide-vue-next';
 import type { MarketPreview } from '@/types';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 interface Props {
     canLogin: boolean;

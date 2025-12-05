@@ -27,6 +27,7 @@ class PredictionController extends Controller
         ];
 
         $filters = [
+            'search' => $request->input('search'),
             'marketId' => $request->input('market_id'),
             'sectorId' => $request->input('sector_id'),
             'horizon' => $request->input('horizon'),
@@ -54,6 +55,13 @@ class PredictionController extends Controller
             'asset.latestPrice',
         ]);
 
+        if ($filters['search']) {
+            $search = $filters['search'];
+            $query->whereHas('asset', fn ($q) => $q
+                ->where('symbol', 'like', "%{$search}%")
+                ->orWhere('name_en', 'like', "%{$search}%")
+                ->orWhere('name_ar', 'like', "%{$search}%"));
+        }
         if ($filters['marketId']) {
             $query->whereHas('asset', fn ($q) => $q->where('market_id', $filters['marketId']));
         }

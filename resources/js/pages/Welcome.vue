@@ -30,7 +30,9 @@ import {
     Target,
     ArrowUpRight,
     ArrowDownRight,
+    Loader2,
 } from 'lucide-vue-next';
+import { useServerSearch } from '@/composables/useServerSearch';
 import type {
     HomeStats,
     MarketPreview,
@@ -38,7 +40,6 @@ import type {
     FeaturedPrediction,
     TopMover,
     RecentPrediction,
-    PaginationMeta,
 } from '@/types';
 
 const { t, locale } = useI18n();
@@ -49,6 +50,10 @@ interface Props {
     stats: HomeStats;
     markets: MarketPreview[];
     sectors: SectorPreview[];
+    filters?: {
+        search?: string | null;
+        market?: string | null;
+    };
     featuredPredictions?: {
         data: FeaturedPrediction[];
     };
@@ -61,13 +66,19 @@ const props = withDefaults(defineProps<Props>(), {
     canRegister: true,
 });
 
+// Server-side search
+const { searchQuery, isSearching } = useServerSearch({
+    initialValue: props.filters?.search,
+    preserveParams: ['market'],
+    only: ['featuredPredictions', 'filters'],
+});
+
 // State
-const searchQuery = ref('');
-const selectedMarket = ref<string | null>(null);
+const selectedMarket = ref<string | null>(props.filters?.market ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
 const filterOpen = ref(false);
 
-// Computed - use props data directly
+// Computed - use props data directly (already filtered by server)
 const markets = computed(() => props.markets);
 const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []);
 const topMovers = computed(() => props.topMovers ?? []);
@@ -76,28 +87,31 @@ const recentPredictions = computed(() => props.recentPredictions ?? []);
 // Market filter - server-side
 const filterByMarket = (marketCode: string | null) => {
     selectedMarket.value = marketCode;
+    const currentParams = new URLSearchParams(window.location.search);
+    const data: Record<string, string | undefined> = {};
+
+    // Preserve search param
+    const search = currentParams.get('search');
+    if (search) {
+        data.search = search;
+    }
+
+    if (marketCode) {
+        data.market = marketCode;
+    }
+
     router.visit(window.location.pathname, {
-        data: marketCode ? { market: marketCode } : {},
+        data,
         preserveState: true,
         preserveScroll: true,
-        only: ['featuredPredictions'],
+        only: ['featuredPredictions', 'filters'],
     });
 };
 
-// Filter predictions client-side for search only (market filter is server-side)
-const filteredPredictions = computed(() => {
-    let result = [...featuredPredictions.value];
+// Sort predictions client-side (sorting doesn't require server round-trip)
+const sortedPredictions = computed(() => {
+    const result = [...featuredPredictions.value];
 
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(
-            (p) =>
-                p.asset.symbol.toLowerCase().includes(query) ||
-                p.asset.name.toLowerCase().includes(query)
-        );
-    }
-
-    // Sort
     if (sortBy.value === 'gain') {
         result.sort((a, b) => b.expectedGainPercent - a.expectedGainPercent);
     } else if (sortBy.value === 'confidence') {
@@ -145,7 +159,8 @@ const getConfidenceColor = (confidence: number) => {
 
                 <!-- Search Bar -->
                 <div class="relative mx-auto mt-8 max-w-xl">
-                    <Search class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Search v-if="!isSearching" class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Loader2 v-else class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground animate-spin" />
                     <Input
                         v-model="searchQuery"
                         type="text"
@@ -300,7 +315,7 @@ const getConfidenceColor = (confidence: number) => {
                                     </thead>
                                     <tbody>
                                         <tr
-                                            v-for="prediction in filteredPredictions"
+                                            v-for="prediction in sortedPredictions"
                                             :key="prediction.id"
                                             class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                                             @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
@@ -352,7 +367,7 @@ const getConfidenceColor = (confidence: number) => {
 
                             <!-- Empty State -->
                             <div
-                                v-if="filteredPredictions.length === 0"
+                                v-if="sortedPredictions.length === 0"
                                 class="flex flex-col items-center justify-center py-12 text-center"
                             >
                                 <Search class="size-12 text-muted-foreground/50" />
@@ -365,7 +380,7 @@ const getConfidenceColor = (confidence: number) => {
 
                     <!-- Results count -->
                     <div class="mt-4 text-center text-sm text-muted-foreground">
-                        {{ t('home.showingPredictions', { count: filteredPredictions.length }) }}
+                        {{ t('home.showingPredictions', { count: sortedPredictions.length }) }}
                     </div>
                 </div>
 

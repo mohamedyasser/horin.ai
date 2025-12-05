@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Market;
 use App\Services\PredictionStatsService;
+use App\Services\SearchService;
+use App\Services\StaticDataCacheService;
 use App\Support\PaginationHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,9 +18,8 @@ class MarketController extends Controller
     {
         $predictionCounts = PredictionStatsService::countsByMarket();
 
-        $markets = Market::with('country')
-            ->withCount('assets')
-            ->get()
+        // Use cached markets data
+        $markets = StaticDataCacheService::markets()
             ->map(fn ($market) => [
                 'id' => $market->id,
                 'name' => $market->name,
@@ -29,7 +30,7 @@ class MarketController extends Controller
                     'code' => $market->country->code,
                 ] : null,
                 'isOpen' => $market->isOpenNow(),
-                'assetCount' => $market->assets_count,
+                'assetCount' => StaticDataCacheService::assetsByMarket($market->id)->count(),
                 'predictionCount' => $predictionCounts->get($market->id, 0),
             ]);
 
@@ -60,15 +61,53 @@ class MarketController extends Controller
                 'assetCount' => $market->assets_count,
                 'predictionCount' => PredictionStatsService::countForMarket($market->id),
             ],
+            'filters' => [
+                'search' => $request->input('search'),
+            ],
             'assets' => Inertia::defer(fn () => $this->getMarketAssets($market, $request)),
         ]);
     }
 
     private function getMarketAssets(Market $market, Request $request): array
     {
+        $search = $request->input('search');
+        $page = max(1, (int) $request->input('page', 1));
+
+        // Use SearchService for server-side search when search query is provided
+        if ($search) {
+            $results = SearchService::searchAssetsInMarket($market->id, $search, 10, $page);
+
+            return [
+                'data' => collect($results->items())->map(fn ($asset) => [
+                    'id' => $asset->id,
+                    'symbol' => $asset->symbol,
+                    'name' => $asset->name,
+                    'sector' => $asset->sector ? [
+                        'id' => $asset->sector->id,
+                        'name' => $asset->sector->name,
+                    ] : null,
+                    'latestPrice' => $asset->cachedPrice ? [
+                        'last' => $asset->cachedPrice->price,
+                        'pcp' => $asset->cachedPrice->percent_change,
+                        'freshness' => $asset->cachedPrice->freshness,
+                        'hoursAgo' => $asset->cachedPrice->hours_ago,
+                    ] : null,
+                    'latestPrediction' => $asset->cachedPrediction ? [
+                        'predictedPrice' => $asset->cachedPrediction->price_prediction,
+                        'confidence' => $asset->cachedPrediction->confidence,
+                        'horizon' => $asset->cachedPrediction->horizon,
+                        'horizonLabel' => $asset->cachedPrediction->horizon_label,
+                        'freshness' => $asset->cachedPrediction->freshness,
+                    ] : null,
+                ])->toArray(),
+                'meta' => PaginationHelper::meta($results),
+            ];
+        }
+
+        // Default: no search, just paginate
         $assets = Asset::where('market_id', $market->id)
             ->with(['sector', 'cachedPrice', 'cachedPrediction'])
-            ->paginate(10, ['*'], 'page', $request->input('page', 1));
+            ->paginate(10, ['*'], 'page', $page);
 
         return [
             'data' => $assets->map(fn ($asset) => [

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
@@ -20,7 +20,9 @@ import {
     Target,
     ArrowUpRight,
     ArrowDownRight,
+    Loader2,
 } from 'lucide-vue-next';
+import { useServerSearch } from '@/composables/useServerSearch';
 import type { PredictionListItem, PaginationMeta } from '@/types';
 
 const { t, locale } = useI18n();
@@ -28,6 +30,13 @@ const { t, locale } = useI18n();
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
+    filters?: {
+        search?: string | null;
+        marketId?: string | null;
+        sectorId?: string | null;
+        horizon?: string | null;
+        minConfidence?: number;
+    };
     predictions?: {
         data: PredictionListItem[];
         meta: PaginationMeta;
@@ -39,28 +48,16 @@ const props = withDefaults(defineProps<Props>(), {
     canRegister: true,
 });
 
-// State
-const searchQuery = ref('');
+// Server-side search
+const { searchQuery, isSearching } = useServerSearch({
+    initialValue: props.filters?.search,
+    preserveParams: ['page', 'market_id', 'sector_id', 'horizon', 'min_confidence', 'sort', 'direction'],
+    only: ['predictions', 'filters'],
+});
 
-// Computed - use props data directly
+// Computed - use props data directly (already filtered by server)
 const predictions = computed(() => props.predictions?.data ?? []);
 const predictionsMeta = computed(() => props.predictions?.meta);
-
-// Filter predictions client-side for search
-const filteredPredictions = computed(() => {
-    let result = [...predictions.value];
-
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(
-            (p) =>
-                p.asset.symbol.toLowerCase().includes(query) ||
-                p.asset.name.toLowerCase().includes(query)
-        );
-    }
-
-    return result;
-});
 
 // Derived data for sidebar
 const topGainers = computed(() =>
@@ -106,7 +103,8 @@ const getConfidenceColor = (confidence: number) => {
 
                     <!-- Search Bar -->
                     <div class="relative mx-auto mt-8 max-w-xl">
-                        <Search class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                        <Search v-if="!isSearching" class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                        <Loader2 v-else class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground animate-spin" />
                         <Input
                             v-model="searchQuery"
                             type="text"
@@ -202,7 +200,7 @@ const getConfidenceColor = (confidence: number) => {
                                         </thead>
                                         <tbody>
                                             <tr
-                                                v-for="prediction in filteredPredictions"
+                                                v-for="prediction in predictions"
                                                 :key="prediction.id"
                                                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                                                 @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
@@ -274,7 +272,7 @@ const getConfidenceColor = (confidence: number) => {
 
                                 <!-- Empty State -->
                                 <div
-                                    v-if="filteredPredictions.length === 0"
+                                    v-if="predictions.length === 0"
                                     class="flex flex-col items-center justify-center py-12 text-center"
                                 >
                                     <Search class="size-12 text-muted-foreground/50" />

@@ -23,7 +23,7 @@ import {
 } from 'lucide-vue-next';
 import type { MarketsBreakdown } from '@/types';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 interface SectorListItem {
     id: string;

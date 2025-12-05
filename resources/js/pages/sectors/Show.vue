@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import GuestLayout from '@/layouts/GuestLayout.vue';
@@ -15,7 +15,9 @@ import {
     Target,
     Layers,
     BarChart3,
+    Loader2,
 } from 'lucide-vue-next';
+import { useServerSearch } from '@/composables/useServerSearch';
 import type { SectorDetail, AssetListItem, PaginationMeta } from '@/types';
 
 const { t, locale } = useI18n();
@@ -24,6 +26,10 @@ interface Props {
     sector: SectorDetail;
     canLogin: boolean;
     canRegister: boolean;
+    filters?: {
+        marketId?: string | null;
+        search?: string | null;
+    };
     assets?: {
         data: AssetListItem[];
         meta: PaginationMeta;
@@ -35,28 +41,15 @@ const props = withDefaults(defineProps<Props>(), {
     canRegister: true,
 });
 
-// State
-const searchQuery = ref('');
+// Server-side search
+const { searchQuery, isSearching } = useServerSearch({
+    initialValue: props.filters?.search,
+    preserveParams: ['page', 'market_id'],
+});
 
-// Computed - use props data directly
+// Computed - use props data directly (already filtered by server)
 const assets = computed(() => props.assets?.data ?? []);
 const assetsMeta = computed(() => props.assets?.meta);
-
-// Filter assets client-side for search
-const filteredAssets = computed(() => {
-    let result = [...assets.value];
-
-    if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase();
-        result = result.filter(
-            (a) =>
-                a.symbol.toLowerCase().includes(query) ||
-                a.name.toLowerCase().includes(query)
-        );
-    }
-
-    return result;
-});
 
 // Derived data from assets
 const assetsWithPredictions = computed(() =>
@@ -158,7 +151,8 @@ const calculateGainPercent = (asset: AssetListItem) => {
 
                     <!-- Search Bar -->
                     <div class="relative mt-8 max-w-xl">
-                        <Search class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                        <Search v-if="!isSearching" class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                        <Loader2 v-else class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground animate-spin" />
                         <Input
                             v-model="searchQuery"
                             type="text"
@@ -215,7 +209,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
                                         </thead>
                                         <tbody>
                                             <tr
-                                                v-for="asset in filteredAssets"
+                                                v-for="asset in assets"
                                                 :key="asset.id"
                                                 class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
                                                 @click="router.visit(`/${locale}/assets/${asset.symbol}`)"
@@ -271,7 +265,7 @@ const calculateGainPercent = (asset: AssetListItem) => {
 
                                 <!-- Empty State -->
                                 <div
-                                    v-if="filteredAssets.length === 0"
+                                    v-if="assets.length === 0"
                                     class="flex flex-col items-center justify-center py-12 text-center"
                                 >
                                     <Search class="size-12 text-muted-foreground/50" />
