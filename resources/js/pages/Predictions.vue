@@ -24,6 +24,7 @@ import {
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import { usePredictionStats } from '@/composables/usePredictionStats';
 import type { PredictionListItem, PaginationMeta } from '@/types';
 
 const { t, locale } = useI18n();
@@ -62,17 +63,7 @@ const predictions = computed(() => props.predictions?.data ?? []);
 const predictionsMeta = computed(() => props.predictions?.meta);
 
 // Derived data for sidebar
-const topGainers = computed(() =>
-    [...predictions.value]
-        .sort((a, b) => b.expectedGainPercent - a.expectedGainPercent)
-        .slice(0, 5)
-);
-
-const mostConfident = computed(() =>
-    [...predictions.value]
-        .sort((a, b) => b.confidence - a.confidence)
-        .slice(0, 5)
-);
+const { topGainers, mostConfident } = usePredictionStats(predictions);
 </script>
 
 <template>

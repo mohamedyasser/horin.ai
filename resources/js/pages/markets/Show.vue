@@ -20,6 +20,7 @@ import {
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import { useAssetStats } from '@/composables/useAssetStats';
 import type { MarketDetail, AssetListItem, PaginationMeta } from '@/types';
 
 const { t, locale } = useI18n();
@@ -54,33 +55,7 @@ const assets = computed(() => props.assets?.data ?? []);
 const assetsMeta = computed(() => props.assets?.meta);
 
 // Derived data from assets
-const assetsWithPredictions = computed(() =>
-    assets.value.filter((a) => a.latestPrediction)
-);
-
-const topGainers = computed(() =>
-    [...assetsWithPredictions.value]
-        .filter((a) => a.latestPrediction)
-        .sort((a, b) => {
-            const gainA = ((a.latestPrediction!.predictedPrice - (a.latestPrice?.last ?? 0)) / (a.latestPrice?.last ?? 1)) * 100;
-            const gainB = ((b.latestPrediction!.predictedPrice - (b.latestPrice?.last ?? 0)) / (b.latestPrice?.last ?? 1)) * 100;
-            return gainB - gainA;
-        })
-        .slice(0, 5)
-);
-
-const mostConfident = computed(() =>
-    [...assetsWithPredictions.value]
-        .filter((a) => a.latestPrediction)
-        .sort((a, b) => b.latestPrediction!.confidence - a.latestPrediction!.confidence)
-        .slice(0, 5)
-);
-
-// Helper to calculate gain percent for an asset
-const calculateGainPercent = (asset: AssetListItem) => {
-    if (!asset.latestPrediction || !asset.latestPrice?.last) return 0;
-    return ((asset.latestPrediction.predictedPrice - asset.latestPrice.last) / asset.latestPrice.last) * 100;
-};
+const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent } = useAssetStats(assets);
 </script>
 
 <template>
