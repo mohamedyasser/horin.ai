@@ -52,8 +52,15 @@ class SectorController extends Controller
                     ])->toArray(),
             ]);
 
+        $markets = Market::select('id', 'code', 'name_en', 'name_ar')->get();
+
         return Inertia::render('Sectors', [
             'sectors' => $sectors,
+            'markets' => $markets->map(fn ($m) => [
+                'id' => $m->id,
+                'code' => $m->code,
+                'name' => $m->name,
+            ]),
         ]);
     }
 

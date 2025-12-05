@@ -34,10 +34,17 @@ interface SectorListItem {
     marketsBreakdown: MarketsBreakdown[];
 }
 
+interface MarketItem {
+    id: string;
+    code: string;
+    name: string;
+}
+
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
     sectors: SectorListItem[];
+    markets: MarketItem[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,6 +55,7 @@ const props = withDefaults(defineProps<Props>(), {
 // State
 const searchQuery = ref('');
 const sortBy = ref<'alphabetical' | 'predictions'>('predictions');
+const selectedMarket = ref<string | null>(null);
 
 // Computed - use props.sectors directly
 const filteredSectors = computed(() => {
@@ -59,6 +67,13 @@ const filteredSectors = computed(() => {
             (s) =>
                 s.name.toLowerCase().includes(query) ||
                 (s.description && s.description.toLowerCase().includes(query))
+        );
+    }
+
+    // Filter by market
+    if (selectedMarket.value) {
+        result = result.filter((s) =>
+            s.marketsBreakdown.some((m) => m.marketId === selectedMarket.value)
         );
     }
 
@@ -115,7 +130,27 @@ const trendingSector = computed(() =>
             <!-- Filter Bar -->
             <section class="border-b border-border/40">
                 <div class="mx-auto max-w-7xl px-4 py-4">
-                    <div class="flex flex-wrap items-center justify-end gap-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <!-- Market Filter -->
+                        <div class="flex flex-wrap items-center gap-2">
+                            <Button
+                                :variant="selectedMarket === null ? 'default' : 'outline'"
+                                size="sm"
+                                @click="selectedMarket = null"
+                            >
+                                {{ t('sectors.allMarkets') }}
+                            </Button>
+                            <Button
+                                v-for="market in props.markets"
+                                :key="market.id"
+                                :variant="selectedMarket === market.id ? 'default' : 'outline'"
+                                size="sm"
+                                @click="selectedMarket = market.id"
+                            >
+                                {{ market.code }}
+                            </Button>
+                        </div>
+
                         <!-- Sort Dropdown -->
                         <DropdownMenu>
                             <DropdownMenuTrigger as-child>
