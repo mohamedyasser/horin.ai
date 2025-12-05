@@ -56,12 +56,12 @@ class PredictionController extends Controller
             'asset.latestPrice',
         ]);
 
-        // Use Scout for search instead of LIKE queries
+        // Use Scout for search - pluck inv_id to match pid column
         if ($filters['search']) {
             $searchAssetIds = Asset::search($filters['search'])
                 ->take(100)
                 ->get()
-                ->pluck('id')
+                ->pluck('inv_id')
                 ->toArray();
 
             if (empty($searchAssetIds)) {
