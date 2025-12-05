@@ -9,6 +9,7 @@
         "next": "Next",
         "clear": "Clear",
         "apply": "Apply",
+        "close": "Close",
         "noData": "No data available"
     },
     "meta": {
@@ -38,14 +39,7 @@
         "highestGain": "Highest Gain",
         "confidence": "Confidence",
         "newest": "Newest",
-        "filters": "Filters",
-        "filterPredictions": "Filter Predictions",
-        "sector": "Sector",
-        "sectorPlaceholder": "e.g., Banking, Energy",
-        "minPrice": "Min Price",
-        "maxPrice": "Max Price",
         "horizon": "Horizon",
-        "allHorizons": "All",
         "table": {
             "symbol": "Symbol",
             "name": "Name",

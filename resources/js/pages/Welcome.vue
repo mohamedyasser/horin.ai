@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
+import FilterButtonBar from '@/components/FilterButtonBar.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,18 +13,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import {
     Search,
-    SlidersHorizontal,
     ChevronDown,
     TrendingUp,
     Clock,
@@ -33,6 +25,7 @@ import {
     Loader2,
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
+import { useServerFilter } from '@/composables/useServerFilter';
 import type {
     HomeStats,
     MarketPreview,
@@ -44,22 +37,15 @@ import type {
 
 const { t, locale } = useI18n();
 
-interface HorizonOption {
-    value: string;
-    label: string;
-}
-
 interface Props {
     canLogin: boolean;
     canRegister: boolean;
     stats: HomeStats;
     markets: MarketPreview[];
     sectors: SectorPreview[];
-    horizons: HorizonOption[];
     filters?: {
         search?: string | null;
         market?: string | null;
-        horizon?: string | null;
     };
     featuredPredictions?: {
         data: FeaturedPrediction[];
@@ -76,71 +62,30 @@ const props = withDefaults(defineProps<Props>(), {
 // Server-side search
 const { searchQuery, isSearching } = useServerSearch({
     initialValue: props.filters?.search,
-    preserveParams: ['market', 'horizon'],
+    preserveParams: ['market'],
     only: ['featuredPredictions', 'filters'],
 });
 
+// Server-side market filter
+const { selectedValue: selectedMarket, applyFilter: filterByMarket } = useServerFilter({
+    paramName: 'market',
+    initialValue: props.filters?.market ?? null,
+    preserveParams: ['search'],
+    only: ['featuredPredictions', 'filters'],
+});
+
+// Computed - market options for FilterButtonBar
+const marketOptions = computed(() =>
+    props.markets.map((m) => ({ value: m.code, label: m.code }))
+);
+
 // State
-const selectedMarket = ref<string | null>(props.filters?.market ?? null);
-const selectedHorizon = ref<string | null>(props.filters?.horizon ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
-const filterOpen = ref(false);
 
 // Computed - use props data directly (already filtered by server)
-const markets = computed(() => props.markets);
 const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []);
 const topMovers = computed(() => props.topMovers ?? []);
 const recentPredictions = computed(() => props.recentPredictions ?? []);
-
-// Helper to build filter data preserving current params
-const buildFilterData = () => {
-    const currentParams = new URLSearchParams(window.location.search);
-    const data: Record<string, string | undefined> = {};
-
-    const search = currentParams.get('search');
-    if (search) data.search = search;
-
-    if (selectedMarket.value) data.market = selectedMarket.value;
-    if (selectedHorizon.value) data.horizon = selectedHorizon.value;
-
-    return data;
-};
-
-// Market filter - server-side
-const filterByMarket = (marketCode: string | null) => {
-    selectedMarket.value = marketCode;
-    const data = buildFilterData();
-    if (marketCode) {
-        data.market = marketCode;
-    } else {
-        delete data.market;
-    }
-
-    router.visit(window.location.pathname, {
-        data,
-        preserveState: true,
-        preserveScroll: true,
-        only: ['featuredPredictions', 'filters'],
-    });
-};
-
-// Horizon filter - server-side
-const filterByHorizon = (horizon: string | null) => {
-    selectedHorizon.value = horizon;
-    const data = buildFilterData();
-    if (horizon) {
-        data.horizon = horizon;
-    } else {
-        delete data.horizon;
-    }
-
-    router.visit(window.location.pathname, {
-        data,
-        preserveState: true,
-        preserveScroll: true,
-        only: ['featuredPredictions', 'filters'],
-    });
-};
 
 // Sort predictions client-side (sorting doesn't require server round-trip)
 const sortedPredictions = computed(() => {
@@ -205,51 +150,15 @@ const getConfidenceColor = (confidence: number) => {
             </div>
         </section>
 
-        <!-- Filter Bar -->
+        <!-- Market Filter Bar -->
         <section class="border-b border-border/40">
             <div class="mx-auto max-w-7xl px-4 py-4">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <!-- Market Filter -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Button
-                            :variant="selectedMarket === null ? 'default' : 'outline'"
-                            size="sm"
-                            @click="filterByMarket(null)"
-                        >
-                            {{ t('home.allMarkets') }}
-                        </Button>
-                        <Button
-                            v-for="market in markets"
-                            :key="market.id"
-                            :variant="selectedMarket === market.code ? 'default' : 'outline'"
-                            size="sm"
-                            @click="filterByMarket(market.code)"
-                        >
-                            {{ market.code }}
-                        </Button>
-                    </div>
-
-                    <!-- Horizon Filter -->
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-sm text-muted-foreground">{{ t('home.horizon') }}:</span>
-                        <Button
-                            :variant="selectedHorizon === null ? 'default' : 'outline'"
-                            size="sm"
-                            @click="filterByHorizon(null)"
-                        >
-                            {{ t('home.allHorizons') }}
-                        </Button>
-                        <Button
-                            v-for="horizon in props.horizons"
-                            :key="horizon.value"
-                            :variant="selectedHorizon === horizon.value ? 'default' : 'outline'"
-                            size="sm"
-                            @click="filterByHorizon(horizon.value)"
-                        >
-                            {{ horizon.label }}
-                        </Button>
-                    </div>
-                </div>
+                <FilterButtonBar
+                    :model-value="selectedMarket"
+                    :options="marketOptions"
+                    :all-label-key="'home.allMarkets'"
+                    @update:model-value="filterByMarket"
+                />
             </div>
         </section>
 
@@ -283,51 +192,6 @@ const getConfidenceColor = (confidence: number) => {
                                 </DropdownMenuContent>
                             </DropdownMenu>
 
-                            <!-- Filter Button -->
-                            <Dialog v-model:open="filterOpen">
-                                <DialogTrigger as-child>
-                                    <Button variant="outline" size="sm">
-                                        <SlidersHorizontal class="me-1 size-4" />
-                                        {{ t('home.filters') }}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>{{ t('home.filterPredictions') }}</DialogTitle>
-                                    </DialogHeader>
-                                    <div class="grid gap-4 py-4">
-                                        <div class="grid gap-2">
-                                            <Label>{{ t('home.sector') }}</Label>
-                                            <Input :placeholder="t('home.sectorPlaceholder')" />
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-4">
-                                            <div class="grid gap-2">
-                                                <Label>{{ t('home.minPrice') }}</Label>
-                                                <Input type="number" placeholder="0" />
-                                            </div>
-                                            <div class="grid gap-2">
-                                                <Label>{{ t('home.maxPrice') }}</Label>
-                                                <Input type="number" placeholder="1000" />
-                                            </div>
-                                        </div>
-                                        <div class="grid gap-2">
-                                            <Label>{{ t('home.horizon') }}</Label>
-                                            <div class="flex gap-2">
-                                                <Button variant="outline" size="sm">1D</Button>
-                                                <Button variant="outline" size="sm">1W</Button>
-                                                <Button variant="outline" size="sm">1M</Button>
-                                                <Button variant="outline" size="sm">3M</Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-end gap-2">
-                                        <Button variant="outline" @click="filterOpen = false">
-                                            {{ t('common.clear') }}
-                                        </Button>
-                                        <Button @click="filterOpen = false">{{ t('common.apply') }}</Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
                         </div>
                     </div>
 

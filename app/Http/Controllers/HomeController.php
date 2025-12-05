@@ -58,11 +58,9 @@ class HomeController extends Controller
             'stats' => $stats,
             'markets' => $markets,
             'sectors' => $sectors,
-            'horizons' => Horizon::options(),
             'filters' => [
                 'search' => $request->input('search'),
                 'market' => $request->input('market'),
-                'horizon' => $request->input('horizon'),
             ],
             'featuredPredictions' => Inertia::defer(fn () => $this->getFeaturedPredictions($request)),
             'topMovers' => Inertia::defer(fn () => $this->getTopMovers()),
@@ -74,7 +72,6 @@ class HomeController extends Controller
     {
         $marketFilter = $request->input('market');
         $searchFilter = $request->input('search');
-        $horizonFilter = $request->input('horizon');
 
         // If search filter provided, use Scout to find matching asset IDs first
         $searchAssetIds = null;
@@ -100,11 +97,6 @@ class HomeController extends Controller
             if ($market) {
                 $query->whereHas('asset', fn ($q) => $q->where('market_id', $market->id));
             }
-        }
-
-        // Apply horizon filter
-        if ($horizonFilter) {
-            $query->where('horizon', $horizonFilter);
         }
 
         // Apply Scout search results filter
