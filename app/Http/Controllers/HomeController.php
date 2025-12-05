@@ -73,6 +73,21 @@ class HomeController extends Controller
         $marketFilter = $request->input('market');
         $searchFilter = $request->input('search');
 
+        // If search filter provided, use Scout to find matching asset IDs first
+        $searchAssetIds = null;
+        if ($searchFilter) {
+            $searchAssetIds = Asset::search($searchFilter)
+                ->take(100)
+                ->get()
+                ->pluck('inv_id')
+                ->toArray();
+
+            // No matching assets found
+            if (empty($searchAssetIds)) {
+                return ['data' => []];
+            }
+        }
+
         // Get all markets
         $markets = Market::all();
 
@@ -89,20 +104,14 @@ class HomeController extends Controller
 
             // Use LatestPrediction (materialized view) for better performance
             $query = LatestPrediction::with(['asset.market', 'asset.cachedPrice'])
-                ->whereHas('asset', function ($q) use ($market, $searchFilter) {
-                    $q->where('market_id', $market->id);
+                ->whereHas('asset', fn ($q) => $q->where('market_id', $market->id));
 
-                    // Apply search filter
-                    if ($searchFilter) {
-                        $q->where(function ($subQ) use ($searchFilter) {
-                            $subQ->where('symbol', 'like', "%{$searchFilter}%")
-                                ->orWhere('name_en', 'like', "%{$searchFilter}%")
-                                ->orWhere('name_ar', 'like', "%{$searchFilter}%");
-                        });
-                    }
-                })
-                ->orderByDesc('timestamp')
-                ->distinct()
+            // Apply Scout search results filter
+            if ($searchAssetIds !== null) {
+                $query->whereIn('pid', $searchAssetIds);
+            }
+
+            $query->orderByDesc('timestamp')
                 ->limit($limitPerMarket);
 
             $predictions = $query->get()->filter(fn ($p) => $p->asset !== null);

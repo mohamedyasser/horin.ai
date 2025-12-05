@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Asset;
 use App\Models\Market;
 use App\Models\PredictedAssetPrice;
 use App\Models\Sector;
@@ -55,12 +56,22 @@ class PredictionController extends Controller
             'asset.latestPrice',
         ]);
 
+        // Use Scout for search instead of LIKE queries
         if ($filters['search']) {
-            $search = $filters['search'];
-            $query->whereHas('asset', fn ($q) => $q
-                ->where('symbol', 'like', "%{$search}%")
-                ->orWhere('name_en', 'like', "%{$search}%")
-                ->orWhere('name_ar', 'like', "%{$search}%"));
+            $searchAssetIds = Asset::search($filters['search'])
+                ->take(100)
+                ->get()
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($searchAssetIds)) {
+                return [
+                    'data' => [],
+                    'meta' => PaginationHelper::empty(),
+                ];
+            }
+
+            $query->whereIn('pid', $searchAssetIds);
         }
         if ($filters['marketId']) {
             $query->whereHas('asset', fn ($q) => $q->where('market_id', $filters['marketId']));
