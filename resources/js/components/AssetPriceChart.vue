@@ -268,11 +268,8 @@ const hasPredictions = computed(() => {
 
 <template>
     <div class="space-y-4">
-        <!-- Header with period selector -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <h3 class="text-sm font-medium text-muted-foreground">
-                {{ t('assetDetail.chart.title') }}
-            </h3>
+        <!-- Period selector -->
+        <div class="flex justify-end">
             <div class="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
                 <Button
                     v-for="period in periods"

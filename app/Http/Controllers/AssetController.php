@@ -127,14 +127,16 @@ class AssetController extends Controller
 
     private function getPriceHistory(Asset $asset, int $days): array
     {
-        $startTimestamp = now()->subDays($days)->timestamp * 1000;
+        // Database stores timestamps in seconds, not milliseconds
+        $startTimestamp = now()->subDays($days)->timestamp;
 
         return AssetPrice::where('pid', $asset->inv_id)
             ->where('timestamp', '>=', $startTimestamp)
             ->orderBy('timestamp')
             ->get()
             ->map(fn ($price) => [
-                'timestamp' => $price->timestamp,
+                // Convert to milliseconds for frontend JavaScript Date compatibility
+                'timestamp' => $price->timestamp * 1000,
                 'close' => (float) $price->last,
                 'high' => (float) $price->high,
                 'low' => (float) $price->low,
