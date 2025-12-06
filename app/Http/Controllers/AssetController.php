@@ -56,6 +56,7 @@ class AssetController extends Controller
             'predictions' => Inertia::defer(fn () => $this->getAssetPredictions($asset)),
             'indicators' => Inertia::defer(fn () => $this->getAssetIndicators($asset)),
             'priceHistory' => Inertia::defer(fn () => $this->getPriceHistory($asset, $chartPeriod)),
+            'predictionChartData' => Inertia::defer(fn () => $this->getPredictionChartData($asset)),
             'predictionHistory' => Inertia::defer(fn () => $this->getPredictionHistory($asset)),
         ]);
     }
@@ -172,5 +173,73 @@ class AssetController extends Controller
             ->sortBy('horizon')
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Get prediction chart data - projecting future prices from different horizons.
+     *
+     * @return array<int, array{timestamp: int, price: float, confidence: float, upperBound: float|null, lowerBound: float|null}>
+     */
+    private function getPredictionChartData(Asset $asset): array
+    {
+        $currentPrice = $asset->cachedPrice?->price ?? $asset->latestPrice?->last ?? 0;
+        $lastTimestamp = $asset->cachedPrice?->price_time?->timestamp
+            ?? now()->timestamp;
+
+        // Get latest predictions grouped by horizon
+        $predictions = PredictedAssetPrice::where('pid', $asset->inv_id)
+            ->orderByDesc('timestamp')
+            ->get()
+            ->groupBy('horizon');
+
+        $chartPoints = [];
+
+        // Add current price as the start point (connection point)
+        $chartPoints[] = [
+            'timestamp' => $lastTimestamp * 1000, // Convert to milliseconds for frontend
+            'price' => (float) $currentPrice,
+            'confidence' => 100,
+            'upperBound' => null,
+            'lowerBound' => null,
+            'isPrediction' => false,
+        ];
+
+        // Add prediction points for each horizon
+        foreach ($predictions as $horizon => $group) {
+            $p = $group->first();
+            if (! $p) {
+                continue;
+            }
+
+            $horizonMinutes = Horizon::minutes($horizon);
+            if ($horizonMinutes <= 0) {
+                continue;
+            }
+
+            // Calculate target timestamp from current time
+            $targetTimestamp = ($lastTimestamp + ($horizonMinutes * 60)) * 1000;
+
+            // Calculate confidence bands based on confidence level
+            // Higher confidence = narrower band
+            $bandPercent = max(0.5, (100 - $p->confidence) / 10); // 0.5% to 10% band
+            $upperBound = $p->upper_bound ?? $p->price_prediction * (1 + $bandPercent / 100);
+            $lowerBound = $p->lower_bound ?? $p->price_prediction * (1 - $bandPercent / 100);
+
+            $chartPoints[] = [
+                'timestamp' => (int) $targetTimestamp,
+                'price' => (float) $p->price_prediction,
+                'confidence' => (float) $p->confidence,
+                'upperBound' => (float) $upperBound,
+                'lowerBound' => (float) $lowerBound,
+                'isPrediction' => true,
+                'horizon' => $horizon,
+                'horizonLabel' => Horizon::label($horizon),
+            ];
+        }
+
+        // Sort by timestamp
+        usort($chartPoints, fn ($a, $b) => $a['timestamp'] <=> $b['timestamp']);
+
+        return $chartPoints;
     }
 }

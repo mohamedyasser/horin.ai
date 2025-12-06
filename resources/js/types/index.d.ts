@@ -425,3 +425,16 @@ export interface PredictionHistoryItem {
     timestamp: string | null;
     targetTimestamp: string | null;
 }
+
+export interface PredictionChartPoint {
+    timestamp: number;
+    price: number;
+    confidence: number;
+    upperBound: number | null;
+    lowerBound: number | null;
+    isPrediction: boolean;
+    horizon?: string;
+    horizonLabel?: string;
+}
+
+export type ChartPeriod = 7 | 30 | 90 | 180;

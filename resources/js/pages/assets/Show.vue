@@ -22,12 +22,15 @@ import {
     LineChart,
 } from 'lucide-vue-next';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import AssetPriceChart from '@/components/AssetPriceChart.vue';
 import type {
     AssetDetailData,
     AssetPriceData,
     AssetPredictionData,
     AssetIndicatorsData,
     PredictionHistoryItem,
+    PriceHistoryPoint,
+    PredictionChartPoint,
 } from '@/types';
 
 const { t, locale } = useI18n();
@@ -41,6 +44,8 @@ interface Props {
     chartPeriod?: number;
     predictions?: AssetPredictionData[];
     indicators?: AssetIndicatorsData | null;
+    priceHistory?: PriceHistoryPoint[];
+    predictionChartData?: PredictionChartPoint[];
     predictionHistory?: PredictionHistoryItem[];
 }
 
@@ -55,6 +60,8 @@ const asset = computed(() => props.asset);
 const price = computed(() => props.price);
 const predictions = computed(() => props.predictions ?? []);
 const indicators = computed(() => props.indicators);
+const priceHistory = computed(() => props.priceHistory ?? []);
+const predictionChartData = computed(() => props.predictionChartData ?? []);
 const predictionHistory = computed(() => props.predictionHistory ?? []);
 
 const priceChangeIsPositive = computed(() => {
@@ -316,7 +323,7 @@ const getMacdSignal = (macdLine?: number | null) => {
                         </CardContent>
                     </Card>
 
-                    <!-- Chart Placeholder -->
+                    <!-- Price & Prediction Chart -->
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
@@ -325,13 +332,35 @@ const getMacdSignal = (macdLine?: number | null) => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div class="flex items-center justify-center h-64 rounded-lg bg-muted/30 border border-dashed border-border">
-                                <div class="text-center text-muted-foreground">
-                                    <LineChart class="size-12 mx-auto mb-2 opacity-50" />
-                                    <p>{{ t('assetDetail.chart.historical') }} + {{ t('assetDetail.chart.predicted') }}</p>
-                                    <p class="text-sm">{{ t('assetDetail.chart.confidenceBand') }}</p>
-                                </div>
-                            </div>
+                            <Deferred data="priceHistory">
+                                <template #fallback>
+                                    <div class="space-y-4">
+                                        <!-- Period selector skeleton -->
+                                        <div class="flex justify-between items-center">
+                                            <div class="h-4 w-24 rounded bg-muted animate-pulse" />
+                                            <div class="flex gap-1">
+                                                <div v-for="i in 4" :key="i" class="h-7 w-10 rounded bg-muted animate-pulse" />
+                                            </div>
+                                        </div>
+                                        <!-- Chart skeleton -->
+                                        <div class="h-64 sm:h-80 rounded-lg bg-muted/30 animate-pulse" />
+                                        <!-- Legend skeleton -->
+                                        <div class="flex justify-center gap-6">
+                                            <div class="h-4 w-20 rounded bg-muted animate-pulse" />
+                                            <div class="h-4 w-20 rounded bg-muted animate-pulse" />
+                                            <div class="h-4 w-24 rounded bg-muted animate-pulse" />
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <AssetPriceChart
+                                    :price-history="priceHistory"
+                                    :prediction-chart-data="predictionChartData"
+                                    :chart-period="props.chartPeriod"
+                                    :currency="asset.currency"
+                                    :asset-symbol="asset.symbol"
+                                />
+                            </Deferred>
                         </CardContent>
                     </Card>
                 </div>
