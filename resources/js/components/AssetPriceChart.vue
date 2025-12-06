@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { router } from '@inertiajs/vue3';
+import { Loader2 } from 'lucide-vue-next';
 import {
     VisXYContainer,
     VisLine,
@@ -42,10 +43,12 @@ const emit = defineEmits<{
 
 const periods: ChartPeriod[] = [7, 30, 90, 180];
 const selectedPeriod = ref<ChartPeriod>(props.chartPeriod as ChartPeriod);
+const isLoading = ref(false);
 
 // Watch for prop changes
 watch(() => props.chartPeriod, (newPeriod) => {
     selectedPeriod.value = newPeriod as ChartPeriod;
+    isLoading.value = false;
 });
 
 const periodLabels: Record<ChartPeriod, string> = {
@@ -55,9 +58,18 @@ const periodLabels: Record<ChartPeriod, string> = {
     180: '180D',
 };
 
+// Clean up on unmount
+let removeFinishListener: (() => void) | null = null;
+onUnmounted(() => {
+    if (removeFinishListener) {
+        removeFinishListener();
+    }
+});
+
 const handlePeriodChange = (period: ChartPeriod) => {
-    if (period === selectedPeriod.value) return;
+    if (period === selectedPeriod.value || isLoading.value) return;
     selectedPeriod.value = period;
+    isLoading.value = true;
     emit('periodChange', period);
 
     // Navigate with new period
@@ -66,6 +78,9 @@ const handlePeriodChange = (period: ChartPeriod) => {
         only: ['priceHistory', 'predictionChartData', 'chartPeriod'],
         preserveState: true,
         preserveScroll: true,
+        onFinish: () => {
+            isLoading.value = false;
+        },
     });
 };
 
@@ -318,6 +333,7 @@ const hasPredictions = computed(() => {
                     :variant="selectedPeriod === period ? 'secondary' : 'ghost'"
                     size="sm"
                     class="h-7 px-3 text-xs"
+                    :disabled="isLoading"
                     @click="handlePeriodChange(period)"
                 >
                     {{ periodLabels[period] }}
@@ -326,7 +342,17 @@ const hasPredictions = computed(() => {
         </div>
 
         <!-- Chart -->
-        <div v-if="hasData" class="h-64 sm:h-80">
+        <div v-if="hasData" class="h-64 sm:h-80 relative">
+            <!-- Loading overlay -->
+            <div
+                v-if="isLoading"
+                class="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg"
+            >
+                <div class="flex flex-col items-center gap-2">
+                    <Loader2 class="size-8 animate-spin text-primary" />
+                    <span class="text-sm text-muted-foreground">{{ t('common.loading') }}</span>
+                </div>
+            </div>
             <VisXYContainer :data="chartData" :margin="{ top: 10, right: 10, bottom: 30, left: 50 }" :yDomain="yDomain">
                 <!-- X and Y Axes -->
                 <VisAxis

@@ -11,6 +11,7 @@
         "apply": "Apply",
         "close": "Close",
         "noData": "No data available",
+        "loading": "Loading...",
         "pageIndicator": "Page {current} of {total}"
     },
     "meta": {
