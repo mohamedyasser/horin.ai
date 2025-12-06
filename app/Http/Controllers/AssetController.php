@@ -17,7 +17,7 @@ class AssetController extends Controller
     public function show(string $locale, Asset $asset, Request $request): Response
     {
         $asset->load(['market', 'sector', 'country', 'cachedPrice']);
-        $chartPeriod = in_array((int) $request->input('period', 30), [30, 90, 365]) ? (int) $request->input('period', 30) : 30;
+        $chartPeriod = in_array((int) $request->input('period', 7), [7, 30, 90, 180]) ? (int) $request->input('period', 7) : 7;
 
         return Inertia::render('assets/Show', [
             'asset' => [

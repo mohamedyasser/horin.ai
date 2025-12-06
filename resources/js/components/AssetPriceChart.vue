@@ -152,9 +152,9 @@ const yHistorical = (d: ChartDataPoint) => d.historicalPrice as number;
 const yPredicted = (d: ChartDataPoint) => d.predictedPrice as number;
 const yConnection = (d: ChartDataPoint) => d.predictedPrice as number;
 
-// Y accessors for confidence band area
-const yAreaMin = (d: ChartDataPoint) => d.lowerBound;
-const yAreaMax = (d: ChartDataPoint) => d.upperBound;
+// Y accessors for confidence band area (return number - data is pre-filtered)
+const yAreaMin = (d: ChartDataPoint) => d.lowerBound as number;
+const yAreaMax = (d: ChartDataPoint) => d.upperBound as number;
 
 // Confidence band data (only prediction points with bounds)
 const confidenceBandData = computed(() => {
@@ -171,10 +171,10 @@ const predictionData = computed(() => {
     return chartData.value.filter(d => d.predictedPrice !== null && d.isPrediction);
 });
 
-// Colors
-const historicalColor = 'hsl(var(--primary))';
-const predictedColor = 'hsl(var(--chart-2))';
-const bandColor = 'hsl(var(--chart-2) / 0.2)';
+// Colors - distinct colors for historical vs predicted
+const historicalColor = '#2563eb'; // Blue for historical/real prices
+const predictedColor = '#f97316'; // Orange for predicted prices
+const bandColor = 'rgba(249, 115, 22, 0.15)'; // Orange with low opacity for confidence band
 
 // Format functions
 const formatPrice = (value: number) => {
@@ -266,6 +266,37 @@ const nowAnnotation = computed<Annotation[]>(() => {
     }];
 });
 
+// Calculate Y domain from all price values
+const yDomain = computed<[number, number] | undefined>(() => {
+    const allPrices: number[] = [];
+
+    // Collect historical prices
+    if (props.priceHistory?.length > 0) {
+        props.priceHistory.forEach(p => {
+            if (p.close) allPrices.push(p.close);
+            if (p.high) allPrices.push(p.high);
+            if (p.low) allPrices.push(p.low);
+        });
+    }
+
+    // Collect prediction prices and bounds
+    if (props.predictionChartData?.length > 0) {
+        props.predictionChartData.forEach(p => {
+            if (p.price) allPrices.push(p.price);
+            if (p.upperBound) allPrices.push(p.upperBound);
+            if (p.lowerBound) allPrices.push(p.lowerBound);
+        });
+    }
+
+    if (allPrices.length === 0) return undefined;
+
+    const min = Math.min(...allPrices);
+    const max = Math.max(...allPrices);
+    const padding = (max - min) * 0.05; // 5% padding
+
+    return [min - padding, max + padding];
+});
+
 // Check if we have data
 const hasData = computed(() => {
     return (props.priceHistory?.length > 0) || (props.predictionChartData?.length > 0);
@@ -296,7 +327,7 @@ const hasPredictions = computed(() => {
 
         <!-- Chart -->
         <div v-if="hasData" class="h-64 sm:h-80">
-            <VisXYContainer :data="chartData" :margin="{ top: 10, right: 10, bottom: 30, left: 50 }">
+            <VisXYContainer :data="chartData" :margin="{ top: 10, right: 10, bottom: 30, left: 50 }" :yDomain="yDomain">
                 <!-- X and Y Axes -->
                 <VisAxis
                     type="x"
