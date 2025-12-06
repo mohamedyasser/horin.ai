@@ -147,10 +147,10 @@ const connectionData = computed<ChartDataPoint[]>(() => {
 // X accessor
 const x = (d: ChartDataPoint) => d.timestamp;
 
-// Y accessors for lines
-const yHistorical = (d: ChartDataPoint) => d.historicalPrice;
-const yPredicted = (d: ChartDataPoint) => d.predictedPrice;
-const yConnection = (d: ChartDataPoint) => d.predictedPrice;
+// Y accessors for lines (return number, not null - data is pre-filtered)
+const yHistorical = (d: ChartDataPoint) => d.historicalPrice as number;
+const yPredicted = (d: ChartDataPoint) => d.predictedPrice as number;
+const yConnection = (d: ChartDataPoint) => d.predictedPrice as number;
 
 // Y accessors for confidence band area
 const yAreaMin = (d: ChartDataPoint) => d.lowerBound;
@@ -159,6 +159,16 @@ const yAreaMax = (d: ChartDataPoint) => d.upperBound;
 // Confidence band data (only prediction points with bounds)
 const confidenceBandData = computed(() => {
     return chartData.value.filter(d => d.isPrediction && d.upperBound !== null && d.lowerBound !== null);
+});
+
+// Historical data only (filtered for VisLine - no null values)
+const historicalData = computed(() => {
+    return chartData.value.filter(d => d.historicalPrice !== null);
+});
+
+// Prediction data only (filtered for VisLine - no null values)
+const predictionData = computed(() => {
+    return chartData.value.filter(d => d.predictedPrice !== null && d.isPrediction);
 });
 
 // Colors
@@ -316,6 +326,7 @@ const hasPredictions = computed(() => {
 
                 <!-- Historical price line (solid) -->
                 <VisLine
+                    :data="historicalData"
                     :x="x"
                     :y="yHistorical"
                     :color="historicalColor"
@@ -335,6 +346,7 @@ const hasPredictions = computed(() => {
 
                 <!-- Predicted price line (dashed) -->
                 <VisLine
+                    :data="predictionData"
                     :x="x"
                     :y="yPredicted"
                     :color="predictedColor"
