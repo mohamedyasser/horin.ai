@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
+import ClickableTableRow from '@/components/ClickableTableRow.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,8 +23,16 @@ import {
     ArrowRight,
 } from 'lucide-vue-next';
 import type { MarketsBreakdown } from '@/types';
+import { show as sectorRoute } from '@/actions/App/Http/Controllers/SectorController';
 
 const { t } = useI18n();
+const page = usePage();
+const locale = computed(() => page.props.locale as string);
+
+// Navigate to sector detail
+const goToSector = (sectorId: string) => {
+    router.visit(sectorRoute.url({ locale: locale.value, sector: sectorId }));
+};
 
 interface SectorListItem {
     id: string;
@@ -166,10 +175,11 @@ const trendingSector = computed(() =>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr
+                                        <ClickableTableRow
                                             v-for="sector in filteredSectors"
                                             :key="sector.id"
-                                            class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                                            :aria-label="`${t('sectors.viewPredictions')} ${sector.name}`"
+                                            @click="goToSector(sector.id)"
                                         >
                                             <td class="px-4 py-4">
                                                 <div class="flex items-center gap-3">
@@ -204,14 +214,12 @@ const trendingSector = computed(() =>
                                                 </div>
                                             </td>
                                             <td class="px-4 py-4 text-center">
-                                                <Button as-child variant="ghost" size="sm">
-                                                    <LocalizedLink :href="`/sectors/${sector.id}`">
-                                                        {{ t('sectors.viewPredictions') }}
-                                                        <ArrowRight class="ms-1 size-4 rtl:rotate-180" />
-                                                    </LocalizedLink>
+                                                <Button variant="ghost" size="sm" @click.stop="goToSector(sector.id)">
+                                                    {{ t('sectors.viewPredictions') }}
+                                                    <ArrowRight class="ms-1 size-4 rtl:rotate-180" />
                                                 </Button>
                                             </td>
-                                        </tr>
+                                        </ClickableTableRow>
                                     </tbody>
                                 </table>
                             </div>

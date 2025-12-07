@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import { Menu, X } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetClose,
+} from '@/components/ui/sheet';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
@@ -11,6 +19,7 @@ import { login, register } from '@/routes';
 const { t, locale } = useI18n();
 
 const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
+const mobileMenuOpen = ref(false);
 
 interface Props {
     canLogin?: boolean;
@@ -72,16 +81,84 @@ withDefaults(defineProps<Props>(), {
                     <Link
                         v-if="canLogin"
                         :href="login()"
-                        class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                        class="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
                     >
                         {{ t('common.login') }}
                     </Link>
-                    <Button v-if="canRegister" as-child>
+                    <Button v-if="canRegister" as-child class="hidden sm:inline-flex">
                         <Link :href="register()">{{ t('common.getStarted') }}</Link>
+                    </Button>
+
+                    <!-- Mobile menu button -->
+                    <Button
+                        v-if="showNav"
+                        variant="ghost"
+                        size="icon"
+                        class="sm:hidden"
+                        @click="mobileMenuOpen = true"
+                    >
+                        <Menu class="size-5" />
+                        <span class="sr-only">Open menu</span>
                     </Button>
                 </nav>
             </div>
         </header>
+
+        <!-- Mobile Navigation Sheet -->
+        <Sheet v-model:open="mobileMenuOpen">
+            <SheetContent :side="locale === 'ar' ? 'right' : 'left'" class="w-[280px] sm:w-[320px]">
+                <SheetHeader class="text-start">
+                    <SheetTitle>
+                        <LocalizedLink href="/" class="flex items-center gap-2" @click="mobileMenuOpen = false">
+                            <div class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                                <AppLogoIcon class="size-5 fill-current" />
+                            </div>
+                            <span class="text-lg font-semibold">Horin</span>
+                        </LocalizedLink>
+                    </SheetTitle>
+                </SheetHeader>
+
+                <nav class="mt-6 flex flex-col gap-1">
+                    <LocalizedLink
+                        href="/predictions"
+                        class="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        @click="mobileMenuOpen = false"
+                    >
+                        {{ t('predictions.nav.predictions') }}
+                    </LocalizedLink>
+                    <LocalizedLink
+                        href="/markets"
+                        class="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        @click="mobileMenuOpen = false"
+                    >
+                        {{ t('predictions.nav.markets') }}
+                    </LocalizedLink>
+                    <LocalizedLink
+                        href="/sectors"
+                        class="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        @click="mobileMenuOpen = false"
+                    >
+                        {{ t('predictions.nav.sectors') }}
+                    </LocalizedLink>
+                    <LocalizedLink
+                        href="/search"
+                        class="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        @click="mobileMenuOpen = false"
+                    >
+                        {{ t('search.title') }}
+                    </LocalizedLink>
+                </nav>
+
+                <div class="mt-6 border-t border-border pt-6 flex flex-col gap-2">
+                    <Button v-if="canLogin" variant="outline" as-child class="w-full">
+                        <Link :href="login()" @click="mobileMenuOpen = false">{{ t('common.login') }}</Link>
+                    </Button>
+                    <Button v-if="canRegister" as-child class="w-full">
+                        <Link :href="register()" @click="mobileMenuOpen = false">{{ t('common.getStarted') }}</Link>
+                    </Button>
+                </div>
+            </SheetContent>
+        </Sheet>
 
         <!-- Main Content -->
         <main>

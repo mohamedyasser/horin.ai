@@ -92,6 +92,19 @@ const goToAsset = (symbol: string) => {
     router.visit(assetRoute.url({ locale: locale.value, asset: symbol }));
 };
 
+// Pagination
+const goToPage = (page: number) => {
+    if (!searchQuery.value) return;
+    isSearching.value = true;
+    router.visit(searchRoute.url(locale.value, { query: { q: searchQuery.value, page } }), {
+        preserveState: true,
+        only: ['results', 'totalCount', 'query'],
+        onFinish: () => {
+            isSearching.value = false;
+        },
+    });
+};
+
 // Format price change
 const formatPriceChange = (pcp: string | undefined) => {
     if (!pcp) return '-';
@@ -244,7 +257,8 @@ const getChangeColor = (pcp: string | undefined) => {
                         <Button
                             variant="outline"
                             size="sm"
-                            :disabled="resultsMeta.currentPage <= 1"
+                            :disabled="resultsMeta.currentPage <= 1 || isSearching"
+                            @click="goToPage(resultsMeta.currentPage - 1)"
                         >
                             {{ t('common.previous') }}
                         </Button>
@@ -254,7 +268,8 @@ const getChangeColor = (pcp: string | undefined) => {
                         <Button
                             variant="outline"
                             size="sm"
-                            :disabled="resultsMeta.currentPage >= resultsMeta.lastPage"
+                            :disabled="resultsMeta.currentPage >= resultsMeta.lastPage || isSearching"
+                            @click="goToPage(resultsMeta.currentPage + 1)"
                         >
                             {{ t('common.next') }}
                         </Button>

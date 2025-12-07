@@ -12,7 +12,147 @@
         "close": "Close",
         "noData": "No data available",
         "loading": "Loading...",
-        "pageIndicator": "Page {current} of {total}"
+        "pageIndicator": "Page {current} of {total}",
+        "save": "Save",
+        "saved": "Saved.",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "logout": "Log out"
+    },
+    "auth": {
+        "login": {
+            "title": "Log in to your account",
+            "description": "Enter your email and password below to log in",
+            "emailLabel": "Email address",
+            "emailPlaceholder": "email@example.com",
+            "passwordLabel": "Password",
+            "passwordPlaceholder": "Password",
+            "rememberMe": "Remember me",
+            "forgotPassword": "Forgot password?",
+            "submitButton": "Log in",
+            "noAccount": "Don't have an account?",
+            "signUp": "Sign up"
+        },
+        "register": {
+            "title": "Create an account",
+            "description": "Enter your details below to create your account",
+            "nameLabel": "Name",
+            "namePlaceholder": "Full name",
+            "emailLabel": "Email address",
+            "emailPlaceholder": "email@example.com",
+            "passwordLabel": "Password",
+            "passwordPlaceholder": "Password",
+            "confirmPasswordLabel": "Confirm password",
+            "confirmPasswordPlaceholder": "Confirm password",
+            "submitButton": "Create account",
+            "hasAccount": "Already have an account?",
+            "logIn": "Log in"
+        },
+        "forgotPassword": {
+            "title": "Forgot your password?",
+            "description": "Enter your email and we'll send you a reset link",
+            "emailLabel": "Email address",
+            "emailPlaceholder": "email@example.com",
+            "submitButton": "Send reset link",
+            "backToLogin": "Back to login"
+        },
+        "resetPassword": {
+            "title": "Reset your password",
+            "description": "Enter your new password below",
+            "emailLabel": "Email address",
+            "passwordLabel": "New password",
+            "confirmPasswordLabel": "Confirm new password",
+            "submitButton": "Reset password"
+        },
+        "verifyEmail": {
+            "title": "Verify your email",
+            "description": "Please verify your email address by clicking the link we sent to you.",
+            "resendLink": "Click here to resend the verification email.",
+            "linkSent": "A new verification link has been sent to your email address."
+        },
+        "confirmPassword": {
+            "title": "Confirm your password",
+            "description": "Please confirm your password before continuing",
+            "passwordLabel": "Password",
+            "submitButton": "Confirm"
+        },
+        "twoFactor": {
+            "title": "Two-factor authentication",
+            "description": "Please enter your authentication code to continue",
+            "codeLabel": "Authentication code",
+            "codePlaceholder": "Enter your 6-digit code",
+            "recoveryLabel": "Recovery code",
+            "recoveryPlaceholder": "Enter a recovery code",
+            "useRecovery": "Use a recovery code",
+            "useCode": "Use an authentication code",
+            "submitButton": "Verify"
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "profile": {
+            "title": "Profile settings",
+            "heading": "Profile information",
+            "description": "Update your name and email address",
+            "nameLabel": "Name",
+            "namePlaceholder": "Full name",
+            "emailLabel": "Email address",
+            "emailPlaceholder": "Email address",
+            "unverifiedEmail": "Your email address is unverified.",
+            "resendVerification": "Click here to resend the verification email.",
+            "verificationSent": "A new verification link has been sent to your email address."
+        },
+        "password": {
+            "title": "Password settings",
+            "heading": "Update password",
+            "description": "Ensure your account is using a long, random password to stay secure",
+            "currentLabel": "Current password",
+            "currentPlaceholder": "Current password",
+            "newLabel": "New password",
+            "newPlaceholder": "New password",
+            "confirmLabel": "Confirm password",
+            "confirmPlaceholder": "Confirm password"
+        },
+        "appearance": {
+            "title": "Appearance settings",
+            "heading": "Appearance",
+            "description": "Customize the appearance of the application",
+            "themeLabel": "Theme",
+            "lightTheme": "Light",
+            "darkTheme": "Dark",
+            "systemTheme": "System"
+        },
+        "twoFactor": {
+            "title": "Two-factor authentication",
+            "heading": "Two-factor authentication",
+            "description": "Manage your two-factor authentication settings",
+            "statusEnabled": "Enabled",
+            "statusDisabled": "Disabled",
+            "enabledDescription": "With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+            "disabledDescription": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+            "enableButton": "Enable 2FA",
+            "disableButton": "Disable 2FA",
+            "continueSetup": "Continue Setup",
+            "confirmButton": "Confirm",
+            "showRecoveryCodes": "Show recovery codes",
+            "regenerateCodes": "Regenerate recovery codes",
+            "recoveryCodesTitle": "Recovery codes",
+            "recoveryCodesDescription": "Store these recovery codes in a secure location. They can be used to recover access to your account if your two-factor authentication device is lost.",
+            "scanQrCode": "Scan this QR code with your authenticator app",
+            "setupKey": "Or enter this setup key manually"
+        },
+        "deleteAccount": {
+            "title": "Delete account",
+            "heading": "Delete account",
+            "description": "Delete your account and all of its resources",
+            "warningTitle": "Warning",
+            "warningText": "Please proceed with caution, this cannot be undone.",
+            "confirmTitle": "Are you sure you want to delete your account?",
+            "confirmDescription": "Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.",
+            "passwordLabel": "Password",
+            "passwordPlaceholder": "Password",
+            "deleteButton": "Delete account"
+        }
     },
     "meta": {
         "home": "AI-powered stock price predictions for Middle East markets including Egypt, Saudi Arabia, UAE, Kuwait, Qatar, and Bahrain. Updated daily forecasts with confidence scores.",

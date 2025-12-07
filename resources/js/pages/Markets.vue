@@ -174,58 +174,59 @@ const recentlyUpdatedMarkets = computed(() =>
                 <div class="lg:col-span-3">
                     <!-- Markets Cards -->
                     <div class="grid gap-4 sm:grid-cols-2">
-                        <Card
+                        <LocalizedLink
                             v-for="market in filteredMarkets"
                             :key="market.id"
-                            class="group transition-shadow hover:shadow-md"
+                            :href="`/markets/${market.code}`"
+                            class="block"
                         >
-                            <CardHeader class="pb-3">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                            <Building2 class="size-5" />
+                            <Card class="group h-full transition-shadow hover:shadow-md cursor-pointer">
+                                <CardHeader class="pb-3">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                                <Building2 class="size-5" />
+                                            </div>
+                                            <div>
+                                                <CardTitle class="text-lg">{{ market.code }}</CardTitle>
+                                                <p class="text-sm text-muted-foreground">
+                                                    {{ market.name }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span
+                                            :class="getStatusColor(market.isOpen)"
+                                            class="rounded-full px-2.5 py-1 text-xs font-medium"
+                                        >
+                                            {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
+                                        </span>
+                                    </div>
+                                </CardHeader>
+                                <CardContent class="space-y-4">
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <p class="text-muted-foreground">{{ t('markets.country') }}</p>
+                                            <p class="font-medium">{{ market.country.name }}</p>
                                         </div>
                                         <div>
-                                            <CardTitle class="text-lg">{{ market.code }}</CardTitle>
-                                            <p class="text-sm text-muted-foreground">
-                                                {{ market.name }}
-                                            </p>
+                                            <p class="text-muted-foreground">{{ t('markets.assets') }}</p>
+                                            <p class="font-medium">{{ market.assetCount }}</p>
                                         </div>
                                     </div>
-                                    <span
-                                        :class="getStatusColor(market.isOpen)"
-                                        class="rounded-full px-2.5 py-1 text-xs font-medium"
-                                    >
-                                        {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
-                                    </span>
-                                </div>
-                            </CardHeader>
-                            <CardContent class="space-y-4">
-                                <div class="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <p class="text-muted-foreground">{{ t('markets.country') }}</p>
-                                        <p class="font-medium">{{ market.country.name }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="text-muted-foreground">{{ t('markets.assets') }}</p>
-                                        <p class="font-medium">{{ market.assetCount }}</p>
-                                    </div>
-                                </div>
 
-                                <div class="flex items-center justify-between border-t border-border pt-4">
-                                    <div>
-                                        <p class="text-2xl font-bold">{{ market.predictionCount }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
-                                    </div>
-                                    <Button as-child size="sm">
-                                        <LocalizedLink :href="`/markets/${market.code}`">
+                                    <div class="flex items-center justify-between border-t border-border pt-4">
+                                        <div>
+                                            <p class="text-2xl font-bold">{{ market.predictionCount }}</p>
+                                            <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
+                                        </div>
+                                        <span class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
                                             {{ t('markets.viewPredictions') }}
-                                            <ArrowRight class="ms-1 size-4 rtl:rotate-180" />
-                                        </LocalizedLink>
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                            <ArrowRight class="size-4 rtl:rotate-180" />
+                                        </span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </LocalizedLink>
                     </div>
 
                     <!-- Empty State -->
@@ -254,10 +255,11 @@ const recentlyUpdatedMarkets = computed(() =>
                             </p>
                         </CardHeader>
                         <CardContent class="space-y-3">
-                            <div
+                            <LocalizedLink
                                 v-for="market in topMarkets"
                                 :key="market.id"
-                                class="flex items-center justify-between"
+                                :href="`/markets/${market.code}`"
+                                class="flex items-center justify-between rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors"
                             >
                                 <div>
                                     <span class="font-medium">{{ market.code }}</span>
@@ -268,7 +270,7 @@ const recentlyUpdatedMarkets = computed(() =>
                                 <span class="text-sm font-medium text-green-600 dark:text-green-400">
                                     {{ market.predictionCount }}
                                 </span>
-                            </div>
+                            </LocalizedLink>
                         </CardContent>
                     </Card>
 
@@ -312,10 +314,11 @@ const recentlyUpdatedMarkets = computed(() =>
                             </p>
                         </CardHeader>
                         <CardContent class="space-y-3">
-                            <div
+                            <LocalizedLink
                                 v-for="market in recentlyUpdatedMarkets"
                                 :key="market.id"
-                                class="flex items-center justify-between"
+                                :href="`/markets/${market.code}`"
+                                class="flex items-center justify-between rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors"
                             >
                                 <div>
                                     <span class="font-medium">{{ market.code }}</span>
@@ -329,7 +332,7 @@ const recentlyUpdatedMarkets = computed(() =>
                                 >
                                     {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
                                 </span>
-                            </div>
+                            </LocalizedLink>
                         </CardContent>
                     </Card>
                 </div>

@@ -11,6 +11,9 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineProps<{
     status?: string;
@@ -21,10 +24,10 @@ defineProps<{
 
 <template>
     <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
+        :title="t('auth.login.title')"
+        :description="t('auth.login.description')"
     >
-        <Head title="Log in" />
+        <Head :title="t('auth.login.submitButton')" />
 
         <div
             v-if="status"
@@ -41,7 +44,7 @@ defineProps<{
         >
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email">{{ t('auth.login.emailLabel') }}</Label>
                     <Input
                         id="email"
                         type="email"
@@ -50,21 +53,21 @@ defineProps<{
                         autofocus
                         :tabindex="1"
                         autocomplete="email"
-                        placeholder="email@example.com"
+                        :placeholder="t('auth.login.emailPlaceholder')"
                     />
                     <InputError :message="errors.email" />
                 </div>
 
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
+                        <Label for="password">{{ t('auth.login.passwordLabel') }}</Label>
                         <TextLink
                             v-if="canResetPassword"
                             :href="request()"
                             class="text-sm"
                             :tabindex="5"
                         >
-                            Forgot password?
+                            {{ t('auth.login.forgotPassword') }}
                         </TextLink>
                     </div>
                     <Input
@@ -74,15 +77,15 @@ defineProps<{
                         required
                         :tabindex="2"
                         autocomplete="current-password"
-                        placeholder="Password"
+                        :placeholder="t('auth.login.passwordPlaceholder')"
                     />
                     <InputError :message="errors.password" />
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
+                    <Label for="remember" class="flex items-center gap-3">
                         <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
+                        <span>{{ t('auth.login.rememberMe') }}</span>
                     </Label>
                 </div>
 
@@ -94,7 +97,7 @@ defineProps<{
                     data-test="login-button"
                 >
                     <Spinner v-if="processing" />
-                    Log in
+                    {{ t('auth.login.submitButton') }}
                 </Button>
             </div>
 
@@ -102,8 +105,8 @@ defineProps<{
                 class="text-center text-sm text-muted-foreground"
                 v-if="canRegister"
             >
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+                {{ t('auth.login.noAccount') }}
+                <TextLink :href="register()" :tabindex="5">{{ t('auth.login.signUp') }}</TextLink>
             </div>
         </Form>
     </AuthBase>

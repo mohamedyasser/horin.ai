@@ -10,7 +10,147 @@
         "clear": "مسح",
         "apply": "تطبيق",
         "noData": "لا توجد بيانات متاحة",
-        "loading": "جاري التحميل..."
+        "loading": "جاري التحميل...",
+        "save": "حفظ",
+        "saved": "تم الحفظ.",
+        "delete": "حذف",
+        "cancel": "إلغاء",
+        "logout": "تسجيل الخروج"
+    },
+    "auth": {
+        "login": {
+            "title": "تسجيل الدخول إلى حسابك",
+            "description": "أدخل بريدك الإلكتروني وكلمة المرور للدخول",
+            "emailLabel": "البريد الإلكتروني",
+            "emailPlaceholder": "email@example.com",
+            "passwordLabel": "كلمة المرور",
+            "passwordPlaceholder": "كلمة المرور",
+            "rememberMe": "تذكرني",
+            "forgotPassword": "نسيت كلمة المرور؟",
+            "submitButton": "تسجيل الدخول",
+            "noAccount": "ليس لديك حساب؟",
+            "signUp": "إنشاء حساب"
+        },
+        "register": {
+            "title": "إنشاء حساب جديد",
+            "description": "أدخل بياناتك لإنشاء حسابك",
+            "nameLabel": "الاسم",
+            "namePlaceholder": "الاسم الكامل",
+            "emailLabel": "البريد الإلكتروني",
+            "emailPlaceholder": "email@example.com",
+            "passwordLabel": "كلمة المرور",
+            "passwordPlaceholder": "كلمة المرور",
+            "confirmPasswordLabel": "تأكيد كلمة المرور",
+            "confirmPasswordPlaceholder": "تأكيد كلمة المرور",
+            "submitButton": "إنشاء حساب",
+            "hasAccount": "لديك حساب بالفعل؟",
+            "logIn": "تسجيل الدخول"
+        },
+        "forgotPassword": {
+            "title": "نسيت كلمة المرور؟",
+            "description": "أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين",
+            "emailLabel": "البريد الإلكتروني",
+            "emailPlaceholder": "email@example.com",
+            "submitButton": "إرسال رابط إعادة التعيين",
+            "backToLogin": "العودة لتسجيل الدخول"
+        },
+        "resetPassword": {
+            "title": "إعادة تعيين كلمة المرور",
+            "description": "أدخل كلمة المرور الجديدة",
+            "emailLabel": "البريد الإلكتروني",
+            "passwordLabel": "كلمة المرور الجديدة",
+            "confirmPasswordLabel": "تأكيد كلمة المرور الجديدة",
+            "submitButton": "إعادة تعيين كلمة المرور"
+        },
+        "verifyEmail": {
+            "title": "تأكيد البريد الإلكتروني",
+            "description": "يرجى تأكيد بريدك الإلكتروني بالنقر على الرابط الذي أرسلناه إليك.",
+            "resendLink": "انقر هنا لإعادة إرسال رابط التحقق.",
+            "linkSent": "تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني."
+        },
+        "confirmPassword": {
+            "title": "تأكيد كلمة المرور",
+            "description": "يرجى تأكيد كلمة المرور قبل المتابعة",
+            "passwordLabel": "كلمة المرور",
+            "submitButton": "تأكيد"
+        },
+        "twoFactor": {
+            "title": "المصادقة الثنائية",
+            "description": "يرجى إدخال رمز المصادقة للمتابعة",
+            "codeLabel": "رمز المصادقة",
+            "codePlaceholder": "أدخل الرمز المكون من 6 أرقام",
+            "recoveryLabel": "رمز الاسترداد",
+            "recoveryPlaceholder": "أدخل رمز الاسترداد",
+            "useRecovery": "استخدام رمز الاسترداد",
+            "useCode": "استخدام رمز المصادقة",
+            "submitButton": "تحقق"
+        }
+    },
+    "settings": {
+        "title": "الإعدادات",
+        "profile": {
+            "title": "إعدادات الملف الشخصي",
+            "heading": "معلومات الملف الشخصي",
+            "description": "تحديث الاسم والبريد الإلكتروني",
+            "nameLabel": "الاسم",
+            "namePlaceholder": "الاسم الكامل",
+            "emailLabel": "البريد الإلكتروني",
+            "emailPlaceholder": "البريد الإلكتروني",
+            "unverifiedEmail": "بريدك الإلكتروني غير مؤكد.",
+            "resendVerification": "انقر هنا لإعادة إرسال رابط التحقق.",
+            "verificationSent": "تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني."
+        },
+        "password": {
+            "title": "إعدادات كلمة المرور",
+            "heading": "تحديث كلمة المرور",
+            "description": "تأكد من استخدام كلمة مرور طويلة وعشوائية للحفاظ على أمان حسابك",
+            "currentLabel": "كلمة المرور الحالية",
+            "currentPlaceholder": "كلمة المرور الحالية",
+            "newLabel": "كلمة المرور الجديدة",
+            "newPlaceholder": "كلمة المرور الجديدة",
+            "confirmLabel": "تأكيد كلمة المرور",
+            "confirmPlaceholder": "تأكيد كلمة المرور"
+        },
+        "appearance": {
+            "title": "إعدادات المظهر",
+            "heading": "المظهر",
+            "description": "تخصيص مظهر التطبيق",
+            "themeLabel": "السمة",
+            "lightTheme": "فاتح",
+            "darkTheme": "داكن",
+            "systemTheme": "النظام"
+        },
+        "twoFactor": {
+            "title": "المصادقة الثنائية",
+            "heading": "المصادقة الثنائية",
+            "description": "أضف أماناً إضافياً لحسابك باستخدام المصادقة الثنائية",
+            "statusEnabled": "مفعّلة",
+            "statusDisabled": "معطّلة",
+            "enabledDescription": "مع تفعيل المصادقة الثنائية، حسابك الآن أكثر أماناً. استخدم تطبيق المصادقة لتوليد رموز تسجيل الدخول.",
+            "disabledDescription": "عند تفعيل المصادقة الثنائية، ستحتاج إلى تطبيق مصادقة على هاتفك لتسجيل الدخول.",
+            "enableButton": "تفعيل المصادقة الثنائية",
+            "disableButton": "تعطيل المصادقة الثنائية",
+            "continueSetup": "متابعة الإعداد",
+            "confirmButton": "تأكيد",
+            "showRecoveryCodes": "عرض رموز الاسترداد",
+            "regenerateCodes": "إعادة إنشاء رموز الاسترداد",
+            "recoveryCodesTitle": "رموز الاسترداد",
+            "recoveryCodesDescription": "احتفظ بهذه الرموز في مكان آمن. يمكن استخدامها لاستعادة الوصول إلى حسابك إذا فقدت جهاز المصادقة الثنائية.",
+            "scanQrCode": "امسح رمز QR هذا بتطبيق المصادقة",
+            "setupKey": "أو أدخل مفتاح الإعداد يدوياً"
+        },
+        "deleteAccount": {
+            "title": "حذف الحساب",
+            "heading": "حذف الحساب",
+            "description": "بمجرد حذف حسابك، سيتم حذف جميع موارده وبياناته بشكل دائم.",
+            "warningTitle": "تحذير",
+            "warningText": "يرجى المتابعة بحذر، لا يمكن التراجع عن هذا الإجراء.",
+            "confirmTitle": "هل أنت متأكد من رغبتك في حذف حسابك؟",
+            "confirmDescription": "بمجرد حذف حسابك، سيتم حذف جميع موارده وبياناته بشكل دائم. يرجى إدخال كلمة المرور لتأكيد رغبتك في حذف حسابك نهائياً.",
+            "passwordLabel": "كلمة المرور",
+            "passwordPlaceholder": "أدخل كلمة المرور للتأكيد",
+            "deleteButton": "حذف الحساب"
+        }
     },
     "meta": {
         "home": "توقعات أسعار الأسهم بالذكاء الاصطناعي لأسواق الشرق الأوسط بما في ذلك مصر والسعودية والإمارات والكويت وقطر والبحرين. توقعات يومية محدثة مع درجات الثقة.",

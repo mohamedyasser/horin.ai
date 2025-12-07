@@ -13,7 +13,6 @@ import {
     TrendingDown,
     Clock,
     Building2,
-    ExternalLink,
     BarChart3,
     Activity,
     ArrowUpRight,
@@ -511,17 +510,6 @@ const getMacdSignal = (macdLine?: number | null) => {
                         </Card>
                     </Deferred>
 
-                    <!-- Actions -->
-                    <Card>
-                        <CardContent class="pt-6 space-y-3">
-                            <Button as-child variant="outline" class="w-full">
-                                <a href="https://www.tradingview.com" target="_blank" rel="noopener noreferrer">
-                                    {{ t('assetDetail.actions.viewOnTradingView') }}
-                                    <ExternalLink class="ms-2 size-4" />
-                                </a>
-                            </Button>
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
         </div>
