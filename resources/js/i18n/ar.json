@@ -941,5 +941,56 @@
                 "content": "راسل فريق الدعم للمساعدة أو الشكاوى."
             }
         }
+    },
+    "recommendations": {
+        "title": "التوصيات",
+        "noData": "لا توجد توصية متاحة",
+        "noDataDescription": "في انتظار بيانات كافية لتوليد توصية.",
+        "viewAnalysis": "عرض التحليل",
+        "hideAnalysis": "إخفاء التحليل",
+        "whyThisRecommendation": "لماذا هذه التوصية",
+        "activeSignals": "الإشارات النشطة",
+        "detectedPatterns": "الأنماط المكتشفة",
+        "anomalies": "الشذوذات",
+        "entry": "الدخول",
+        "stopLoss": "وقف الخسارة",
+        "target": "الهدف",
+        "riskReward": "المخاطرة/العائد",
+        "confidence": "الثقة",
+        "updated": "آخر تحديث",
+        "score": "النتيجة",
+        "strength": "القوة",
+        "actions": {
+            "STRONG_BUY": "شراء قوي",
+            "BUY": "شراء",
+            "HOLD": "احتفاظ",
+            "SELL": "بيع",
+            "STRONG_SELL": "بيع قوي"
+        },
+        "riskRewardLabels": {
+            "excellent": "ممتاز",
+            "good": "جيد",
+            "fair": "مقبول",
+            "poor": "ضعيف"
+        },
+        "patterns": {
+            "head_shoulder": "الرأس والكتفين",
+            "multiple_tops_bottoms": "قمم/قيعان متعددة",
+            "triangle": "مثلث",
+            "wedge": "إسفين",
+            "channel": "قناة",
+            "double_top_bottom": "قمة/قاع مزدوج",
+            "trendline": "خط الاتجاه",
+            "support_resistance": "الدعم/المقاومة",
+            "pivots": "نقاط المحور"
+        },
+        "timeAgo": {
+            "just_now": "الآن"
+        }
+    },
+    "sidebar": {
+        "topBuySignals": "أقوى إشارات الشراء",
+        "topSellSignals": "أقوى إشارات البيع",
+        "recentRecommendations": "أحدث التوصيات"
     }
 }
