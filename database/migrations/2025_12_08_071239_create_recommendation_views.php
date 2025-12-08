@@ -68,7 +68,7 @@ return new class extends Migration
                 anomaly_type,
                 confidence_score,
                 detected_at,
-                window,
+                "window",
                 price,
                 volume,
                 extra
