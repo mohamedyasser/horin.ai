@@ -20,21 +20,24 @@ return new class extends Migration
             ORDER BY pid, created_at DESC
         ");
 
-        // Active signals per asset (last 30 minutes)
+        // Latest signals per asset (top 10 by strength per asset)
         DB::statement("
             CREATE OR REPLACE VIEW v_latest_detected_signals AS
-            SELECT
-                id,
-                pid,
-                timestamp,
-                indicator,
-                signal_type,
-                value,
-                strength,
-                created_at
-            FROM instant_detected_signals
-            WHERE created_at >= NOW() - INTERVAL '30 minutes'
-            ORDER BY pid, strength DESC
+            SELECT id, pid, timestamp, indicator, signal_type, value, strength, created_at
+            FROM (
+                SELECT
+                    id,
+                    pid,
+                    timestamp,
+                    indicator,
+                    signal_type,
+                    value,
+                    strength,
+                    created_at,
+                    ROW_NUMBER() OVER (PARTITION BY pid ORDER BY created_at DESC, strength DESC) as rn
+                FROM instant_detected_signals
+            ) ranked
+            WHERE rn <= 10
         ");
 
         // Latest pattern detection per asset
@@ -59,22 +62,25 @@ return new class extends Migration
             ORDER BY pid, timestamp DESC
         ");
 
-        // Active anomalies (last 30 minutes)
+        // Latest anomalies per symbol (top 5 per symbol)
         DB::statement("
             CREATE OR REPLACE VIEW v_latest_anomalies AS
-            SELECT
-                id,
-                symbol,
-                anomaly_type,
-                confidence_score,
-                detected_at,
-                'window',
-                price,
-                volume,
-                extra
-            FROM instant_anomalies
-            WHERE detected_at >= NOW() - INTERVAL '30 minutes'
-            ORDER BY symbol, detected_at DESC
+            SELECT id, symbol, anomaly_type, confidence_score, detected_at, \"window\", price, volume, extra
+            FROM (
+                SELECT
+                    id,
+                    symbol,
+                    anomaly_type,
+                    confidence_score,
+                    detected_at,
+                    \"window\",
+                    price,
+                    volume,
+                    extra,
+                    ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY detected_at DESC) as rn
+                FROM instant_anomalies
+            ) ranked
+            WHERE rn <= 5
         ");
 
         // Latest signal classification per asset
