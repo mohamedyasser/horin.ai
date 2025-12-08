@@ -29,3 +29,4 @@ yarn-error.log
 rr
 .rr.yaml
 .worktrees/
+db.sh
