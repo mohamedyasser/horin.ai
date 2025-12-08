@@ -10,7 +10,7 @@ class LatestPatternDetection extends Model
     /**
      * The table associated with the model (database view).
      */
-    protected $table = 'latest_pattern_detections';
+    protected $table = 'v_latest_pattern_detections';
 
     /**
      * The primary key for the model.

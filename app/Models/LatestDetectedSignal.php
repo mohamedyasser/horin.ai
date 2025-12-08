@@ -10,7 +10,7 @@ class LatestDetectedSignal extends Model
     /**
      * The table associated with the model (database view).
      */
-    protected $table = 'latest_detected_signals';
+    protected $table = 'v_latest_detected_signals';
 
     /**
      * Indicates if the model should be timestamped.

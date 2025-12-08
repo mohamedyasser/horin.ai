@@ -10,7 +10,7 @@ class LatestAnomaly extends Model
     /**
      * The table associated with the model (database view).
      */
-    protected $table = 'latest_anomalies';
+    protected $table = 'v_latest_anomalies';
 
     /**
      * Indicates if the model should be timestamped.

@@ -10,7 +10,7 @@ class LatestRecommendation extends Model
     /**
      * The table associated with the model (database view).
      */
-    protected $table = 'latest_recommendations';
+    protected $table = 'v_latest_recommendations';
 
     /**
      * The primary key for the model.
