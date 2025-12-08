@@ -939,5 +939,56 @@
                 "content": "Email our support team for help or complaints."
             }
         }
+    },
+    "recommendations": {
+        "title": "Recommendations",
+        "noData": "No recommendation available",
+        "noDataDescription": "Waiting for sufficient market data to generate a recommendation.",
+        "viewAnalysis": "View Analysis",
+        "hideAnalysis": "Hide Analysis",
+        "whyThisRecommendation": "Why This Recommendation",
+        "activeSignals": "Active Signals",
+        "detectedPatterns": "Detected Patterns",
+        "anomalies": "Anomalies",
+        "entry": "Entry",
+        "stopLoss": "Stop-Loss",
+        "target": "Target",
+        "riskReward": "Risk/Reward",
+        "confidence": "Confidence",
+        "updated": "Updated",
+        "score": "Score",
+        "strength": "Strength",
+        "actions": {
+            "STRONG_BUY": "Strong Buy",
+            "BUY": "Buy",
+            "HOLD": "Hold",
+            "SELL": "Sell",
+            "STRONG_SELL": "Strong Sell"
+        },
+        "riskRewardLabels": {
+            "excellent": "Excellent",
+            "good": "Good",
+            "fair": "Fair",
+            "poor": "Poor"
+        },
+        "patterns": {
+            "head_shoulder": "Head & Shoulders",
+            "multiple_tops_bottoms": "Multiple Tops/Bottoms",
+            "triangle": "Triangle",
+            "wedge": "Wedge",
+            "channel": "Channel",
+            "double_top_bottom": "Double Top/Bottom",
+            "trendline": "Trendline",
+            "support_resistance": "Support/Resistance",
+            "pivots": "Pivot Points"
+        },
+        "timeAgo": {
+            "just_now": "Just now"
+        }
+    },
+    "sidebar": {
+        "topBuySignals": "Top Buy Signals",
+        "topSellSignals": "Top Sell Signals",
+        "recentRecommendations": "Recent Recommendations"
     }
 }
