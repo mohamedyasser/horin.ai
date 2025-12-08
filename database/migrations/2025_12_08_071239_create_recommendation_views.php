@@ -9,7 +9,7 @@ return new class extends Migration
     {
         // Latest recommendation per asset
         DB::statement("
-            CREATE OR REPLACE VIEW latest_recommendations AS
+            CREATE OR REPLACE VIEW v_latest_recommendations AS
             SELECT DISTINCT ON (pid)
                 id,
                 pid,
@@ -22,7 +22,7 @@ return new class extends Migration
 
         // Active signals per asset (last 30 minutes)
         DB::statement("
-            CREATE OR REPLACE VIEW latest_detected_signals AS
+            CREATE OR REPLACE VIEW v_latest_detected_signals AS
             SELECT
                 id,
                 pid,
@@ -39,7 +39,7 @@ return new class extends Migration
 
         // Latest pattern detection per asset
         DB::statement("
-            CREATE OR REPLACE VIEW latest_pattern_detections AS
+            CREATE OR REPLACE VIEW v_latest_pattern_detections AS
             SELECT DISTINCT ON (pid)
                 pid,
                 timestamp,
@@ -61,7 +61,7 @@ return new class extends Migration
 
         // Active anomalies (last 30 minutes)
         DB::statement("
-            CREATE OR REPLACE VIEW latest_anomalies AS
+            CREATE OR REPLACE VIEW v_latest_anomalies AS
             SELECT
                 id,
                 symbol,
@@ -79,7 +79,7 @@ return new class extends Migration
 
         // Latest signal classification per asset
         DB::statement("
-            CREATE OR REPLACE VIEW latest_signal_classifications AS
+            CREATE OR REPLACE VIEW v_latest_signal_classifications AS
             SELECT DISTINCT ON (pid)
                 id,
                 pid,
@@ -95,10 +95,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement('DROP VIEW IF EXISTS latest_recommendations');
-        DB::statement('DROP VIEW IF EXISTS latest_detected_signals');
-        DB::statement('DROP VIEW IF EXISTS latest_pattern_detections');
-        DB::statement('DROP VIEW IF EXISTS latest_anomalies');
-        DB::statement('DROP VIEW IF EXISTS latest_signal_classifications');
+        DB::statement('DROP VIEW IF EXISTS v_latest_recommendations');
+        DB::statement('DROP VIEW IF EXISTS v_latest_detected_signals');
+        DB::statement('DROP VIEW IF EXISTS v_latest_pattern_detections');
+        DB::statement('DROP VIEW IF EXISTS v_latest_anomalies');
+        DB::statement('DROP VIEW IF EXISTS v_latest_signal_classifications');
     }
 };
