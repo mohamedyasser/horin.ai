@@ -170,6 +170,38 @@ class Asset extends Model
             ->ofMany('timestamp', 'max');
     }
 
+    /**
+     * Get the latest recommendation for this asset.
+     */
+    public function latestRecommendation(): HasOne
+    {
+        return $this->hasOne(LatestRecommendation::class, 'pid', 'inv_id');
+    }
+
+    /**
+     * Get the active signals for this asset (last 30 minutes).
+     */
+    public function latestSignals(): HasMany
+    {
+        return $this->hasMany(LatestDetectedSignal::class, 'pid', 'inv_id');
+    }
+
+    /**
+     * Get the latest pattern detection for this asset.
+     */
+    public function latestPatternDetection(): HasOne
+    {
+        return $this->hasOne(LatestPatternDetection::class, 'pid', 'inv_id');
+    }
+
+    /**
+     * Get the latest anomalies for this asset.
+     */
+    public function latestAnomalies(): HasMany
+    {
+        return $this->hasMany(LatestAnomaly::class, 'symbol', 'inv_id');
+    }
+
     public function priceHistory(): HasMany
     {
         return $this->hasMany(AssetPrice::class, 'pid', 'inv_id');

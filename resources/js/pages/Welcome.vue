@@ -37,6 +37,7 @@ import {
 } from 'lucide-vue-next';
 import { useServerSearch } from '@/composables/useServerSearch';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import RecommendationsTable from '@/components/RecommendationsTable.vue';
 import type {
     HomeStats,
     MarketPreview,
@@ -44,6 +45,7 @@ import type {
     FeaturedPrediction,
     TopMover,
     RecentPrediction,
+    Recommendation,
 } from '@/types';
 
 const { t, locale } = useI18n();
@@ -73,6 +75,12 @@ interface Props {
     };
     topMovers?: TopMover[];
     recentPredictions?: RecentPrediction[];
+    featuredRecommendations?: {
+        data: Recommendation[];
+    };
+    topBuySignals?: Recommendation[];
+    topSellSignals?: Recommendation[];
+    recentRecommendations?: Recommendation[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -93,6 +101,7 @@ const selectedMarket = ref<string | null>(props.filters?.market ?? null);
 const selectedSector = ref<string | null>(props.filters?.sector ?? null);
 const selectedCountry = ref<string | null>(props.filters?.country ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
+const activeTab = ref<'recommendations' | 'predictions'>('predictions');
 
 // Computed - options for searchable selects
 const marketOptions = computed(() =>
@@ -156,6 +165,10 @@ const filterByMarket = (marketCode: string | null) => {
 const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []);
 const topMovers = computed(() => props.topMovers ?? []);
 const recentPredictions = computed(() => props.recentPredictions ?? []);
+const featuredRecommendations = computed(() => props.featuredRecommendations?.data ?? []);
+const topBuySignals = computed(() => props.topBuySignals ?? []);
+const topSellSignals = computed(() => props.topSellSignals ?? []);
+const recentRecommendationsData = computed(() => props.recentRecommendations ?? []);
 
 // Sort predictions client-side (sorting doesn't require server round-trip)
 const sortedPredictions = computed(() => {
@@ -225,8 +238,28 @@ const sortedPredictions = computed(() => {
             <div class="grid gap-8 lg:grid-cols-4">
                 <!-- Predictions Table -->
                 <div class="lg:col-span-3">
+                    <!-- Tab Buttons -->
+                    <div class="mb-4 flex items-center gap-4 border-b border-border">
+                        <button
+                            class="relative px-4 py-2 text-sm font-medium transition-colors"
+                            :class="activeTab === 'recommendations' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+                            @click="activeTab = 'recommendations'"
+                        >
+                            {{ t('recommendations.title') }}
+                            <span v-if="activeTab === 'recommendations'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                        </button>
+                        <button
+                            class="relative px-4 py-2 text-sm font-medium transition-colors"
+                            :class="activeTab === 'predictions' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+                            @click="activeTab = 'predictions'"
+                        >
+                            {{ t('home.predictions') }}
+                            <span v-if="activeTab === 'predictions'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                        </button>
+                    </div>
+
                     <!-- Controls -->
-                    <div class="mb-4 flex items-center justify-between">
+                    <div v-if="activeTab === 'predictions'" class="mb-4 flex items-center justify-between">
                         <h2 class="text-xl font-semibold">{{ t('home.predictions') }}</h2>
                         <div class="flex items-center gap-2">
                             <!-- Filter Button -->
@@ -312,8 +345,22 @@ const sortedPredictions = computed(() => {
                         </div>
                     </div>
 
+                    <!-- Recommendations Table -->
+                    <Deferred v-if="activeTab === 'recommendations'" data="featuredRecommendations">
+                        <template #fallback>
+                            <div class="rounded-lg border border-border">
+                                <div class="space-y-4 p-4">
+                                    <div v-for="i in 6" :key="i" class="animate-pulse">
+                                        <div class="h-16 bg-muted rounded-lg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <RecommendationsTable :recommendations="featuredRecommendations" />
+                    </Deferred>
+
                     <!-- Predictions Table with Deferred Loading -->
-                    <Deferred data="featuredPredictions">
+                    <Deferred v-if="activeTab === 'predictions'" data="featuredPredictions">
                         <template #fallback>
                             <div class="rounded-lg border border-border">
                                 <div class="space-y-4 p-4">
@@ -418,7 +465,7 @@ const sortedPredictions = computed(() => {
                     </Deferred>
 
                     <!-- Results count -->
-                    <div class="mt-4 text-center text-sm text-muted-foreground">
+                    <div v-if="activeTab === 'predictions'" class="mt-4 text-center text-sm text-muted-foreground">
                         {{ t('home.showingPredictions', { count: sortedPredictions.length }) }}
                     </div>
                 </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Country;
 use App\Models\LatestPrediction;
+use App\Models\LatestRecommendation;
 use App\Models\Market;
 use App\Models\PredictedAssetPrice;
 use App\Models\Sector;
@@ -77,6 +78,10 @@ class HomeController extends Controller
             'featuredPredictions' => Inertia::defer(fn () => $this->getFeaturedPredictions($request)),
             'topMovers' => Inertia::defer(fn () => $this->getTopMovers()),
             'recentPredictions' => Inertia::defer(fn () => $this->getRecentPredictions()),
+            'featuredRecommendations' => Inertia::defer(fn () => $this->getFeaturedRecommendations($request)),
+            'topBuySignals' => Inertia::defer(fn () => $this->getTopBuySignals()),
+            'topSellSignals' => Inertia::defer(fn () => $this->getTopSellSignals()),
+            'recentRecommendations' => Inertia::defer(fn () => $this->getRecentRecommendations()),
         ]);
     }
 
@@ -245,5 +250,138 @@ class HomeController extends Controller
             'targetTimestamp' => $targetTimestamp,
             'freshness' => $prediction->freshness ?? null,
         ];
+    }
+
+    private function getFeaturedRecommendations(Request $request): array
+    {
+        $marketFilter = $request->input('market');
+        $sectorFilter = $request->input('sector');
+        $searchFilter = $request->input('search');
+
+        $searchAssetIds = null;
+        if ($searchFilter) {
+            $searchAssetIds = Asset::search($searchFilter)
+                ->take(100)
+                ->get()
+                ->pluck('inv_id')
+                ->toArray();
+
+            if (empty($searchAssetIds)) {
+                return ['data' => []];
+            }
+        }
+
+        $query = LatestRecommendation::with(['asset.market', 'asset.sector']);
+
+        if ($marketFilter) {
+            $market = Market::where('code', $marketFilter)->first();
+            if ($market) {
+                $query->whereHas('asset', fn ($q) => $q->where('market_id', $market->id));
+            }
+        }
+
+        if ($sectorFilter) {
+            $sector = Sector::find($sectorFilter);
+            if ($sector) {
+                $query->whereHas('asset', fn ($q) => $q->where('sector_id', $sector->id));
+            }
+        }
+
+        if ($searchAssetIds !== null) {
+            $query->whereIn('pid', $searchAssetIds);
+        }
+
+        $recommendations = $query->orderByDesc('score')
+            ->limit(20)
+            ->get()
+            ->filter(fn ($r) => $r->asset !== null);
+
+        return [
+            'data' => $recommendations->map(fn ($r) => [
+                'id' => $r->id,
+                'pid' => $r->pid,
+                'score' => $r->score,
+                'recommendation' => $r->recommendation,
+                'created_at' => $r->created_at?->toISOString(),
+                'asset' => [
+                    'id' => $r->asset->id,
+                    'symbol' => $r->asset->symbol,
+                    'name' => $r->asset->name,
+                    'market' => $r->asset->market ? ['code' => $r->asset->market->code] : null,
+                    'sector' => $r->asset->sector ? ['name' => $r->asset->sector->name] : null,
+                ],
+            ])->values()->toArray(),
+        ];
+    }
+
+    private function getTopBuySignals(): array
+    {
+        return LatestRecommendation::with('asset')
+            ->whereIn('recommendation', ['STRONG_BUY', 'BUY'])
+            ->orderByDesc('score')
+            ->limit(5)
+            ->get()
+            ->filter(fn ($r) => $r->asset !== null)
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'pid' => $r->pid,
+                'score' => $r->score,
+                'recommendation' => $r->recommendation,
+                'created_at' => $r->created_at?->toISOString(),
+                'asset' => [
+                    'id' => $r->asset->id,
+                    'symbol' => $r->asset->symbol,
+                    'name' => $r->asset->name,
+                ],
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    private function getTopSellSignals(): array
+    {
+        return LatestRecommendation::with('asset')
+            ->whereIn('recommendation', ['STRONG_SELL', 'SELL'])
+            ->orderByDesc('score')
+            ->limit(5)
+            ->get()
+            ->filter(fn ($r) => $r->asset !== null)
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'pid' => $r->pid,
+                'score' => $r->score,
+                'recommendation' => $r->recommendation,
+                'created_at' => $r->created_at?->toISOString(),
+                'asset' => [
+                    'id' => $r->asset->id,
+                    'symbol' => $r->asset->symbol,
+                    'name' => $r->asset->name,
+                ],
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    private function getRecentRecommendations(): array
+    {
+        return LatestRecommendation::with('asset')
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get()
+            ->filter(fn ($r) => $r->asset !== null)
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'pid' => $r->pid,
+                'score' => $r->score,
+                'recommendation' => $r->recommendation,
+                'created_at' => $r->created_at?->toISOString(),
+                'asset' => [
+                    'id' => $r->asset->id,
+                    'symbol' => $r->asset->symbol,
+                    'name' => $r->asset->name,
+                ],
+            ])
+            ->values()
+            ->toArray();
     }
 }

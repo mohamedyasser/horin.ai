@@ -22,6 +22,7 @@ import {
 } from 'lucide-vue-next';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import AssetPriceChart from '@/components/AssetPriceChart.vue';
+import RecommendationCard from '@/components/RecommendationCard.vue';
 import type {
     AssetDetailData,
     AssetPriceData,
@@ -30,6 +31,10 @@ import type {
     PredictionHistoryItem,
     PriceHistoryPoint,
     PredictionChartPoint,
+    Recommendation,
+    Signal,
+    PatternDetection,
+    Anomaly,
 } from '@/types';
 
 const { t, locale } = useI18n();
@@ -46,6 +51,10 @@ interface Props {
     priceHistory?: PriceHistoryPoint[];
     predictionChartData?: PredictionChartPoint[];
     predictionHistory?: PredictionHistoryItem[];
+    recommendation?: Recommendation | null;
+    activeSignals?: Signal[];
+    detectedPatterns?: PatternDetection | null;
+    anomalies?: Anomaly[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -62,6 +71,10 @@ const indicators = computed(() => props.indicators);
 const priceHistory = computed(() => props.priceHistory ?? []);
 const predictionChartData = computed(() => props.predictionChartData ?? []);
 const predictionHistory = computed(() => props.predictionHistory ?? []);
+const recommendation = computed(() => props.recommendation ?? null);
+const activeSignals = computed(() => props.activeSignals ?? []);
+const detectedPatterns = computed(() => props.detectedPatterns ?? null);
+const anomalies = computed(() => props.anomalies ?? []);
 
 const priceChangeIsPositive = computed(() => {
     if (!price.value?.changePercent) return true;
@@ -204,6 +217,25 @@ const getMacdSignal = (macdLine?: number | null) => {
                         </p>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Recommendation Section -->
+        <section class="border-b border-border/40 bg-background">
+            <div class="mx-auto max-w-7xl px-4 py-6">
+                <Deferred data="recommendation">
+                    <template #fallback>
+                        <div class="animate-pulse">
+                            <div class="h-32 rounded-lg bg-muted" />
+                        </div>
+                    </template>
+                    <RecommendationCard
+                        :recommendation="recommendation"
+                        :signals="activeSignals"
+                        :patterns="detectedPatterns"
+                        :anomalies="anomalies"
+                    />
+                </Deferred>
             </div>
         </section>
 
