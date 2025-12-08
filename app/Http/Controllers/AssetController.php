@@ -327,7 +327,7 @@ class AssetController extends Controller
                 'anomaly_type' => $anomaly->anomaly_type,
                 'confidence_score' => $anomaly->confidence_score,
                 'detected_at' => $anomaly->detected_at?->toISOString(),
-                'window' => $anomaly->window,
+                'window' => $anomaly->window_size,
                 'price' => $anomaly->price,
                 'volume' => $anomaly->volume,
                 'extra' => $anomaly->extra,

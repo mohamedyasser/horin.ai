@@ -65,7 +65,7 @@ return new class extends Migration
         // Latest anomalies per symbol (top 5 per symbol)
         DB::statement("
             CREATE OR REPLACE VIEW v_latest_anomalies AS
-            SELECT id, symbol, anomaly_type, confidence_score, detected_at, \"window\", price, volume, extra
+            SELECT id, symbol, anomaly_type, confidence_score, detected_at, window_size, price, volume, extra
             FROM (
                 SELECT
                     id,
@@ -73,7 +73,7 @@ return new class extends Migration
                     anomaly_type,
                     confidence_score,
                     detected_at,
-                    \"window\",
+                    \"window\" AS window_size,
                     price,
                     volume,
                     extra,
