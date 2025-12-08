@@ -438,3 +438,59 @@ export interface PredictionChartPoint {
 }
 
 export type ChartPeriod = 7 | 30 | 90 | 180;
+
+// Recommendation Types
+export interface Recommendation {
+    id: string;
+    pid: string;
+    score: number;
+    recommendation: 'STRONG_BUY' | 'BUY' | 'HOLD' | 'SELL' | 'STRONG_SELL';
+    created_at: string;
+    asset?: {
+        id: string;
+        symbol: string;
+        name: string;
+        market?: { code: string };
+        sector?: { name: string };
+    };
+}
+
+export interface Signal {
+    id: string;
+    pid: string;
+    timestamp: number;
+    indicator: string;
+    signal_type: string;
+    value: Record<string, unknown>;
+    strength: number;
+    created_at: string;
+}
+
+export interface PatternDetection {
+    pid: string;
+    timestamp: number;
+    patterns: string[];
+    has_head_shoulder: boolean;
+    has_multiple_tops_bottoms: boolean;
+    has_triangle: boolean;
+    has_wedge: boolean;
+    has_channel: boolean;
+    has_double_top_bottom: boolean;
+    has_trendline: boolean;
+    has_support_resistance: boolean;
+    has_pivots: boolean;
+    pattern_count: number;
+    created_at: string;
+}
+
+export interface Anomaly {
+    id: string;
+    symbol: string;
+    anomaly_type: string;
+    confidence_score: number;
+    detected_at: string;
+    window: string;
+    price: number;
+    volume: number;
+    extra: Record<string, unknown>;
+}
