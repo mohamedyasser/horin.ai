@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\AssetPrice;
 use App\Models\InstantIndicator;
+use App\Models\LatestAnomaly;
+use App\Models\LatestDetectedSignal;
+use App\Models\LatestPatternDetection;
+use App\Models\LatestRecommendation;
 use App\Models\PredictedAssetPrice;
 use App\Support\Horizon;
 use Carbon\Carbon;
@@ -58,6 +62,10 @@ class AssetController extends Controller
             'priceHistory' => Inertia::defer(fn () => $this->getPriceHistory($asset, $chartPeriod)),
             'predictionChartData' => Inertia::defer(fn () => $this->getPredictionChartData($asset)),
             'predictionHistory' => Inertia::defer(fn () => $this->getPredictionHistory($asset)),
+            'recommendation' => Inertia::defer(fn () => $this->getRecommendation($asset)),
+            'activeSignals' => Inertia::defer(fn () => $this->getActiveSignals($asset)),
+            'detectedPatterns' => Inertia::defer(fn () => $this->getDetectedPatterns($asset)),
+            'anomalies' => Inertia::defer(fn () => $this->getAnomalies($asset)),
         ]);
     }
 
@@ -243,5 +251,87 @@ class AssetController extends Controller
         usort($chartPoints, fn ($a, $b) => $a['timestamp'] <=> $b['timestamp']);
 
         return $chartPoints;
+    }
+
+    private function getRecommendation(Asset $asset): ?array
+    {
+        $recommendation = LatestRecommendation::where('pid', $asset->inv_id)->first();
+
+        if (! $recommendation) {
+            return null;
+        }
+
+        return [
+            'id' => $recommendation->id,
+            'pid' => $recommendation->pid,
+            'score' => $recommendation->score,
+            'recommendation' => $recommendation->recommendation,
+            'created_at' => $recommendation->created_at?->toISOString(),
+        ];
+    }
+
+    private function getActiveSignals(Asset $asset): array
+    {
+        return LatestDetectedSignal::where('pid', $asset->inv_id)
+            ->orderByDesc('strength')
+            ->limit(10)
+            ->get()
+            ->map(fn ($signal) => [
+                'id' => $signal->id,
+                'pid' => $signal->pid,
+                'timestamp' => $signal->timestamp,
+                'indicator' => $signal->indicator,
+                'signal_type' => $signal->signal_type,
+                'value' => $signal->value,
+                'strength' => $signal->strength,
+                'created_at' => $signal->created_at?->toISOString(),
+            ])
+            ->toArray();
+    }
+
+    private function getDetectedPatterns(Asset $asset): ?array
+    {
+        $patterns = LatestPatternDetection::where('pid', $asset->inv_id)->first();
+
+        if (! $patterns) {
+            return null;
+        }
+
+        return [
+            'pid' => $patterns->pid,
+            'timestamp' => $patterns->timestamp,
+            'patterns' => $patterns->patterns,
+            'has_head_shoulder' => $patterns->has_head_shoulder,
+            'has_multiple_tops_bottoms' => $patterns->has_multiple_tops_bottoms,
+            'has_triangle' => $patterns->has_triangle,
+            'has_wedge' => $patterns->has_wedge,
+            'has_channel' => $patterns->has_channel,
+            'has_double_top_bottom' => $patterns->has_double_top_bottom,
+            'has_trendline' => $patterns->has_trendline,
+            'has_support_resistance' => $patterns->has_support_resistance,
+            'has_pivots' => $patterns->has_pivots,
+            'pattern_count' => $patterns->pattern_count,
+            'created_at' => $patterns->created_at?->toISOString(),
+        ];
+    }
+
+    private function getAnomalies(Asset $asset): array
+    {
+        return LatestAnomaly::where('symbol', $asset->symbol)
+            ->orderByDesc('detected_at')
+            ->limit(5)
+            ->get()
+            ->map(fn ($anomaly) => [
+                'id' => $anomaly->id,
+                'symbol' => $anomaly->symbol,
+                'anomaly_type' => $anomaly->anomaly_type,
+                'confidence_score' => $anomaly->confidence_score,
+                'detected_at' => $anomaly->detected_at?->toISOString(),
+                'window' => $anomaly->window,
+                'price' => $anomaly->price,
+                'volume' => $anomaly->volume,
+                'extra' => $anomaly->extra,
+            ])
+            ->toArray();
     }
 }
