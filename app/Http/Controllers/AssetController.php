@@ -317,7 +317,7 @@ class AssetController extends Controller
 
     private function getAnomalies(Asset $asset): array
     {
-        return LatestAnomaly::where('symbol', $asset->symbol)
+        return LatestAnomaly::where('symbol', $asset->inv_id)
             ->orderByDesc('detected_at')
             ->limit(5)
             ->get()

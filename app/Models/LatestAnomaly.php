@@ -34,10 +34,10 @@ class LatestAnomaly extends Model
     }
 
     /**
-     * Get the asset by symbol.
+     * Get the asset by inv_id (symbol field stores inv_id).
      */
     public function asset(): BelongsTo
     {
-        return $this->belongsTo(Asset::class, 'symbol', 'symbol');
+        return $this->belongsTo(Asset::class, 'symbol', 'inv_id');
     }
 }

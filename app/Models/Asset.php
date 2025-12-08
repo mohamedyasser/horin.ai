@@ -195,11 +195,11 @@ class Asset extends Model
     }
 
     /**
-     * Get the active anomalies for this asset (last 30 minutes).
+     * Get the latest anomalies for this asset.
      */
     public function latestAnomalies(): HasMany
     {
-        return $this->hasMany(LatestAnomaly::class, 'symbol', 'symbol');
+        return $this->hasMany(LatestAnomaly::class, 'symbol', 'inv_id');
     }
 
     public function priceHistory(): HasMany
