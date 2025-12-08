@@ -82,7 +82,8 @@ const priceChangeIsPositive = computed(() => {
 });
 
 // Local helpers (not in composable)
-const formatPrice = (value: number) => {
+const formatPrice = (value: number | null | undefined) => {
+    if (value == null) return '-';
     return `${value.toFixed(2)} ${asset.value.currency}`;
 };
 
