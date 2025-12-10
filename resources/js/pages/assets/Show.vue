@@ -31,6 +31,7 @@ import type {
     PredictionHistoryItem,
     PriceHistoryPoint,
     PredictionChartPoint,
+    IndicatorHistoryPoint,
     Recommendation,
     Signal,
     PatternDetection,
@@ -49,6 +50,7 @@ interface Props {
     predictions?: AssetPredictionData[];
     indicators?: AssetIndicatorsData | null;
     priceHistory?: PriceHistoryPoint[];
+    indicatorHistory?: IndicatorHistoryPoint[];
     predictionChartData?: PredictionChartPoint[];
     predictionHistory?: PredictionHistoryItem[];
     recommendation?: Recommendation | null;
@@ -69,6 +71,7 @@ const price = computed(() => props.price);
 const predictions = computed(() => props.predictions ?? []);
 const indicators = computed(() => props.indicators);
 const priceHistory = computed(() => props.priceHistory ?? []);
+const indicatorHistory = computed(() => props.indicatorHistory ?? []);
 const predictionChartData = computed(() => props.predictionChartData ?? []);
 const predictionHistory = computed(() => props.predictionHistory ?? []);
 const recommendation = computed(() => props.recommendation ?? null);
@@ -388,6 +391,7 @@ const getMacdSignal = (macdLine?: number | null) => {
                                 <AssetPriceChart
                                     :price-history="priceHistory"
                                     :prediction-chart-data="predictionChartData"
+                                    :indicator-history="indicatorHistory"
                                     :chart-period="props.chartPeriod"
                                     :currency="asset.currency"
                                     :asset-symbol="asset.symbol"

@@ -417,6 +417,16 @@ export interface PriceHistoryPoint {
     volume: number;
 }
 
+export interface IndicatorHistoryPoint {
+    timestamp: number;
+    rsi: number | null;
+    macd_line: number | null;
+    macd_signal: number | null;
+    macd_histogram: number | null;
+    ema: number | null;
+    sma: number | null;
+}
+
 export interface PredictionHistoryItem {
     predictedPrice: number;
     confidence: number;
@@ -437,7 +447,7 @@ export interface PredictionChartPoint {
     horizonLabel?: string;
 }
 
-export type ChartPeriod = 7 | 30 | 90 | 180;
+export type ChartPeriod = 1 | 7 | 30 | 90 | 180;
 
 // Recommendation Types
 export interface Recommendation {

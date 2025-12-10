@@ -9,8 +9,11 @@
         "next": "التالي",
         "clear": "مسح",
         "apply": "تطبيق",
+        "close": "إغلاق",
+        "all": "الكل",
         "noData": "لا توجد بيانات متاحة",
         "loading": "جاري التحميل...",
+        "pageIndicator": "صفحة {current} من {total}",
         "save": "حفظ",
         "saved": "تم الحفظ.",
         "delete": "حذف",
@@ -344,9 +347,15 @@
         },
         "chart": {
             "title": "مخطط السعر",
+            "price": "السعر",
+            "volume": "حجم التداول",
             "historical": "تاريخي",
             "predicted": "متوقع",
-            "confidenceBand": "نطاق الثقة"
+            "confidenceBand": "نطاق الثقة",
+            "lineChart": "مخطط خطي",
+            "areaChart": "مخطط مساحي",
+            "candlestickChart": "مخطط الشموع",
+            "indicators": "المؤشرات"
         },
         "indicators": {
             "title": "المؤشرات الفنية",

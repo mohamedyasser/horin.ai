@@ -60,6 +60,7 @@ class AssetController extends Controller
             'predictions' => Inertia::defer(fn () => $this->getAssetPredictions($asset)),
             'indicators' => Inertia::defer(fn () => $this->getAssetIndicators($asset)),
             'priceHistory' => Inertia::defer(fn () => $this->getPriceHistory($asset, $chartPeriod)),
+            'indicatorHistory' => Inertia::defer(fn () => $this->getIndicatorHistory($asset, $chartPeriod)),
             'predictionChartData' => Inertia::defer(fn () => $this->getPredictionChartData($asset)),
             'predictionHistory' => Inertia::defer(fn () => $this->getPredictionHistory($asset)),
             'recommendation' => Inertia::defer(fn () => $this->getRecommendation($asset)),
@@ -135,22 +136,87 @@ class AssetController extends Controller
 
     private function getPriceHistory(Asset $asset, int $days): array
     {
-        // Database stores timestamps in seconds, not milliseconds
         $startTimestamp = now()->subDays($days)->timestamp;
 
-        return AssetPrice::where('pid', $asset->inv_id)
+        // Use different intervals based on period:
+        // 1 day: 15-minute candles (900 seconds)
+        // <= 30 days: hourly candles (3600 seconds)
+        // > 30 days: daily candles (86400 seconds)
+        $intervalSeconds = match (true) {
+            $days === 1 => 900,    // 15-minute candles for 1 day
+            $days <= 30 => 3600,   // hourly candles for up to 30 days
+            default => 86400,      // daily candles for longer periods
+        };
+
+        // Get aggregated OHLCV data grouped by time interval
+        $prices = AssetPrice::where('pid', $asset->inv_id)
             ->where('timestamp', '>=', $startTimestamp)
             ->orderBy('timestamp')
-            ->get()
-            ->map(fn ($price) => [
-                // Convert to milliseconds for frontend JavaScript Date compatibility
-                'timestamp' => $price->timestamp * 1000,
-                'close' => (float) $price->last,
-                'high' => (float) $price->high,
-                'low' => (float) $price->low,
-                'open' => (float) $price->last_close,
-                'volume' => (float) ($price->turnover_numeric ?? 0),
-            ])
+            ->get();
+
+        if ($prices->isEmpty()) {
+            return [];
+        }
+
+        // Group by interval and aggregate into OHLCV candles
+        return $prices
+            ->groupBy(fn ($price) => floor($price->timestamp / $intervalSeconds) * $intervalSeconds)
+            ->map(function ($group, $intervalStart) {
+                $first = $group->first();
+                $last = $group->last();
+
+                return [
+                    'timestamp' => (int) $intervalStart * 1000,
+                    'open' => (float) $first->last_close,
+                    'high' => (float) $group->max('high'),
+                    'low' => (float) $group->min('low'),
+                    'close' => (float) $last->last,
+                    'volume' => (float) $group->sum('turnover_numeric'),
+                ];
+            })
+            ->sortKeys()
+            ->values()
+            ->toArray();
+    }
+
+    private function getIndicatorHistory(Asset $asset, int $days): array
+    {
+        $startTimestamp = now()->subDays($days)->timestamp;
+
+        // Use same interval as price history for consistency
+        $intervalSeconds = match (true) {
+            $days === 1 => 900,    // 15-minute intervals for 1 day
+            $days <= 30 => 3600,   // hourly intervals for up to 30 days
+            default => 86400,      // daily intervals for longer periods
+        };
+
+        $indicators = InstantIndicator::where('pid', $asset->inv_id)
+            ->where('timestamp', '>=', $startTimestamp)
+            ->orderBy('timestamp')
+            ->get();
+
+        if ($indicators->isEmpty()) {
+            return [];
+        }
+
+        // Group by interval and take the last value of each interval
+        return $indicators
+            ->groupBy(fn ($ind) => floor($ind->timestamp / $intervalSeconds) * $intervalSeconds)
+            ->map(function ($group, $intervalStart) {
+                $last = $group->last();
+
+                return [
+                    'timestamp' => (int) $intervalStart * 1000,
+                    'rsi' => $last->rsi,
+                    'macd_line' => $last->macd_line,
+                    'macd_signal' => $last->macd_signal,
+                    'macd_histogram' => $last->macd_histogram,
+                    'ema' => $last->ema,
+                    'sma' => $last->sma,
+                ];
+            })
+            ->sortKeys()
+            ->values()
             ->toArray();
     }
 

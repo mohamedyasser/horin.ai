@@ -10,6 +10,7 @@
         "clear": "Clear",
         "apply": "Apply",
         "close": "Close",
+        "all": "All",
         "noData": "No data available",
         "loading": "Loading...",
         "pageIndicator": "Page {current} of {total}",
@@ -192,7 +193,7 @@
             "predicted": "Predicted",
             "gainPercent": "Gain %"
         },
-        "noResults": "No predictions available for your filters.",
+        "noResults": "No results match your criteria.",
         "topMovers": "Top Movers",
         "highestConfidence": "Highest Confidence",
         "recentUpdates": "Recent Updates",
@@ -341,9 +342,15 @@
         },
         "chart": {
             "title": "Price Chart",
+            "price": "Price",
+            "volume": "Volume",
             "historical": "Historical",
             "predicted": "Predicted",
-            "confidenceBand": "Confidence Band"
+            "confidenceBand": "Confidence Band",
+            "lineChart": "Line Chart",
+            "areaChart": "Area Chart",
+            "candlestickChart": "Candlestick Chart",
+            "indicators": "Indicators"
         },
         "indicators": {
             "title": "Technical Indicators",
