@@ -184,12 +184,7 @@
         "newest": "الأحدث",
         "filters": "الفلاتر",
         "filterPredictions": "تصفية التوقعات",
-        "sector": "القطاع",
-        "sectorPlaceholder": "مثال: البنوك، الطاقة",
-        "minPrice": "أقل سعر",
-        "maxPrice": "أعلى سعر",
         "horizon": "المدة",
-        "allHorizons": "الكل",
         "table": {
             "symbol": "الرمز",
             "name": "الاسم",
@@ -508,6 +503,7 @@
     },
     "predictions": {
         "title": "جميع التوقعات",
+        "allPredictions": "جميع التوقعات",
         "subtitle": "تصفح جميع توقعات الأسهم عبر الأسواق والقطاعات",
         "searchPlaceholder": "ابحث بالرمز أو اسم الشركة",
         "filters": "الفلاتر",
