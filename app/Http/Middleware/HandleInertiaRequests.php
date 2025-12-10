@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SeoService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -38,6 +39,8 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $seo = app(SeoService::class);
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -49,6 +52,13 @@ class HandleInertiaRequests extends Middleware
             'canRegister' => app('router')->has('register'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'locale' => app()->getLocale(),
+            'seo' => [
+                'canonical' => $seo->getCanonicalUrl(),
+                'alternates' => $seo->getAlternateUrls(),
+                'og' => $seo->getOpenGraphTags(),
+                'twitter' => $seo->getTwitterTags(),
+                'schemas' => $seo->getAllSchemas(),
+            ],
         ];
     }
 }

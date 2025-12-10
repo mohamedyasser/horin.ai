@@ -6,8 +6,16 @@ use App\Http\Controllers\MarketController;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SectorController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// Sitemap routes (must be before locale prefix)
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemap-static.xml', [SitemapController::class, 'static'])->name('sitemap.static');
+Route::get('/sitemap-markets.xml', [SitemapController::class, 'markets'])->name('sitemap.markets');
+Route::get('/sitemap-sectors.xml', [SitemapController::class, 'sectors'])->name('sitemap.sectors');
+Route::get('/sitemap-assets.xml', [SitemapController::class, 'assets'])->name('sitemap.assets');
 
 // Redirect root to default locale (ar)
 Route::get('/', function () {

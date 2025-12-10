@@ -1,2 +1,19 @@
+# Horin - AI Stock Price Predictions
+# https://horin.com
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow admin and auth pages
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-password
+Disallow: /two-factor-challenge
+
+# Sitemap location
+Sitemap: https://horin.com/sitemap.xml
