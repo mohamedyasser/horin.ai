@@ -968,7 +968,9 @@
         "actions": {
             "STRONG_BUY": "شراء قوي",
             "BUY": "شراء",
+            "ACCUMULATE": "تجميع",
             "HOLD": "احتفاظ",
+            "REDUCE": "تقليص",
             "SELL": "بيع",
             "STRONG_SELL": "بيع قوي"
         },

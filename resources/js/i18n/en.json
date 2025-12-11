@@ -968,7 +968,9 @@
         "actions": {
             "STRONG_BUY": "Strong Buy",
             "BUY": "Buy",
+            "ACCUMULATE": "Accumulate",
             "HOLD": "Hold",
+            "REDUCE": "Reduce",
             "SELL": "Sell",
             "STRONG_SELL": "Strong Sell"
         },
