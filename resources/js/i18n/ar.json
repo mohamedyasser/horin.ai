@@ -35,12 +35,14 @@
             "signUp": "إنشاء حساب"
         },
         "register": {
-            "title": "إنشاء حساب جديد",
-            "description": "أدخل بياناتك لإنشاء حسابك",
+            "title": "إنشاء حساب",
+            "description": "أدخل بياناتك أدناه لإنشاء حسابك",
             "nameLabel": "الاسم",
             "namePlaceholder": "الاسم الكامل",
             "emailLabel": "البريد الإلكتروني",
             "emailPlaceholder": "email{'@'}example.com",
+            "phoneLabel": "رقم الهاتف",
+            "phonePlaceholder": "+20 10 1234 5678",
             "passwordLabel": "كلمة المرور",
             "passwordPlaceholder": "كلمة المرور",
             "confirmPasswordLabel": "تأكيد كلمة المرور",
@@ -48,6 +50,16 @@
             "submitButton": "إنشاء حساب",
             "hasAccount": "لديك حساب بالفعل؟",
             "logIn": "تسجيل الدخول"
+        },
+        "verifyPhone": {
+            "title": "تحقق من رقم هاتفك",
+            "description": "أدخل الرمز المكون من 6 أرقام المرسل إلى {phone}",
+            "codeLabel": "رمز التحقق",
+            "codePlaceholder": "000000",
+            "submitButton": "تحقق",
+            "resendButton": "إعادة إرسال الرمز",
+            "resendIn": "إعادة الإرسال خلال {seconds} ثانية",
+            "codeSent": "تم إرسال رمز تحقق جديد."
         },
         "forgotPassword": {
             "title": "نسيت كلمة المرور؟",
@@ -66,10 +78,11 @@
             "submitButton": "إعادة تعيين كلمة المرور"
         },
         "verifyEmail": {
-            "title": "تأكيد البريد الإلكتروني",
-            "description": "يرجى تأكيد بريدك الإلكتروني بالنقر على الرابط الذي أرسلناه إليك.",
-            "resendLink": "انقر هنا لإعادة إرسال رابط التحقق.",
-            "linkSent": "تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني."
+            "title": "تحقق من بريدك الإلكتروني",
+            "description": "لقد أرسلنا رابط التحقق إلى {email}",
+            "checkInbox": "يرجى التحقق من صندوق الوارد والنقر على رابط التحقق.",
+            "resendButton": "إعادة إرسال البريد",
+            "resendIn": "إعادة الإرسال خلال {seconds} ثانية"
         },
         "confirmPassword": {
             "title": "تأكيد كلمة المرور",
@@ -87,6 +100,81 @@
             "useRecovery": "استخدام رمز الاسترداد",
             "useCode": "استخدام رمز المصادقة",
             "submitButton": "تحقق"
+        }
+    },
+    "onboarding": {
+        "title": "أكمل ملفك الشخصي",
+        "step": "الخطوة {current} من {total}",
+        "step1": {
+            "title": "ملف الاستثمار",
+            "description": "أخبرنا عن خبرتك الاستثمارية"
+        },
+        "step2": {
+            "title": "أهداف الاستثمار",
+            "description": "ما الذي تسعى لتحقيقه؟"
+        },
+        "step3": {
+            "title": "الموقع والأسواق",
+            "description": "أين تريد الاستثمار؟"
+        },
+        "step4": {
+            "title": "القطاعات",
+            "description": "ما هي القطاعات التي تهمك؟"
+        },
+        "experienceLevel": {
+            "label": "مستوى الخبرة",
+            "beginner": "مبتدئ",
+            "beginnerDesc": "جديد في الاستثمار",
+            "intermediate": "متوسط",
+            "intermediateDesc": "لديك بعض الخبرة",
+            "advanced": "متقدم",
+            "advancedDesc": "مستثمر ذو خبرة"
+        },
+        "riskLevel": {
+            "label": "تحمل المخاطر",
+            "conservative": "محافظ",
+            "conservativeDesc": "تفضيل الاستقرار",
+            "moderate": "معتدل",
+            "moderateDesc": "نهج متوازن",
+            "aggressive": "مغامر",
+            "aggressiveDesc": "مخاطر أعلى، عوائد أعلى"
+        },
+        "investmentGoal": {
+            "label": "هدف الاستثمار",
+            "capital_growth": "نمو رأس المال",
+            "fixed_income": "الدخل الثابت",
+            "risk_reduction": "تقليل المخاطر",
+            "short_term_speculation": "التداول قصير المدى",
+            "retirement_planning": "التقاعد",
+            "wealth_preservation": "الحفاظ على الثروة",
+            "passive_income": "الدخل السلبي",
+            "education_savings": "مدخرات التعليم",
+            "home_purchase": "شراء منزل",
+            "emergency_fund": "صندوق الطوارئ"
+        },
+        "tradingStyle": {
+            "label": "أسلوب التداول",
+            "day_trading": "التداول اليومي",
+            "swing_trading": "التداول المتأرجح",
+            "position_trading": "تداول المراكز",
+            "scalping_trading": "المضاربة السريعة"
+        },
+        "country": {
+            "label": "الدولة",
+            "placeholder": "اختر دولتك"
+        },
+        "markets": {
+            "label": "الأسواق المفضلة",
+            "description": "اختر سوقًا واحدًا على الأقل"
+        },
+        "sectors": {
+            "label": "القطاعات المفضلة",
+            "description": "اختر قطاعًا واحدًا على الأقل"
+        },
+        "buttons": {
+            "back": "رجوع",
+            "next": "التالي",
+            "complete": "إكمال الإعداد"
         }
     },
     "settings": {

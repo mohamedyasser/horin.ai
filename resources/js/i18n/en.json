@@ -41,6 +41,8 @@
             "namePlaceholder": "Full name",
             "emailLabel": "Email address",
             "emailPlaceholder": "email{'@'}example.com",
+            "phoneLabel": "Phone number",
+            "phonePlaceholder": "+20 10 1234 5678",
             "passwordLabel": "Password",
             "passwordPlaceholder": "Password",
             "confirmPasswordLabel": "Confirm password",
@@ -48,6 +50,16 @@
             "submitButton": "Create account",
             "hasAccount": "Already have an account?",
             "logIn": "Log in"
+        },
+        "verifyPhone": {
+            "title": "Verify your phone",
+            "description": "Enter the 6-digit code sent to {phone}",
+            "codeLabel": "Verification code",
+            "codePlaceholder": "000000",
+            "submitButton": "Verify",
+            "resendButton": "Resend code",
+            "resendIn": "Resend in {seconds}s",
+            "codeSent": "A new verification code has been sent."
         },
         "forgotPassword": {
             "title": "Forgot your password?",
@@ -67,9 +79,10 @@
         },
         "verifyEmail": {
             "title": "Verify your email",
-            "description": "Please verify your email address by clicking the link we sent to you.",
-            "resendLink": "Click here to resend the verification email.",
-            "linkSent": "A new verification link has been sent to your email address."
+            "description": "We've sent a verification link to {email}",
+            "checkInbox": "Please check your inbox and click the verification link.",
+            "resendButton": "Resend email",
+            "resendIn": "Resend in {seconds}s"
         },
         "confirmPassword": {
             "title": "Confirm your password",
@@ -87,6 +100,81 @@
             "useRecovery": "Use a recovery code",
             "useCode": "Use an authentication code",
             "submitButton": "Verify"
+        }
+    },
+    "onboarding": {
+        "title": "Complete your profile",
+        "step": "Step {current} of {total}",
+        "step1": {
+            "title": "Investment Profile",
+            "description": "Tell us about your investment experience"
+        },
+        "step2": {
+            "title": "Investment Goals",
+            "description": "What are you looking to achieve?"
+        },
+        "step3": {
+            "title": "Location & Markets",
+            "description": "Where do you want to invest?"
+        },
+        "step4": {
+            "title": "Sectors",
+            "description": "Which sectors interest you?"
+        },
+        "experienceLevel": {
+            "label": "Experience Level",
+            "beginner": "Beginner",
+            "beginnerDesc": "New to investing",
+            "intermediate": "Intermediate",
+            "intermediateDesc": "Some experience",
+            "advanced": "Advanced",
+            "advancedDesc": "Experienced investor"
+        },
+        "riskLevel": {
+            "label": "Risk Tolerance",
+            "conservative": "Conservative",
+            "conservativeDesc": "Prefer stability",
+            "moderate": "Moderate",
+            "moderateDesc": "Balanced approach",
+            "aggressive": "Aggressive",
+            "aggressiveDesc": "Higher risk, higher reward"
+        },
+        "investmentGoal": {
+            "label": "Investment Goal",
+            "capital_growth": "Capital Growth",
+            "fixed_income": "Fixed Income",
+            "risk_reduction": "Risk Reduction",
+            "short_term_speculation": "Short-term Trading",
+            "retirement_planning": "Retirement",
+            "wealth_preservation": "Wealth Preservation",
+            "passive_income": "Passive Income",
+            "education_savings": "Education Savings",
+            "home_purchase": "Home Purchase",
+            "emergency_fund": "Emergency Fund"
+        },
+        "tradingStyle": {
+            "label": "Trading Style",
+            "day_trading": "Day Trading",
+            "swing_trading": "Swing Trading",
+            "position_trading": "Position Trading",
+            "scalping_trading": "Scalping"
+        },
+        "country": {
+            "label": "Country",
+            "placeholder": "Select your country"
+        },
+        "markets": {
+            "label": "Preferred Markets",
+            "description": "Select at least one market"
+        },
+        "sectors": {
+            "label": "Preferred Sectors",
+            "description": "Select at least one sector"
+        },
+        "buttons": {
+            "back": "Back",
+            "next": "Next",
+            "complete": "Complete Setup"
         }
     },
     "settings": {
