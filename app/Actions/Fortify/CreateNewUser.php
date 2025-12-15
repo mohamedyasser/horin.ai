@@ -27,13 +27,28 @@ class CreateNewUser implements CreatesNewUsers
                 'max:255',
                 Rule::unique(User::class),
             ],
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique(User::class),
+            ],
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => $input['name'],
             'email' => $input['email'],
+            'phone' => $input['phone'],
             'password' => $input['password'],
         ]);
+
+        // Generate initial phone verification code
+        $user->generatePhoneVerificationCode();
+
+        // TODO: Send SMS with the code
+        // SmsService::send($user->phone, "Your verification code is: {$code}");
+
+        return $user;
     }
 }
