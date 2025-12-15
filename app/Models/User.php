@@ -46,6 +46,9 @@ class User extends Authenticatable
         'risk_level',
         'trading_style',
         'phone',
+        'phone_verification_code',
+        'phone_verification_expires_at',
+        'onboarding_completed_at',
     ];
 
     /**
@@ -68,6 +71,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
+            'phone_verification_expires_at' => 'datetime',
+            'onboarding_completed_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
@@ -136,5 +141,50 @@ class User extends Authenticatable
     public function wishlistAssets()
     {
         return $this->belongsToMany(Asset::class, 'user_wishlists');
+    }
+
+    public function hasVerifiedPhone(): bool
+    {
+        return $this->phone_verified_at !== null;
+    }
+
+    public function hasCompletedOnboarding(): bool
+    {
+        return $this->onboarding_completed_at !== null;
+    }
+
+    public function markPhoneAsVerified(): bool
+    {
+        return $this->forceFill([
+            'phone_verified_at' => $this->freshTimestamp(),
+            'phone_verification_code' => null,
+            'phone_verification_expires_at' => null,
+        ])->save();
+    }
+
+    public function markOnboardingAsComplete(): bool
+    {
+        return $this->forceFill([
+            'onboarding_completed_at' => $this->freshTimestamp(),
+        ])->save();
+    }
+
+    public function generatePhoneVerificationCode(): string
+    {
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $this->forceFill([
+            'phone_verification_code' => $code,
+            'phone_verification_expires_at' => now()->addMinutes(10),
+        ])->save();
+
+        return $code;
+    }
+
+    public function isPhoneVerificationCodeValid(string $code): bool
+    {
+        return $this->phone_verification_code === $code
+            && $this->phone_verification_expires_at
+            && $this->phone_verification_expires_at->isFuture();
     }
 }
