@@ -26,23 +26,7 @@ const switchLanguage = (code: string) => {
     const currentUrl = window.location.pathname;
     const currentLocale = (page.props.locale as string) || locale.value;
 
-    // Build new URL by replacing only the locale segment at the start
-    // Pattern: /{locale}/rest/of/path or /{locale}
-    const localePattern = new RegExp(`^/${currentLocale}(/|$)`);
-    let newUrl: string;
-
-    if (localePattern.test(currentUrl)) {
-        // Replace the locale prefix while preserving the rest of the path
-        newUrl = currentUrl.replace(localePattern, `/${code}$1`);
-    } else {
-        // No locale prefix found, add one
-        newUrl = `/${code}${currentUrl}`;
-    }
-
-    // Ensure we don't have double slashes
-    newUrl = newUrl.replace(/\/+/g, '/');
-
-    // Update local state
+    // Update local state first
     locale.value = code;
     localStorage.setItem('locale', code);
 
@@ -52,8 +36,18 @@ const switchLanguage = (code: string) => {
         document.documentElement.dir = lang.dir;
     }
 
-    // Navigate to the new URL
-    router.visit(newUrl);
+    // Check if current URL has a locale prefix (e.g., /ar/... or /en/...)
+    const localePattern = new RegExp(`^/(ar|en)(/|$)`);
+
+    if (localePattern.test(currentUrl)) {
+        // Replace the locale prefix while preserving the rest of the path
+        const newUrl = currentUrl.replace(localePattern, `/${code}$2`);
+        router.visit(newUrl);
+    } else {
+        // No locale prefix (e.g., auth routes like /login, /register)
+        // Just reload the current page to apply the new locale
+        router.visit(currentUrl);
+    }
 };
 </script>
 

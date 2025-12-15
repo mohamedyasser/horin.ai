@@ -17,13 +17,18 @@ createInertiaApp({
             import.meta.glob<DefineComponent>('./pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        // Sync i18n locale with server-provided locale
+        // Determine locale: localStorage takes priority, then server, then default
+        const storedLocale = typeof window !== 'undefined' ? localStorage.getItem('locale') : null;
         const serverLocale = props.initialPage.props.locale as string | undefined;
-        if (serverLocale && (serverLocale === 'ar' || serverLocale === 'en')) {
-            i18n.global.locale.value = serverLocale;
-            document.documentElement.lang = serverLocale;
-            document.documentElement.dir = serverLocale === 'ar' ? 'rtl' : 'ltr';
-        }
+        const locale = (storedLocale === 'ar' || storedLocale === 'en')
+            ? storedLocale
+            : (serverLocale === 'ar' || serverLocale === 'en')
+                ? serverLocale
+                : 'ar';
+
+        i18n.global.locale.value = locale;
+        document.documentElement.lang = locale;
+        document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
 
         createApp({ render: () => h(App, props) })
             .use(plugin)
