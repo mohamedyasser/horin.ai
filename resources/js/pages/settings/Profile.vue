@@ -2,9 +2,9 @@
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
-import { Form, Head, Link, usePage } from '@inertiajs/vue3';
+import { Form, Head, Link, usePage, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -16,7 +16,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 interface Props {
     mustVerifyEmail: boolean;
@@ -33,7 +33,20 @@ const breadcrumbItems = computed<BreadcrumbItem[]>(() => [
 ]);
 
 const page = usePage();
-const user = page.props.auth.user;
+const user = page.props.auth.user as { name: string; email: string; email_verified_at: string | null; language: string | null };
+
+const selectedLanguage = ref(user.language || locale.value);
+
+const updateLanguage = (value: string) => {
+    selectedLanguage.value = value;
+    router.patch(ProfileController.update().url, { language: value }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Reload the page to apply the new locale
+            window.location.reload();
+        },
+    });
+};
 </script>
 
 <template>
@@ -123,6 +136,36 @@ const user = page.props.auth.user;
                         </Transition>
                     </div>
                 </Form>
+            </div>
+
+            <!-- Language Preference Section -->
+            <div class="flex flex-col space-y-6">
+                <HeadingSmall
+                    :title="t('settings.profile.languageHeading')"
+                    :description="t('settings.profile.languageDescription')"
+                />
+
+                <div class="grid gap-2">
+                    <Label>{{ t('settings.profile.languageLabel') }}</Label>
+                    <div class="flex gap-2">
+                        <Button
+                            type="button"
+                            :variant="selectedLanguage === 'ar' ? 'default' : 'outline'"
+                            @click="updateLanguage('ar')"
+                            class="min-w-[120px]"
+                        >
+                            {{ t('settings.profile.languageArabic') }}
+                        </Button>
+                        <Button
+                            type="button"
+                            :variant="selectedLanguage === 'en' ? 'default' : 'outline'"
+                            @click="updateLanguage('en')"
+                            class="min-w-[120px]"
+                        >
+                            {{ t('settings.profile.languageEnglish') }}
+                        </Button>
+                    </div>
+                </div>
             </div>
 
             <DeleteUser />

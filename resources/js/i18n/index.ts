@@ -13,13 +13,15 @@ const getDefaultLocale = (): Locale => {
     if (typeof window === 'undefined') {
         return 'ar';
     }
-    const stored = localStorage.getItem('locale') as Locale | null;
-    if (stored && (stored === 'ar' || stored === 'en')) {
-        return stored;
-    }
+    // Server-set locale from URL takes priority (via HTML lang attribute)
     const htmlLang = document.documentElement.lang as Locale;
     if (htmlLang === 'ar' || htmlLang === 'en') {
         return htmlLang;
+    }
+    // Fallback to localStorage
+    const stored = localStorage.getItem('locale') as Locale | null;
+    if (stored && (stored === 'ar' || stored === 'en')) {
+        return stored;
     }
     return 'ar';
 };

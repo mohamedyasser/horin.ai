@@ -22,6 +22,13 @@ Route::get('/', function () {
     return redirect('/ar');
 });
 
+// Dashboard redirect - named 'dashboard' for Fortify/Laravel compatibility
+Route::get('/dashboard', function () {
+    $locale = app()->getLocale() ?: 'ar';
+
+    return redirect("/{$locale}/dashboard");
+})->middleware(['auth'])->name('dashboard');
+
 // Phone Verification Routes
 Route::middleware('auth')->group(function () {
     Route::get('verify-phone', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])
@@ -92,7 +99,7 @@ Route::prefix('{locale}')
         // Dashboard (authenticated)
         Route::get('dashboard', function () {
             return Inertia::render('Dashboard');
-        })->middleware(['auth', 'verified', 'onboarding.complete'])->name('dashboard');
+        })->middleware(['auth', 'verified', 'onboarding.complete'])->name('dashboard.localized');
     });
 
 require __DIR__.'/settings.php';

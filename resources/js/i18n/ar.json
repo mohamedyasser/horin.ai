@@ -79,9 +79,11 @@
         },
         "verifyEmail": {
             "title": "تحقق من بريدك الإلكتروني",
-            "description": "لقد أرسلنا رابط التحقق إلى {email}",
+            "description": "لقد أرسلنا رابط التحقق إلى",
             "checkInbox": "يرجى التحقق من صندوق الوارد والنقر على رابط التحقق.",
             "resendButton": "إعادة إرسال البريد",
+            "resendLink": "إعادة إرسال رابط التحقق",
+            "linkSent": "تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني.",
             "resendIn": "إعادة الإرسال خلال {seconds} ثانية"
         },
         "confirmPassword": {
@@ -177,6 +179,15 @@
             "complete": "إكمال الإعداد"
         }
     },
+    "dashboard": {
+        "title": "لوحة التحكم",
+        "sidebar": {
+            "platform": "المنصة",
+            "dashboard": "لوحة التحكم",
+            "githubRepo": "مستودع جيت هب",
+            "documentation": "التوثيق"
+        }
+    },
     "settings": {
         "title": "الإعدادات",
         "profile": {
@@ -189,7 +200,12 @@
             "emailPlaceholder": "البريد الإلكتروني",
             "unverifiedEmail": "بريدك الإلكتروني غير مؤكد.",
             "resendVerification": "انقر هنا لإعادة إرسال رابط التحقق.",
-            "verificationSent": "تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني."
+            "verificationSent": "تم إرسال رابط تحقق جديد إلى بريدك الإلكتروني.",
+            "languageHeading": "تفضيل اللغة",
+            "languageDescription": "اختر لغتك المفضلة للواجهة",
+            "languageLabel": "اللغة",
+            "languageArabic": "العربية",
+            "languageEnglish": "English (الإنجليزية)"
         },
         "password": {
             "title": "إعدادات كلمة المرور",

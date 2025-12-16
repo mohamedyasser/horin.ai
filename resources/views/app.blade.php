@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ $locale ?? 'ar' }}" dir="{{ ($locale ?? 'ar') === 'ar' ? 'rtl' : 'ltr' }}" @class(['dark' => ($appearance ?? 'light') == 'dark'])>
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" @class(['dark' => ($appearance ?? 'light') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,11 +17,10 @@
                     }
                 }
 
-                // Handle locale and direction from localStorage
-                const storedLocale = localStorage.getItem('locale');
-                if (storedLocale === 'ar' || storedLocale === 'en') {
-                    document.documentElement.lang = storedLocale;
-                    document.documentElement.dir = storedLocale === 'ar' ? 'rtl' : 'ltr';
+                // Sync localStorage with server-set locale (from URL)
+                const serverLocale = document.documentElement.lang;
+                if (serverLocale === 'ar' || serverLocale === 'en') {
+                    localStorage.setItem('locale', serverLocale);
                 }
             })();
         </script>

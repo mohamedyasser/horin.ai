@@ -19,18 +19,20 @@ class OnboardingController extends Controller
     public function show(Request $request): Response|RedirectResponse
     {
         if ($request->user()->hasCompletedOnboarding()) {
-            return redirect()->route('dashboard');
+            return redirect('/dashboard');
         }
 
         $step = (int) $request->query('step', 1);
         $step = max(1, min(4, $step));
 
+        $nameColumn = app()->getLocale() === 'ar' ? 'name_ar' : 'name_en';
+
         return Inertia::render('Onboarding', [
             'step' => $step,
             'totalSteps' => 4,
-            'countries' => fn () => $step === 3 ? Country::orderBy('name')->get(['id', 'name', 'code']) : [],
-            'markets' => fn () => $step === 3 ? Market::orderBy('name')->get(['id', 'name', 'code']) : [],
-            'sectors' => fn () => $step === 4 ? Sector::orderBy('name')->get(['id', 'name']) : [],
+            'countries' => fn () => $step === 3 ? Country::orderBy($nameColumn)->get(['id', 'name_en', 'name_ar', 'code'])->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 'code' => $c->code]) : [],
+            'markets' => fn () => $step === 3 ? Market::orderBy($nameColumn)->get(['id', 'name_en', 'name_ar', 'code'])->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'code' => $m->code]) : [],
+            'sectors' => fn () => $step === 4 ? Sector::orderBy($nameColumn)->get(['id', 'name_en', 'name_ar'])->map(fn ($s) => ['id' => $s->id, 'name' => $s->name]) : [],
             'user' => [
                 'experience_level' => $request->user()->experience_level,
                 'risk_level' => $request->user()->risk_level,
@@ -67,7 +69,7 @@ class OnboardingController extends Controller
         if ($step >= 4) {
             $user->markOnboardingAsComplete();
 
-            return redirect()->route('dashboard')->with('status', 'onboarding-complete');
+            return redirect('/dashboard')->with('status', 'onboarding-complete');
         }
 
         return redirect()->route('onboarding', ['step' => $step + 1]);

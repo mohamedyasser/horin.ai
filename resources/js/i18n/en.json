@@ -79,9 +79,11 @@
         },
         "verifyEmail": {
             "title": "Verify your email",
-            "description": "We've sent a verification link to {email}",
+            "description": "We've sent a verification link to",
             "checkInbox": "Please check your inbox and click the verification link.",
             "resendButton": "Resend email",
+            "resendLink": "Resend verification link",
+            "linkSent": "A new verification link has been sent to your email.",
             "resendIn": "Resend in {seconds}s"
         },
         "confirmPassword": {
@@ -177,6 +179,15 @@
             "complete": "Complete Setup"
         }
     },
+    "dashboard": {
+        "title": "Dashboard",
+        "sidebar": {
+            "platform": "Platform",
+            "dashboard": "Dashboard",
+            "githubRepo": "Github Repo",
+            "documentation": "Documentation"
+        }
+    },
     "settings": {
         "title": "Settings",
         "profile": {
@@ -189,7 +200,12 @@
             "emailPlaceholder": "Email address",
             "unverifiedEmail": "Your email address is unverified.",
             "resendVerification": "Click here to resend the verification email.",
-            "verificationSent": "A new verification link has been sent to your email address."
+            "verificationSent": "A new verification link has been sent to your email address.",
+            "languageHeading": "Language preference",
+            "languageDescription": "Choose your preferred language for the interface",
+            "languageLabel": "Language",
+            "languageArabic": "العربية (Arabic)",
+            "languageEnglish": "English"
         },
         "password": {
             "title": "Password settings",
