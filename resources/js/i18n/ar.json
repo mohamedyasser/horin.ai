@@ -257,6 +257,39 @@
             "passwordLabel": "كلمة المرور",
             "passwordPlaceholder": "أدخل كلمة المرور للتأكيد",
             "deleteButton": "حذف الحساب"
+        },
+        "tradingProfile": {
+            "title": "ملف التداول",
+            "experienceRisk": {
+                "heading": "الخبرة ومستوى المخاطرة",
+                "description": "تحديث مستوى خبرتك ومدى تحملك للمخاطر"
+            },
+            "goalsStyle": {
+                "heading": "أهداف الاستثمار والأسلوب",
+                "description": "تحديث أهدافك الاستثمارية وأسلوب التداول"
+            },
+            "saved": "تم الحفظ",
+            "done": "تم"
+        },
+        "marketPreferences": {
+            "title": "تفضيلات الأسواق",
+            "country": {
+                "heading": "بلدك",
+                "description": "اختر بلدك",
+                "placeholder": "اختر بلداً"
+            },
+            "markets": {
+                "heading": "الأسواق التي تتابعها",
+                "description": "اختر الأسواق التي تريد متابعتها"
+            },
+            "sectors": {
+                "heading": "القطاعات المهمة",
+                "description": "اختر القطاعات التي تهتم بها"
+            },
+            "save": "حفظ",
+            "saved": "تم الحفظ",
+            "minimumRequired": "يجب اختيار خيار واحد على الأقل",
+            "done": "تم"
         }
     },
     "meta": {
