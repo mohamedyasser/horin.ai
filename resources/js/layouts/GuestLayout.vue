@@ -14,7 +14,7 @@ import {
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
-import { login, register, dashboard } from '@/routes';
+import { dashboard } from '@/routes';
 
 const { t, locale } = useI18n();
 const page = usePage();
@@ -22,6 +22,9 @@ const page = usePage();
 const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
 const mobileMenuOpen = ref(false);
 const isAuthenticated = computed(() => !!page.props.auth?.user);
+
+const login = () => '/login';
+const register = () => '/register';
 
 interface Props {
     canLogin?: boolean;
