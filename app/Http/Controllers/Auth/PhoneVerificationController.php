@@ -3,11 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\VerifyPhoneRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use WeStacks\TeleBot\TeleBot;
 
 class PhoneVerificationController extends Controller
 {
@@ -17,34 +18,27 @@ class PhoneVerificationController extends Controller
     public function show(Request $request): Response|RedirectResponse
     {
         if ($request->user()->hasVerifiedPhone()) {
-            return redirect()->intended(route('verification.notice'));
+            return redirect()->route('verification.notice');
         }
 
         return Inertia::render('auth/VerifyPhone', [
-            'phone' => $this->maskPhone($request->user()->phone),
+            'botUsername' => config('telegram.bot_username'),
+            'telegramId' => $request->user()->telegram_id,
         ]);
     }
 
     /**
-     * Verify the phone number with the provided OTP code.
+     * Get the current verification status.
      */
-    public function verify(VerifyPhoneRequest $request): RedirectResponse
+    public function status(Request $request): JsonResponse
     {
-        $user = $request->user();
-
-        if (! $user->isPhoneVerificationCodeValid($request->code)) {
-            return back()->withErrors([
-                'code' => __('messages.verification_code_invalid'),
-            ]);
-        }
-
-        $user->markPhoneAsVerified();
-
-        return redirect()->route('verification.notice');
+        return response()->json([
+            'verified' => $request->user()->hasVerifiedPhone(),
+        ]);
     }
 
     /**
-     * Resend the phone verification code.
+     * Resend the phone verification request via Telegram.
      */
     public function resend(Request $request): RedirectResponse
     {
@@ -54,28 +48,25 @@ class PhoneVerificationController extends Controller
             return redirect()->route('verification.notice');
         }
 
-        $user->generatePhoneVerificationCode();
+        $bot = new TeleBot(config('telegram.bot_token'));
 
-        // TODO: Send SMS with the code
-        // SmsService::send($user->phone, "Your verification code is: {$code}");
+        $bot->sendMessage([
+            'chat_id' => $user->telegram_id,
+            'text' => __('messages.telegram_share_phone_prompt'),
+            'reply_markup' => [
+                'keyboard' => [
+                    [
+                        [
+                            'text' => __('messages.share_phone_button'),
+                            'request_contact' => true,
+                        ],
+                    ],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
+            ],
+        ]);
 
-        return back()->with('status', 'verification-code-sent');
-    }
-
-    /**
-     * Mask the phone number for display.
-     */
-    private function maskPhone(?string $phone): string
-    {
-        if (! $phone) {
-            return '';
-        }
-
-        $length = strlen($phone);
-        if ($length <= 6) {
-            return $phone;
-        }
-
-        return substr($phone, 0, 4).str_repeat('*', $length - 6).substr($phone, -2);
+        return back()->with('status', 'verification-message-sent');
     }
 }
