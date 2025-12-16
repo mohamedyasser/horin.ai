@@ -37,7 +37,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
         'language',
         'country_id',
         'experience_level',
@@ -46,8 +45,9 @@ class User extends Authenticatable
         'risk_level',
         'trading_style',
         'phone',
-        'phone_verification_code',
-        'phone_verification_expires_at',
+        'telegram_id',
+        'telegram_username',
+        'telegram_photo_url',
         'onboarding_completed_at',
     ];
 
@@ -71,9 +71,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
-            'phone_verification_expires_at' => 'datetime',
             'onboarding_completed_at' => 'datetime',
-            'password' => 'hashed',
         ];
     }
 
@@ -167,24 +165,5 @@ class User extends Authenticatable
         return $this->forceFill([
             'onboarding_completed_at' => $this->freshTimestamp(),
         ])->save();
-    }
-
-    public function generatePhoneVerificationCode(): string
-    {
-        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-
-        $this->forceFill([
-            'phone_verification_code' => $code,
-            'phone_verification_expires_at' => now()->addMinutes(10),
-        ])->save();
-
-        return $code;
-    }
-
-    public function isPhoneVerificationCodeValid(string $code): bool
-    {
-        return $this->phone_verification_code === $code
-            && $this->phone_verification_expires_at
-            && $this->phone_verification_expires_at->isFuture();
     }
 }
