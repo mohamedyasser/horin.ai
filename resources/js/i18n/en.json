@@ -257,6 +257,39 @@
             "passwordLabel": "Password",
             "passwordPlaceholder": "Password",
             "deleteButton": "Delete account"
+        },
+        "tradingProfile": {
+            "title": "Trading Profile",
+            "experienceRisk": {
+                "heading": "Experience & Risk Profile",
+                "description": "Update your experience level and risk tolerance"
+            },
+            "goalsStyle": {
+                "heading": "Investment Goals & Style",
+                "description": "Update your investment goals and trading style"
+            },
+            "saved": "Saved",
+            "done": "Done"
+        },
+        "marketPreferences": {
+            "title": "Market Preferences",
+            "country": {
+                "heading": "Your Country",
+                "description": "Select your country",
+                "placeholder": "Select a country"
+            },
+            "markets": {
+                "heading": "Markets You Follow",
+                "description": "Select the markets you want to follow"
+            },
+            "sectors": {
+                "heading": "Sectors of Interest",
+                "description": "Select the sectors you are interested in"
+            },
+            "save": "Save",
+            "saved": "Saved",
+            "minimumRequired": "At least one selection is required",
+            "done": "Done"
         }
     },
     "meta": {
