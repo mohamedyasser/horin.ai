@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        $middleware->alias([
+            'phone.verified' => \App\Http\Middleware\EnsurePhoneIsVerified::class,
+            'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Integration::handles($exceptions);

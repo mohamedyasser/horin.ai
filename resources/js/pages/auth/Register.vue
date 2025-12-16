@@ -58,12 +58,26 @@ const { t } = useI18n();
                 </div>
 
                 <div class="grid gap-2">
+                    <Label for="phone">{{ t('auth.register.phoneLabel') }}</Label>
+                    <Input
+                        id="phone"
+                        type="tel"
+                        required
+                        :tabindex="3"
+                        autocomplete="tel"
+                        name="phone"
+                        :placeholder="t('auth.register.phonePlaceholder')"
+                    />
+                    <InputError :message="errors.phone" />
+                </div>
+
+                <div class="grid gap-2">
                     <Label for="password">{{ t('auth.register.passwordLabel') }}</Label>
                     <Input
                         id="password"
                         type="password"
                         required
-                        :tabindex="3"
+                        :tabindex="4"
                         autocomplete="new-password"
                         name="password"
                         :placeholder="t('auth.register.passwordPlaceholder')"
@@ -77,7 +91,7 @@ const { t } = useI18n();
                         id="password_confirmation"
                         type="password"
                         required
-                        :tabindex="4"
+                        :tabindex="5"
                         autocomplete="new-password"
                         name="password_confirmation"
                         :placeholder="t('auth.register.confirmPasswordPlaceholder')"
@@ -88,7 +102,7 @@ const { t } = useI18n();
                 <Button
                     type="submit"
                     class="mt-2 w-full"
-                    tabindex="5"
+                    tabindex="6"
                     :disabled="processing"
                     data-test="register-user-button"
                 >
@@ -102,7 +116,7 @@ const { t } = useI18n();
                 <TextLink
                     :href="login()"
                     class="underline underline-offset-4"
-                    :tabindex="6"
+                    :tabindex="7"
                     >{{ t('auth.register.logIn') }}</TextLink
                 >
             </div>

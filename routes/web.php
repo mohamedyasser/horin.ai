@@ -22,6 +22,24 @@ Route::get('/', function () {
     return redirect('/ar');
 });
 
+// Phone Verification Routes
+Route::middleware('auth')->group(function () {
+    Route::get('verify-phone', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])
+        ->name('verification.phone');
+    Route::post('verify-phone', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'verify'])
+        ->name('verification.phone.verify');
+    Route::post('verify-phone/resend', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'resend'])
+        ->name('verification.phone.resend');
+});
+
+// Onboarding Routes
+Route::middleware(['auth', 'verified', 'phone.verified'])->group(function () {
+    Route::get('onboarding', [App\Http\Controllers\OnboardingController::class, 'show'])
+        ->name('onboarding');
+    Route::post('onboarding', [App\Http\Controllers\OnboardingController::class, 'store'])
+        ->name('onboarding.store');
+});
+
 // Localized routes - prefix with locale (ar/en)
 Route::prefix('{locale}')
     ->where(['locale' => 'ar|en'])
@@ -74,7 +92,7 @@ Route::prefix('{locale}')
         // Dashboard (authenticated)
         Route::get('dashboard', function () {
             return Inertia::render('Dashboard');
-        })->middleware(['auth', 'verified'])->name('dashboard');
+        })->middleware(['auth', 'verified', 'onboarding.complete'])->name('dashboard');
     });
 
 require __DIR__.'/settings.php';
