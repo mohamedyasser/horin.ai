@@ -28,9 +28,13 @@ class SetLocale
     {
         $locale = $request->route('locale');
 
-        // If no locale in route, use default
+        // If no locale in route, check user's language preference
         if (! $locale) {
-            App::setLocale($this->defaultLocale);
+            $userLocale = $request->user()?->language;
+            $locale = $userLocale && in_array($userLocale, $this->supportedLocales)
+                ? $userLocale
+                : $this->defaultLocale;
+            App::setLocale($locale);
 
             return $next($request);
         }
