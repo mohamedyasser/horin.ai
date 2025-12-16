@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Menu, X } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,14 @@ import {
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
-import { login, register } from '@/routes';
+import { login, register, dashboard } from '@/routes';
 
 const { t, locale } = useI18n();
+const page = usePage();
 
 const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
 const mobileMenuOpen = ref(false);
+const isAuthenticated = computed(() => !!page.props.auth?.user);
 
 interface Props {
     canLogin?: boolean;
@@ -78,16 +80,23 @@ withDefaults(defineProps<Props>(), {
 
                 <nav class="flex items-center gap-2">
                     <LanguageSwitcher />
-                    <Link
-                        v-if="canLogin"
-                        :href="login()"
-                        class="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-                    >
-                        {{ t('common.login') }}
-                    </Link>
-                    <Button v-if="canRegister" as-child class="hidden sm:inline-flex">
-                        <Link :href="register()">{{ t('common.getStarted') }}</Link>
-                    </Button>
+                    <template v-if="isAuthenticated">
+                        <Button as-child class="hidden sm:inline-flex">
+                            <Link :href="dashboard()">{{ t('dashboard.title') }}</Link>
+                        </Button>
+                    </template>
+                    <template v-else>
+                        <Link
+                            v-if="canLogin"
+                            :href="login()"
+                            class="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                        >
+                            {{ t('common.login') }}
+                        </Link>
+                        <Button v-if="canRegister" as-child class="hidden sm:inline-flex">
+                            <Link :href="register()">{{ t('common.getStarted') }}</Link>
+                        </Button>
+                    </template>
 
                     <!-- Mobile menu button -->
                     <Button
@@ -150,12 +159,19 @@ withDefaults(defineProps<Props>(), {
                 </nav>
 
                 <div class="mt-6 border-t border-border pt-6 flex flex-col gap-2">
-                    <Button v-if="canLogin" variant="outline" as-child class="w-full">
-                        <Link :href="login()" @click="mobileMenuOpen = false">{{ t('common.login') }}</Link>
-                    </Button>
-                    <Button v-if="canRegister" as-child class="w-full">
-                        <Link :href="register()" @click="mobileMenuOpen = false">{{ t('common.getStarted') }}</Link>
-                    </Button>
+                    <template v-if="isAuthenticated">
+                        <Button as-child class="w-full">
+                            <Link :href="dashboard()" @click="mobileMenuOpen = false">{{ t('dashboard.title') }}</Link>
+                        </Button>
+                    </template>
+                    <template v-else>
+                        <Button v-if="canLogin" variant="outline" as-child class="w-full">
+                            <Link :href="login()" @click="mobileMenuOpen = false">{{ t('common.login') }}</Link>
+                        </Button>
+                        <Button v-if="canRegister" as-child class="w-full">
+                            <Link :href="register()" @click="mobileMenuOpen = false">{{ t('common.getStarted') }}</Link>
+                        </Button>
+                    </template>
                 </div>
             </SheetContent>
         </Sheet>

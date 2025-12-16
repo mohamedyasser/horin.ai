@@ -34,7 +34,7 @@ class PhoneVerificationController extends Controller
 
         if (! $user->isPhoneVerificationCodeValid($request->code)) {
             return back()->withErrors([
-                'code' => __('The verification code is invalid or has expired.'),
+                'code' => __('messages.verification_code_invalid'),
             ]);
         }
 
