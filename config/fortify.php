@@ -130,7 +130,7 @@ return [
     |
     */
 
-    'views' => true,
+    'views' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -144,14 +144,14 @@ return [
     */
 
     'features' => [
-        Features::registration(),
-        Features::resetPasswords(),
-        Features::emailVerification(),
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-            // 'window' => 0
-        ]),
+        // Features::registration(),     // Disabled - using Telegram
+        // Features::resetPasswords(),   // Disabled - no passwords
+        Features::emailVerification(),   // Keep for optional email
+        // Features::twoFactorAuthentication([  // Disabled - Telegram is 2FA
+        //     'confirm' => true,
+        //     'confirmPassword' => true,
+        //     // 'window' => 0
+        // ]),
     ],
 
 ];
