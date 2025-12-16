@@ -163,7 +163,9 @@
         },
         "country": {
             "label": "الدولة",
-            "placeholder": "اختر دولتك"
+            "placeholder": "اختر دولتك",
+            "searchPlaceholder": "ابحث عن الدول...",
+            "emptyText": "لم يتم العثور على دول"
         },
         "markets": {
             "label": "الأسواق المفضلة",
@@ -190,6 +192,15 @@
     },
     "settings": {
         "title": "الإعدادات",
+        "description": "إدارة ملفك الشخصي وإعدادات الحساب",
+        "nav": {
+            "profile": "الملف الشخصي",
+            "password": "كلمة المرور",
+            "twoFactor": "المصادقة الثنائية",
+            "tradingProfile": "ملف التداول",
+            "marketPreferences": "تفضيلات الأسواق",
+            "appearance": "المظهر"
+        },
         "profile": {
             "title": "إعدادات الملف الشخصي",
             "heading": "معلومات الملف الشخصي",

@@ -11,33 +11,37 @@ import { edit as editTradingProfile } from '@/routes/trading-profile';
 import { edit as editMarketPreferences } from '@/routes/market-preferences';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
 
-const sidebarNavItems: NavItem[] = [
+const { t } = useI18n();
+
+const sidebarNavItems = computed<NavItem[]>(() => [
     {
-        title: 'Profile',
+        title: t('settings.nav.profile'),
         href: editProfile(),
     },
     {
-        title: 'Password',
+        title: t('settings.nav.password'),
         href: editPassword(),
     },
     {
-        title: 'Two-Factor Auth',
+        title: t('settings.nav.twoFactor'),
         href: show(),
     },
     {
-        title: 'Trading Profile',
+        title: t('settings.nav.tradingProfile'),
         href: editTradingProfile(),
     },
     {
-        title: 'Market Preferences',
+        title: t('settings.nav.marketPreferences'),
         href: editMarketPreferences(),
     },
     {
-        title: 'Appearance',
+        title: t('settings.nav.appearance'),
         href: editAppearance(),
     },
-];
+]);
 
 const currentPath = typeof window !== undefined ? window.location.pathname : '';
 </script>
@@ -45,8 +49,8 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 <template>
     <div class="px-4 py-6">
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            :title="t('settings.title')"
+            :description="t('settings.description')"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">

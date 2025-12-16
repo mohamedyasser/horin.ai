@@ -25,17 +25,30 @@ class MarketPreferencesController extends Controller
 
         return Inertia::render('settings/MarketPreferences', [
             'countries' => Country::query()
-                ->select(['id', 'code', "{$nameColumn} as name"])
+                ->select(['id', 'code', 'name_en', 'name_ar'])
                 ->orderBy($nameColumn)
-                ->get(),
+                ->get()
+                ->map(fn ($country) => [
+                    'id' => $country->id,
+                    'name' => $country->name,
+                ]),
             'markets' => Market::query()
-                ->select(['id', 'code', "{$nameColumn} as name"])
+                ->select(['id', 'code', 'name_en', 'name_ar'])
                 ->orderBy($nameColumn)
-                ->get(),
+                ->get()
+                ->map(fn ($market) => [
+                    'id' => $market->id,
+                    'code' => $market->code,
+                    'name' => $market->name,
+                ]),
             'sectors' => Sector::query()
-                ->select(['id', "{$nameColumn} as name"])
+                ->select(['id', 'name_en', 'name_ar'])
                 ->orderBy($nameColumn)
-                ->get(),
+                ->get()
+                ->map(fn ($sector) => [
+                    'id' => $sector->id,
+                    'name' => $sector->name,
+                ]),
             'user' => [
                 'country_id' => $request->user()->country_id,
                 'markets' => $request->user()->markets->pluck('id')->toArray(),

@@ -163,7 +163,9 @@
         },
         "country": {
             "label": "Country",
-            "placeholder": "Select your country"
+            "placeholder": "Select your country",
+            "searchPlaceholder": "Search countries...",
+            "emptyText": "No countries found"
         },
         "markets": {
             "label": "Preferred Markets",
@@ -190,6 +192,15 @@
     },
     "settings": {
         "title": "Settings",
+        "description": "Manage your profile and account settings",
+        "nav": {
+            "profile": "Profile",
+            "password": "Password",
+            "twoFactor": "Two-Factor Auth",
+            "tradingProfile": "Trading Profile",
+            "marketPreferences": "Market Preferences",
+            "appearance": "Appearance"
+        },
         "profile": {
             "title": "Profile settings",
             "heading": "Profile information",

@@ -39,14 +39,15 @@ watch(
     () => props.modelValue,
     (newVal) => {
         localSelected.value = [...newVal];
-    }
+    },
+    { immediate: true }
 );
 
-const toggleItem = (id: string) => {
+const toggleItem = (id: string, checked: boolean) => {
     const index = localSelected.value.indexOf(id);
-    if (index === -1) {
+    if (checked && index === -1) {
         localSelected.value.push(id);
-    } else {
+    } else if (!checked && index !== -1) {
         localSelected.value.splice(index, 1);
     }
 };
@@ -67,8 +68,8 @@ const handleSave = () => {
             >
                 <Checkbox
                     :id="`item-${item.id}`"
-                    :checked="localSelected.includes(item.id)"
-                    @update:checked="toggleItem(item.id)"
+                    :model-value="localSelected.includes(item.id)"
+                    @update:model-value="(checked: boolean) => toggleItem(item.id, checked)"
                 />
                 <Label
                     :for="`item-${item.id}`"
