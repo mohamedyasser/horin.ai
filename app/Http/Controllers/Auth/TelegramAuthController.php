@@ -46,7 +46,7 @@ class TelegramAuthController extends Controller
         $user = User::updateOrCreate(
             ['telegram_id' => $data['id']],
             [
-                'name' => trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? '')),
+                'name' => trim(($data['first_name'] ?? '').' '.($data['last_name'] ?? '')),
                 'telegram_username' => $data['username'] ?? null,
                 'telegram_photo_url' => $data['photo_url'] ?? null,
             ]
@@ -77,7 +77,7 @@ class TelegramAuthController extends Controller
         $bot->sendMessage([
             'chat_id' => $user->telegram_id,
             'text' => __('auth.telegram.verify_phone_message'),
-            'reply_markup' => json_encode([
+            'reply_markup' => [
                 'keyboard' => [[
                     [
                         'text' => __('auth.telegram.share_phone_button'),
@@ -86,7 +86,7 @@ class TelegramAuthController extends Controller
                 ]],
                 'resize_keyboard' => true,
                 'one_time_keyboard' => true,
-            ]),
+            ],
         ]);
     }
 }
