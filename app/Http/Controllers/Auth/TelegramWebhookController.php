@@ -22,6 +22,19 @@ class TelegramWebhookController extends Controller
      */
     public function handle(Request $request): JsonResponse
     {
+        // Validate webhook secret token
+        if (config('telegram.webhook_secret')) {
+            $expectedToken = config('telegram.webhook_secret');
+            $receivedToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
+            
+            if (! $receivedToken || ! hash_equals($expectedToken, $receivedToken)) {
+                Log::warning('Invalid Telegram webhook token', [
+                    'ip' => $request->ip(),
+                ]);
+                abort(403, 'Invalid webhook token');
+            }
+        }
+
         $update = $request->all();
 
         Log::info('Telegram webhook received', ['update' => $update]);
@@ -51,7 +64,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = User::query()->where('telegram_id', (string) $from['id'])->first();
+        $user = User::query()->where('telegram_id', $from['id'])->first();
 
         if (! $user) {
             $this->sendMessage(

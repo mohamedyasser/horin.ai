@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use WeStacks\TeleBot\TeleBot;
@@ -48,25 +49,37 @@ class PhoneVerificationController extends Controller
             return redirect()->route('verification.notice');
         }
 
-        $bot = new TeleBot(config('telegram.bot_token'));
+        try {
+            $bot = new TeleBot(config('telegram.bot_token'));
 
-        $bot->sendMessage([
-            'chat_id' => $user->telegram_id,
-            'text' => __('messages.telegram_share_phone_prompt'),
-            'reply_markup' => [
-                'keyboard' => [
-                    [
+            $bot->sendMessage([
+                'chat_id' => $user->telegram_id,
+                'text' => __('auth.telegram.verify_phone_message'),
+                'reply_markup' => [
+                    'keyboard' => [
                         [
-                            'text' => __('messages.share_phone_button'),
-                            'request_contact' => true,
+                            [
+                                'text' => __('auth.telegram.share_phone_button'),
+                                'request_contact' => true,
+                            ],
                         ],
                     ],
+                    'resize_keyboard' => true,
+                    'one_time_keyboard' => true,
                 ],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
-            ],
-        ]);
+            ]);
 
-        return back()->with('status', 'verification-message-sent');
+            return back()->with('status', 'verification-request-sent');
+        } catch (\Exception $e) {
+            Log::error('Failed to send Telegram verification request', [
+                'user_id' => $user->id,
+                'telegram_id' => $user->telegram_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'telegram' => __('auth.telegram.send_failed'),
+            ]);
+        }
     }
 }
