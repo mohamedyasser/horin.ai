@@ -5,19 +5,19 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TelegramAuthRequest;
 use App\Models\User;
+use App\Services\TelegramBotService;
 use App\Services\TelegramHashValidator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use WeStacks\TeleBot\TeleBot;
 
 class TelegramAuthController extends Controller
 {
     public function __construct(
-        private TelegramHashValidator $hashValidator
+        private TelegramHashValidator $hashValidator,
+        private TelegramBotService $telegramBot
     ) {}
 
     /**
@@ -67,33 +67,6 @@ class TelegramAuthController extends Controller
      */
     private function sendPhoneVerificationRequest(User $user): void
     {
-        if (! $user->telegram_id) {
-            return;
-        }
-
-        try {
-            $bot = new TeleBot(config('telegram.bot_token'));
-
-            $bot->sendMessage([
-                'chat_id' => $user->telegram_id,
-                'text' => __('auth.telegram.verify_phone_message'),
-                'reply_markup' => json_encode([
-                    'keyboard' => [[
-                        [
-                            'text' => __('auth.telegram.share_phone_button'),
-                            'request_contact' => true,
-                        ],
-                    ]],
-                    'resize_keyboard' => true,
-                    'one_time_keyboard' => true,
-                ]),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send Telegram phone verification request', [
-                'user_id' => $user->id,
-                'telegram_id' => $user->telegram_id,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->telegramBot->sendPhoneVerificationRequest($user);
     }
 }

@@ -4,18 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\TelegramBotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use WeStacks\TeleBot\TeleBot;
 
 class TelegramWebhookController extends Controller
 {
     public function __construct(
-        private TeleBot $bot
-    ) {
-        $this->bot = new TeleBot(config('telegram.bot_token'));
-    }
+        private TelegramBotService $telegramBot
+    ) {}
 
     /**
      * Handle incoming Telegram webhook requests.
@@ -91,18 +89,7 @@ class TelegramWebhookController extends Controller
      */
     protected function sendMessage(int $chatId, string $text): void
     {
-        try {
-            $this->bot->sendMessage([
-                'chat_id' => $chatId,
-                'text' => $text,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send Telegram message', [
-                'chat_id' => $chatId,
-                'text' => $text,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->telegramBot->sendMessage($chatId, $text);
     }
 
     /**
