@@ -2,6 +2,11 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 import { Link, usePage } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import { computed } from 'vue';
+
+const { locale } = useI18n();
+const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
 
 const page = usePage();
 const name = page.props.name;
@@ -15,6 +20,8 @@ defineProps<{
 
 <template>
     <div
+        :dir="currentDir"
+        :lang="locale"
         class="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0"
     >
         <div

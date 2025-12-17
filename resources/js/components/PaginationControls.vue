@@ -41,7 +41,7 @@ const handleNext = () => {
             :disabled="isPreviousDisabled"
             @click="handlePrevious"
         >
-            <ChevronLeft class="size-4" />
+            <ChevronLeft class="size-4 rtl:rotate-180" />
             <span class="sr-only">{{ t('common.previous') }}</span>
         </Button>
 
@@ -55,7 +55,7 @@ const handleNext = () => {
             :disabled="isNextDisabled"
             @click="handleNext"
         >
-            <ChevronRight class="size-4" />
+            <ChevronRight class="size-4 rtl:rotate-180" />
             <span class="sr-only">{{ t('common.next') }}</span>
         </Button>
     </div>

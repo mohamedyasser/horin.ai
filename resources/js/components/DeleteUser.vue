@@ -21,8 +21,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const { t } = useI18n();
-const passwordInput = useTemplateRef('passwordInput');
+const { t, locale } = useI18n();
+const confirmationInput = useTemplateRef('confirmationInput');
+
+const confirmationWord = () => locale.value === 'ar' ? 'حذف' : 'DELETE';
 </script>
 
 <template>
@@ -50,7 +52,7 @@ const passwordInput = useTemplateRef('passwordInput');
                     <Form
                         v-bind="ProfileController.destroy.form()"
                         reset-on-success
-                        @error="() => passwordInput?.$el?.focus()"
+                        @error="() => confirmationInput?.$el?.focus()"
                         :options="{
                             preserveScroll: true,
                         }"
@@ -60,20 +62,23 @@ const passwordInput = useTemplateRef('passwordInput');
                         <DialogHeader class="space-y-3">
                             <DialogTitle>{{ t('settings.deleteAccount.confirmTitle') }}</DialogTitle>
                             <DialogDescription>
-                                {{ t('settings.deleteAccount.confirmDescription') }}
+                                {{ t('settings.deleteAccount.confirmDescription', { word: confirmationWord() }) }}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only">{{ t('settings.deleteAccount.passwordLabel') }}</Label>
+                            <Label for="confirmation">
+                                {{ t('settings.deleteAccount.confirmationLabel', { word: confirmationWord() }) }}
+                            </Label>
                             <Input
-                                id="password"
-                                type="password"
-                                name="password"
-                                ref="passwordInput"
-                                :placeholder="t('settings.deleteAccount.passwordPlaceholder')"
+                                id="confirmation"
+                                type="text"
+                                name="confirmation"
+                                ref="confirmationInput"
+                                :placeholder="confirmationWord()"
+                                autocomplete="off"
                             />
-                            <InputError :message="errors.password" />
+                            <InputError :message="errors.confirmation" />
                         </div>
 
                         <DialogFooter class="gap-2">
