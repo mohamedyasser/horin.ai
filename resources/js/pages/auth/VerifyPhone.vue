@@ -16,20 +16,34 @@ const props = defineProps<{
 
 const checking = ref(false);
 const resending = ref(false);
-let pollInterval: ReturnType<typeof setInterval> | null = null;
+let pollTimeout: ReturnType<typeof setTimeout> | null = null;
+let pollDelay = 3000; // Start with 3 seconds
+const maxPollDelay = 15000; // Max 15 seconds
+const pollBackoffMultiplier = 1.5;
 
 const openTelegram = () => {
     window.open(`https://t.me/${props.botUsername}`, '_blank');
 };
 
 const checkStatus = async () => {
+    if (checking.value) return;
+    
     checking.value = true;
     try {
         const response = await fetch('/api/user/phone-status');
         const data = await response.json();
         if (data.verified) {
             router.visit('/onboarding');
+            return;
         }
+        
+        // Schedule next check with exponential backoff
+        pollDelay = Math.min(pollDelay * pollBackoffMultiplier, maxPollDelay);
+        pollTimeout = setTimeout(checkStatus, pollDelay);
+    } catch (error) {
+        console.error('Failed to check phone status:', error);
+        // On error, retry with same delay
+        pollTimeout = setTimeout(checkStatus, pollDelay);
     } finally {
         checking.value = false;
     }
@@ -40,17 +54,20 @@ const resendRequest = () => {
     router.post('/verify-phone/resend', {}, {
         onFinish: () => {
             resending.value = false;
+            // Reset polling delay after resend
+            pollDelay = 3000;
         },
     });
 };
 
 onMounted(() => {
-    pollInterval = setInterval(checkStatus, 3000);
+    // Start polling
+    checkStatus();
 });
 
 onUnmounted(() => {
-    if (pollInterval) {
-        clearInterval(pollInterval);
+    if (pollTimeout) {
+        clearTimeout(pollTimeout);
     }
 });
 </script>
