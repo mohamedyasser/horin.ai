@@ -73,7 +73,15 @@
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+        {{-- Apple Touch Icons --}}
+        <link rel="apple-touch-icon" href="/apple-touch-icon-iphone-60x60-precomposed.png">
+        <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-ipad-76x76-precomposed.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-iphone-retina-120x120-precomposed.png">
+        <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-ipad-retina-152x152-precomposed.png">
+
+        {{-- PWA Meta Tags --}}
+        @PwaHead
 
         {{-- Inter font --}}
         <link rel="preconnect" href="https://rsms.me/">
@@ -92,5 +100,6 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
+        @RegisterServiceWorkerScript
     </body>
 </html>
