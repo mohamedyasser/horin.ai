@@ -33,7 +33,6 @@ class TelegramAuthController extends Controller
      */
     public function callback(Request $request): RedirectResponse
     {
-        dd($request->all());
         $data = $request->only([
             'id', 'first_name', 'last_name', 'username',
             'photo_url', 'auth_date', 'hash',
