@@ -15,6 +15,7 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
 import { dashboard } from '@/routes';
+import { telegram } from '@/routes/auth';
 
 const { t, locale } = useI18n();
 const page = usePage();
@@ -23,8 +24,7 @@ const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
 const mobileMenuOpen = ref(false);
 const isAuthenticated = computed(() => !!page.props.auth?.user);
 
-const login = () => '/login';
-const register = () => '/register';
+const authUrl = () => telegram.url();
 
 interface Props {
     canLogin?: boolean;
@@ -89,15 +89,8 @@ withDefaults(defineProps<Props>(), {
                         </Button>
                     </template>
                     <template v-else>
-                        <Link
-                            v-if="canLogin"
-                            :href="login()"
-                            class="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-                        >
-                            {{ t('common.login') }}
-                        </Link>
-                        <Button v-if="canRegister" as-child class="hidden sm:inline-flex">
-                            <Link :href="register()">{{ t('common.getStarted') }}</Link>
+                        <Button v-if="canLogin || canRegister" as-child class="hidden sm:inline-flex">
+                            <Link :href="authUrl()">{{ t('common.getStarted') }}</Link>
                         </Button>
                     </template>
 
@@ -168,11 +161,8 @@ withDefaults(defineProps<Props>(), {
                         </Button>
                     </template>
                     <template v-else>
-                        <Button v-if="canLogin" variant="outline" as-child class="w-full">
-                            <Link :href="login()" @click="mobileMenuOpen = false">{{ t('common.login') }}</Link>
-                        </Button>
-                        <Button v-if="canRegister" as-child class="w-full">
-                            <Link :href="register()" @click="mobileMenuOpen = false">{{ t('common.getStarted') }}</Link>
+                        <Button v-if="canLogin || canRegister" as-child class="w-full">
+                            <Link :href="authUrl()" @click="mobileMenuOpen = false">{{ t('common.getStarted') }}</Link>
                         </Button>
                     </template>
                 </div>
