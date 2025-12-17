@@ -11,22 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Make password nullable for Telegram auth (no password needed)
         Schema::table('users', function (Blueprint $table) {
-            // Make password nullable for Telegram auth (no password needed)
             $table->string('password')->nullable()->change();
+        });
 
-            // Drop phone verification columns (no longer needed with Telegram)
-            if (Schema::hasColumn('users', 'phone_verification_code')) {
+        // Drop phone verification columns (no longer needed with Telegram)
+        if (Schema::hasColumn('users', 'phone_verification_code')) {
+            Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('phone_verification_code');
-            }
-        });
+            });
+        }
 
-        // Separate schema call for second column drop (PostgreSQL compatibility)
-        Schema::table('users', function (Blueprint $table) {
-            if (Schema::hasColumn('users', 'phone_verification_expires_at')) {
+        if (Schema::hasColumn('users', 'phone_verification_expires_at')) {
+            Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn('phone_verification_expires_at');
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -36,6 +37,9 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('password')->nullable(false)->change();
+        });
+
+        Schema::table('users', function (Blueprint $table) {
             $table->string('phone_verification_code', 6)->nullable()->after('phone');
             $table->timestamp('phone_verification_expires_at')->nullable()->after('phone_verification_code');
         });
