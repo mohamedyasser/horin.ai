@@ -14,6 +14,7 @@ import {
 } from 'reka-ui';
 import { Check, ChevronDown } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
+import { useI18n } from 'vue-i18n';
 
 export interface SelectOption<V = string> {
     value: V;
@@ -41,6 +42,9 @@ const emit = defineEmits<{
     'update:modelValue': [value: T | null];
 }>();
 
+const { locale } = useI18n();
+const direction = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'));
+
 const selectedOption = computed(() =>
     props.options.find((o) => o.value === props.modelValue)
 );
@@ -55,6 +59,7 @@ const handleSelect = (option: SelectOption<T>) => {
         :model-value="selectedOption"
         :display-value="(opt) => opt?.label ?? ''"
         :disabled="disabled"
+        :dir="direction"
         @update:model-value="(opt) => opt && handleSelect(opt)"
     >
         <ComboboxAnchor
