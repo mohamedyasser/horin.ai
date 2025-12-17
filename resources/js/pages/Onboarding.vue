@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import OnboardingStep1 from '@/components/onboarding/OnboardingStep1.vue';
 import OnboardingStep2 from '@/components/onboarding/OnboardingStep2.vue';
 import OnboardingStep3 from '@/components/onboarding/OnboardingStep3.vue';
@@ -123,11 +124,15 @@ const submitStep = () => {
 
 <template>
     <div
-        class="min-h-svh bg-background p-6 md:p-10"
+        class="relative min-h-svh bg-background p-6 md:p-10"
         :dir="currentDir"
         :lang="locale"
     >
         <Head :title="t('onboarding.title')" />
+
+        <div class="absolute end-4 top-4">
+            <LanguageSwitcher />
+        </div>
 
         <div class="mx-auto max-w-2xl">
             <!-- Progress -->
