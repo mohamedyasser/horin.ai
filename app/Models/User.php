@@ -155,8 +155,6 @@ class User extends Authenticatable
     {
         return $this->forceFill([
             'phone_verified_at' => $this->freshTimestamp(),
-            'phone_verification_code' => null,
-            'phone_verification_expires_at' => null,
         ])->save();
     }
 
