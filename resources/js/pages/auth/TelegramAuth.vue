@@ -4,7 +4,7 @@ import { Head } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const props = defineProps<{
     botUsername: string;
@@ -32,6 +32,7 @@ onMounted(() => {
     script.setAttribute('data-radius', '8');
     script.setAttribute('data-request-access', 'write');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.setAttribute('data-lang', locale.value === 'ar' ? 'ar' : 'en');
     script.async = true;
     script.onload = () => {
         widgetLoaded.value = true;
