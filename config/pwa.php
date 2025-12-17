@@ -77,6 +77,22 @@ return [
                 'type' => 'image/png',
             ],
         ],
+        'screenshots' => [
+            [
+                'src' => 'images/screenshots/mobile.png',
+                'sizes' => '1080x1920',
+                'type' => 'image/png',
+                'form_factor' => 'narrow',
+                'label' => 'Horin Mobile App',
+            ],
+            [
+                'src' => 'images/screenshots/desktop.png',
+                'sizes' => '1920x1080',
+                'type' => 'image/png',
+                'form_factor' => 'wide',
+                'label' => 'Horin Desktop App',
+            ],
+        ],
     ],
 
     /*
