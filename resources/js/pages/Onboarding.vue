@@ -5,7 +5,9 @@ import OnboardingStep2 from '@/components/onboarding/OnboardingStep2.vue';
 import OnboardingStep3 from '@/components/onboarding/OnboardingStep3.vue';
 import OnboardingStep4 from '@/components/onboarding/OnboardingStep4.vue';
 import { Button } from '@/components/ui/button';
-import { Head, router } from '@inertiajs/vue3';
+import { logout } from '@/routes';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { LogOut } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -130,8 +132,18 @@ const submitStep = () => {
     >
         <Head :title="t('onboarding.title')" />
 
-        <div class="absolute end-4 top-4">
+        <div class="absolute end-4 top-4 flex items-center gap-2">
             <LanguageSwitcher />
+            <Button
+                as-child
+                variant="ghost"
+                size="icon"
+            >
+                <Link :href="logout()" as="button" :title="t('common.logout')">
+                    <LogOut class="h-4 w-4" />
+                    <span class="sr-only">{{ t('common.logout') }}</span>
+                </Link>
+            </Button>
         </div>
 
         <div class="mx-auto max-w-2xl">

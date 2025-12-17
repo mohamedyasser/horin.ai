@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import { logout } from '@/routes';
 import { Head, router } from '@inertiajs/vue3';
 import { onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -105,6 +107,14 @@ onUnmounted(() => {
                 <Spinner v-if="resending" class="me-2 inline h-3 w-3" />
                 {{ t('auth.verifyPhone.resendRequest') }}
             </button>
+
+            <TextLink
+                :href="logout()"
+                as="button"
+                class="text-sm"
+            >
+                {{ t('common.logout') }}
+            </TextLink>
         </div>
     </AuthLayout>
 </template>
