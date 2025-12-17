@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dce2ceeffd96f30a059ffe5f5fe003fc",
+    "content-hash": "bdba1bc01e3ccc9e125da368da4ffbba",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -8816,6 +8816,73 @@
                 }
             ],
             "time": "2024-11-21T01:49:47+00:00"
+        },
+        {
+            "name": "westacks/telebot",
+            "version": "4.2.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/westacks/telebot.git",
+                "reference": "68a1891b9fba97100a2dfbd9301f7b82a4fe37f1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/westacks/telebot/zipball/68a1891b9fba97100a2dfbd9301f7b82a4fe37f1",
+                "reference": "68a1891b9fba97100a2dfbd9301f7b82a4fe37f1",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^7.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "doctrine/inflector": "^2.0",
+                "laravel/pint": "^1.0",
+                "nette/php-generator": "^4.0",
+                "pestphp/pest": "^3.0",
+                "psy/psysh": "^0.12",
+                "rector/rector": "^2.0",
+                "symfony/browser-kit": "^7.0",
+                "symfony/css-selector": "^7.0",
+                "symfony/http-client": "^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/Helpers.php"
+                ],
+                "psr-4": {
+                    "WeStacks\\TeleBot\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PunyFlash",
+                    "email": "puny.flash@gmail.com",
+                    "homepage": "https://github.com/PunyFlash"
+                }
+            ],
+            "description": "Easy way to create Telegram-bots in PHP",
+            "homepage": "https://github.com/westacks/telebot",
+            "support": {
+                "issues": "https://github.com/westacks/telebot/issues",
+                "source": "https://github.com/westacks/telebot/tree/4.2.4"
+            },
+            "funding": [
+                {
+                    "url": "https://send.monobank.ua/jar/6zJ7tLXjUU",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/punyflash",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-09-03T14:09:20+00:00"
         }
     ],
     "packages-dev": [

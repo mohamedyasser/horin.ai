@@ -16,8 +16,7 @@ import {
     PinInputSlot,
 } from '@/components/ui/pin-input';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
-import { confirm } from '@/routes/two-factor';
-import { Form } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { useClipboard } from '@vueuse/core';
 import { Check, Copy, ScanLine } from 'lucide-vue-next';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
@@ -39,6 +38,24 @@ const code = ref<number[]>([]);
 const codeValue = computed<string>(() => code.value.join(''));
 
 const pinInputContainerRef = useTemplateRef('pinInputContainerRef');
+
+const confirmForm = useForm({
+    code: codeValue,
+});
+
+const submitConfirmForm = () => {
+    confirmForm.transform((data) => ({
+        ...data,
+        code: codeValue.value,
+    })).post('/user/confirmed-two-factor-authentication', {
+        onFinish: () => {
+            code.value = [];
+        },
+        onSuccess: () => {
+            isOpen.value = false;
+        },
+    });
+};
 
 const modalConfig = computed<{
     title: string;
@@ -231,14 +248,7 @@ watch(
                 </template>
 
                 <template v-else>
-                    <Form
-                        v-bind="confirm.form()"
-                        reset-on-error
-                        @finish="code = []"
-                        @success="isOpen = false"
-                        v-slot="{ errors, processing }"
-                    >
-                        <input type="hidden" name="code" :value="codeValue" />
+                    <form @submit.prevent="submitConfirmForm">
                         <div
                             ref="pinInputContainerRef"
                             class="relative w-full space-y-3"
@@ -259,15 +269,12 @@ watch(
                                             v-for="(id, index) in 6"
                                             :key="id"
                                             :index="index"
-                                            :disabled="processing"
+                                            :disabled="confirmForm.processing"
                                         />
                                     </PinInputGroup>
                                 </PinInput>
                                 <InputError
-                                    :message="
-                                        errors?.confirmTwoFactorAuthentication
-                                            ?.code
-                                    "
+                                    :message="confirmForm.errors.code"
                                 />
                             </div>
 
@@ -277,7 +284,7 @@ watch(
                                     variant="outline"
                                     class="w-auto flex-1"
                                     @click="showVerificationStep = false"
-                                    :disabled="processing"
+                                    :disabled="confirmForm.processing"
                                 >
                                     Back
                                 </Button>
@@ -285,14 +292,14 @@ watch(
                                     type="submit"
                                     class="w-auto flex-1"
                                     :disabled="
-                                        processing || codeValue.length < 6
+                                        confirmForm.processing || codeValue.length < 6
                                     "
                                 >
                                     Confirm
                                 </Button>
                             </div>
                         </div>
-                    </Form>
+                    </form>
                 </template>
             </div>
         </DialogContent>

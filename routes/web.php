@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\Auth\TelegramAuthController;
+use App\Http\Controllers\Auth\TelegramWebhookController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\PredictionController;
@@ -29,14 +31,27 @@ Route::get('/dashboard', function () {
     return redirect("/{$locale}/dashboard");
 })->middleware(['auth'])->name('dashboard');
 
+// Telegram Auth Routes (guest only)
+Route::middleware('guest')->group(function () {
+    Route::get('auth/telegram', [TelegramAuthController::class, 'show'])
+        ->name('auth.telegram');
+    Route::get('auth/telegram/callback', [TelegramAuthController::class, 'callback'])
+        ->name('auth.telegram.callback');
+});
+
+// Telegram Webhook (no auth, validated by Telegram)
+Route::post('telegram/webhook', [TelegramWebhookController::class, 'handle'])
+    ->name('telegram.webhook')
+    ->withoutMiddleware(['web']);
+
 // Phone Verification Routes
 Route::middleware('auth')->group(function () {
     Route::get('verify-phone', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'show'])
         ->name('verification.phone');
-    Route::post('verify-phone', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'verify'])
-        ->name('verification.phone.verify');
     Route::post('verify-phone/resend', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'resend'])
         ->name('verification.phone.resend');
+    Route::get('api/user/phone-status', [App\Http\Controllers\Auth\PhoneVerificationController::class, 'status'])
+        ->name('api.user.phone-status');
 });
 
 // Onboarding Routes

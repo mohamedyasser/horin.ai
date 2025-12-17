@@ -9,14 +9,24 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
-import { regenerateRecoveryCodes } from '@/routes/two-factor';
-import { Form } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-vue-next';
 import { nextTick, onMounted, ref, useTemplateRef } from 'vue';
 
 const { recoveryCodesList, fetchRecoveryCodes, errors } = useTwoFactorAuth();
 const isRecoveryCodesVisible = ref<boolean>(false);
 const recoveryCodeSectionRef = useTemplateRef('recoveryCodeSectionRef');
+
+const regenerateForm = useForm({});
+
+const handleRegenerate = () => {
+    regenerateForm.post('/user/two-factor-recovery-codes', {
+        preserveScroll: true,
+        onSuccess: () => {
+            fetchRecoveryCodes();
+        },
+    });
+};
 
 const toggleRecoveryCodesVisibility = async () => {
     if (!isRecoveryCodesVisible.value && !recoveryCodesList.value.length) {
@@ -62,22 +72,14 @@ onMounted(async () => {
                     Codes
                 </Button>
 
-                <Form
+                <Button
                     v-if="isRecoveryCodesVisible && recoveryCodesList.length"
-                    v-bind="regenerateRecoveryCodes.form()"
-                    method="post"
-                    :options="{ preserveScroll: true }"
-                    @success="fetchRecoveryCodes"
-                    #default="{ processing }"
+                    variant="secondary"
+                    @click="handleRegenerate"
+                    :disabled="regenerateForm.processing"
                 >
-                    <Button
-                        variant="secondary"
-                        type="submit"
-                        :disabled="processing"
-                    >
-                        <RefreshCw /> Regenerate Codes
-                    </Button>
-                </Form>
+                    <RefreshCw /> Regenerate Codes
+                </Button>
             </div>
             <div
                 :class="[

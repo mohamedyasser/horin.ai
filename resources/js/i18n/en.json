@@ -51,15 +51,36 @@
             "hasAccount": "Already have an account?",
             "logIn": "Log in"
         },
+        "telegram": {
+            "title": "Welcome to Horin",
+            "description": "Sign in with your Telegram account to continue",
+            "terms": "By continuing, you agree to our Terms of Service and Privacy Policy",
+            "invalid": "Invalid Telegram authentication. Please try again.",
+            "verify_phone_message": "Welcome to Horin! Please share your phone number to complete verification.",
+            "share_phone_button": "📱 Share Phone Number",
+            "phone_verified": "✅ Phone verified! You can now return to the app.",
+            "phone_must_be_yours": "Please share your own phone number, not a contact.",
+            "user_not_found": "User not found. Please sign in first."
+        },
         "verifyPhone": {
             "title": "Verify your phone",
             "description": "Enter the 6-digit code sent to {phone}",
+            "telegramDescription": "Verify your phone number through Telegram",
             "codeLabel": "Verification code",
             "codePlaceholder": "000000",
             "submitButton": "Verify",
             "resendButton": "Resend code",
             "resendIn": "Resend in {seconds}s",
-            "codeSent": "A new verification code has been sent."
+            "codeSent": "A new verification code has been sent.",
+            "openTelegram": "Open Telegram to Verify",
+            "waitingForVerification": "Waiting for verification...",
+            "requestSent": "Verification request sent to Telegram",
+            "resendRequest": "Resend verification request",
+            "howItWorks": "How it works",
+            "step1": "Tap the button above to open Telegram",
+            "step2": "Open the chat with our bot",
+            "step3": "Tap \"Share Phone Number\"",
+            "step4": "You'll be redirected automatically"
         },
         "forgotPassword": {
             "title": "Forgot your password?",
