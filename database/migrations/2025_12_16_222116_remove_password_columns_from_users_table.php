@@ -8,6 +8,12 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * Removes password-based authentication columns as the application
+     * switches to Telegram-only authentication.
+     *
+     * WARNING: This is a destructive migration that permanently removes
+     * password data. Ensure you have a backup before running.
      */
     public function up(): void
     {
@@ -22,6 +28,10 @@ return new class extends Migration
 
     /**
      * Reverse the migrations.
+     *
+     * NOTE: Rolling back this migration recreates the columns but cannot
+     * restore the data. Existing users will need to re-register or have
+     * their passwords reset manually.
      */
     public function down(): void
     {
