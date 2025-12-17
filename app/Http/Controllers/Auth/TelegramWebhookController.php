@@ -11,9 +11,10 @@ use WeStacks\TeleBot\TeleBot;
 
 class TelegramWebhookController extends Controller
 {
-    public function __construct(
-        private TeleBot $bot
-    ) {
+    private TeleBot $bot;
+
+    public function __construct()
+    {
         $this->bot = new TeleBot(config('telegram.bot_token'));
     }
 
@@ -28,9 +29,62 @@ class TelegramWebhookController extends Controller
 
         if (isset($update['message']['contact'])) {
             $this->handleContact($update['message']);
+        } elseif (isset($update['message']['text'])) {
+            $this->handleTextMessage($update['message']);
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Handle text messages (including /start command).
+     */
+    protected function handleTextMessage(array $message): void
+    {
+        $text = $message['text'];
+        $from = $message['from'];
+        $chatId = $message['chat']['id'];
+
+        // Handle /start command - send phone verification button
+        if (str_starts_with($text, '/start')) {
+            $user = User::query()->where('telegram_id', (string) $from['id'])->first();
+
+            if ($user && ! $user->hasVerifiedPhone()) {
+                $this->sendPhoneRequestMessage($chatId);
+            } elseif ($user && $user->hasVerifiedPhone()) {
+                $this->sendMessage($chatId, __('auth.telegram.already_verified'));
+            } else {
+                $this->sendMessage($chatId, __('auth.telegram.please_login_first'));
+            }
+        }
+    }
+
+    /**
+     * Send message with phone request button.
+     */
+    protected function sendPhoneRequestMessage(int $chatId): void
+    {
+        try {
+            $this->bot->sendMessage([
+                'chat_id' => $chatId,
+                'text' => __('auth.telegram.verify_phone_message'),
+                'reply_markup' => json_encode([
+                    'keyboard' => [[
+                        [
+                            'text' => __('auth.telegram.share_phone_button'),
+                            'request_contact' => true,
+                        ],
+                    ]],
+                    'resize_keyboard' => true,
+                    'one_time_keyboard' => true,
+                ]),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send phone request message', [
+                'chat_id' => $chatId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
