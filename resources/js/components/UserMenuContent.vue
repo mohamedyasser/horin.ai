@@ -11,6 +11,9 @@ import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     user: User;
@@ -25,7 +28,7 @@ defineProps<Props>();
 
 <template>
     <DropdownMenuLabel class="p-0 font-normal">
-        <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+        <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
@@ -33,8 +36,8 @@ defineProps<Props>();
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full" :href="edit()" prefetch as="button">
-                <Settings class="mr-2 h-4 w-4" />
-                Settings
+                <Settings class="me-2 h-4 w-4" />
+                {{ t('settings.title') }}
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
@@ -47,8 +50,8 @@ defineProps<Props>();
             as="button"
             data-test="logout-button"
         >
-            <LogOut class="mr-2 h-4 w-4" />
-            Log out
+            <LogOut class="me-2 h-4 w-4" />
+            {{ t('common.logout') }}
         </Link>
     </DropdownMenuItem>
 </template>
