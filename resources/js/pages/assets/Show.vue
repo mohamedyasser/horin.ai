@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
 import {
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     TrendingUp,
     TrendingDown,
     Clock,
@@ -137,6 +139,9 @@ const getMacdSignal = (macdLine?: number | null) => {
     if (macdLine < 0) return { key: 'bearish', color: 'text-red-600 dark:text-red-400' };
     return { key: 'neutral', color: 'text-yellow-600 dark:text-yellow-400' };
 };
+
+// Collapsible state
+const isPredictionsOpen = ref(true);
 </script>
 
 <template>
@@ -295,68 +300,80 @@ const getMacdSignal = (macdLine?: number | null) => {
                         </CardContent>
                     </Card>
 
-                    <!-- Predictions Card -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <TrendingUp class="size-5 text-green-500" />
-                                {{ t('assetDetail.prediction.title') }}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Deferred data="predictions">
-                                <template #fallback>
-                                    <div class="space-y-4">
-                                        <div v-for="i in 4" :key="i" class="animate-pulse rounded-lg border border-border p-4">
-                                            <div class="h-6 w-20 rounded bg-muted mb-3" />
-                                            <div class="h-8 w-32 rounded bg-muted" />
-                                        </div>
-                                    </div>
-                                </template>
-
-                                <div v-if="predictions.length > 0" class="space-y-4">
-                                    <div
-                                        v-for="(prediction, index) in predictions"
-                                        :key="index"
-                                        class="rounded-lg border border-border p-4 hover:bg-muted/30 transition-colors"
-                                    >
-                                        <div class="flex items-start justify-between">
-                                            <div>
-                                                <div class="flex items-center gap-2">
-                                                <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-                                                    {{ prediction.horizonLabel }}
-                                                </span>
-                                                    <span
-                                                        :class="[getConfidenceBgColor(prediction.confidence), getConfidenceColor(prediction.confidence)]"
-                                                        class="rounded-full px-2.5 py-1 text-xs font-medium"
-                                                    >
-                                                    {{ prediction.confidence }}% {{ t('assetDetail.prediction.confidence') }}
-                                                </span>
+                    <!-- Predictions Card (Collapsible) -->
+                    <Collapsible v-model:open="isPredictionsOpen">
+                        <Card>
+                            <CollapsibleTrigger as-child>
+                                <CardHeader class="cursor-pointer hover:bg-muted/30 transition-colors">
+                                    <CardTitle class="flex items-center justify-between">
+                                        <span class="flex items-center gap-2">
+                                            <TrendingUp class="size-5 text-green-500" />
+                                            {{ t('assetDetail.prediction.title') }}
+                                        </span>
+                                        <ChevronDown
+                                            class="size-5 text-muted-foreground transition-transform duration-200"
+                                            :class="{ 'rotate-180': isPredictionsOpen }"
+                                        />
+                                    </CardTitle>
+                                </CardHeader>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                                <CardContent>
+                                    <Deferred data="predictions">
+                                        <template #fallback>
+                                            <div class="space-y-4">
+                                                <div v-for="i in 4" :key="i" class="animate-pulse rounded-lg border border-border p-4">
+                                                    <div class="h-6 w-20 rounded bg-muted mb-3" />
+                                                    <div class="h-8 w-32 rounded bg-muted" />
                                                 </div>
-                                                <div class="mt-3 flex items-baseline gap-2">
-                                                    <span class="text-2xl font-bold">{{ formatPrice(prediction.predictedPrice) }}</span>
-                                                    <span
-                                                        class="flex items-center gap-0.5 text-lg font-medium"
-                                                        :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
-                                                    >
-                                                    <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
-                                                    <ArrowDownRight v-else class="size-4" />
-                                                    {{ formatGain(prediction.expectedGainPercent) }}
-                                                </span>
+                                            </div>
+                                        </template>
+
+                                        <div v-if="predictions.length > 0" class="space-y-4">
+                                            <div
+                                                v-for="(prediction, index) in predictions"
+                                                :key="index"
+                                                class="rounded-lg border border-border p-4 hover:bg-muted/30 transition-colors"
+                                            >
+                                                <div class="flex items-start justify-between">
+                                                    <div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                                                                {{ prediction.horizonLabel }}
+                                                            </span>
+                                                            <span
+                                                                :class="[getConfidenceBgColor(prediction.confidence), getConfidenceColor(prediction.confidence)]"
+                                                                class="rounded-full px-2.5 py-1 text-xs font-medium"
+                                                            >
+                                                                {{ prediction.confidence }}% {{ t('assetDetail.prediction.confidence') }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="mt-3 flex items-baseline gap-2">
+                                                            <span class="text-2xl font-bold">{{ formatPrice(prediction.predictedPrice) }}</span>
+                                                            <span
+                                                                class="flex items-center gap-0.5 text-lg font-medium"
+                                                                :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                                            >
+                                                                <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
+                                                                <ArrowDownRight v-else class="size-4" />
+                                                                {{ formatGain(prediction.expectedGainPercent) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-                                    <TrendingDown class="size-12 text-muted-foreground/50" />
-                                    <p class="mt-4 text-muted-foreground">
-                                        {{ t('assetDetail.prediction.noPredictions') }}
-                                    </p>
-                                </div>
-                            </Deferred>
-                        </CardContent>
-                    </Card>
+                                        <div v-else class="flex flex-col items-center justify-center py-8 text-center">
+                                            <TrendingDown class="size-12 text-muted-foreground/50" />
+                                            <p class="mt-4 text-muted-foreground">
+                                                {{ t('assetDetail.prediction.noPredictions') }}
+                                            </p>
+                                        </div>
+                                    </Deferred>
+                                </CardContent>
+                            </CollapsibleContent>
+                        </Card>
+                    </Collapsible>
 
                     <!-- Price & Prediction Chart -->
                     <Card>
