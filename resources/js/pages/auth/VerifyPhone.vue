@@ -102,7 +102,7 @@ onUnmounted(() => {
                 :disabled="resending"
                 @click="resendRequest"
             >
-                <Spinner v-if="resending" class="mr-2 inline h-3 w-3" />
+                <Spinner v-if="resending" class="me-2 inline h-3 w-3" />
                 {{ t('auth.verifyPhone.resendRequest') }}
             </button>
         </div>

@@ -133,7 +133,7 @@ const rightNavItems: NavItem[] = [
                                         :href="toUrl(item.href)"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        class="flex items-center space-x-2 text-sm font-medium"
+                                        class="flex items-center gap-2 text-sm font-medium"
                                     >
                                         <component
                                             v-if="item.icon"
@@ -156,7 +156,7 @@ const rightNavItems: NavItem[] = [
                 <div class="hidden h-full lg:flex lg:flex-1">
                     <NavigationMenu class="ms-10 flex h-full items-stretch">
                         <NavigationMenuList
-                            class="flex h-full items-stretch space-x-2"
+                            class="flex h-full items-stretch gap-2"
                         >
                             <NavigationMenuItem
                                 v-for="(item, index) in mainNavItems"
@@ -180,7 +180,7 @@ const rightNavItems: NavItem[] = [
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="absolute bottom-0 start-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>
@@ -188,7 +188,7 @@ const rightNavItems: NavItem[] = [
                 </div>
 
                 <div class="ms-auto flex items-center gap-2">
-                    <div class="relative flex items-center space-x-1">
+                    <div class="relative flex items-center gap-1">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -199,7 +199,7 @@ const rightNavItems: NavItem[] = [
                             />
                         </Button>
 
-                        <div class="hidden space-x-1 lg:flex">
+                        <div class="hidden gap-1 lg:flex">
                             <template
                                 v-for="item in rightNavItems"
                                 :key="item.title"

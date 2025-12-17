@@ -195,7 +195,7 @@ watch(
                             </div>
                         </div>
 
-                        <div class="flex w-full items-center space-x-5">
+                        <div class="flex w-full items-center gap-5">
                             <Button class="w-full" @click="handleModalNextStep">
                                 {{ modalConfig.buttonText }}
                             </Button>
@@ -213,7 +213,7 @@ watch(
                         </div>
 
                         <div
-                            class="flex w-full items-center justify-center space-x-2"
+                            class="flex w-full items-center justify-center gap-2"
                         >
                             <div
                                 class="flex w-full items-stretch overflow-hidden rounded-xl border border-border"
@@ -278,7 +278,7 @@ watch(
                                 />
                             </div>
 
-                            <div class="flex w-full items-center space-x-5">
+                            <div class="flex w-full items-center gap-5">
                                 <Button
                                     type="button"
                                     variant="outline"
