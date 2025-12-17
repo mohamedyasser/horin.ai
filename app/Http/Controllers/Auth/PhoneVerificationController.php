@@ -3,15 +3,19 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\TelegramBotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use WeStacks\TeleBot\TeleBot;
 
 class PhoneVerificationController extends Controller
 {
+    public function __construct(
+        private TelegramBotService $telegramBot
+    ) {}
+
     /**
      * Show the phone verification page.
      */
@@ -48,25 +52,14 @@ class PhoneVerificationController extends Controller
             return redirect()->route('verification.notice');
         }
 
-        $bot = new TeleBot(config('telegram.bot_token'));
+        $success = $this->telegramBot->sendPhoneVerificationRequest($user);
 
-        $bot->sendMessage([
-            'chat_id' => $user->telegram_id,
-            'text' => __('messages.telegram_share_phone_prompt'),
-            'reply_markup' => [
-                'keyboard' => [
-                    [
-                        [
-                            'text' => __('messages.share_phone_button'),
-                            'request_contact' => true,
-                        ],
-                    ],
-                ],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
-            ],
+        if ($success) {
+            return back()->with('status', 'verification-request-sent');
+        }
+
+        return back()->withErrors([
+            'telegram' => __('auth.telegram.send_failed'),
         ]);
-
-        return back()->with('status', 'verification-message-sent');
     }
 }

@@ -60,7 +60,8 @@
             "share_phone_button": "📱 Share Phone Number",
             "phone_verified": "✅ Phone verified! You can now return to the app.",
             "phone_must_be_yours": "Please share your own phone number, not a contact.",
-            "user_not_found": "User not found. Please sign in first."
+            "user_not_found": "User not found. Please sign in first.",
+            "send_failed": "Failed to send verification request. Please try again."
         },
         "verifyPhone": {
             "title": "Verify your phone",

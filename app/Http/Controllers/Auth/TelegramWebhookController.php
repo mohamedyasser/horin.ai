@@ -4,24 +4,35 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\TelegramBotService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use WeStacks\TeleBot\TeleBot;
 
 class TelegramWebhookController extends Controller
 {
     public function __construct(
-        private TeleBot $bot
-    ) {
-        $this->bot = new TeleBot(config('telegram.bot_token'));
-    }
+        private TelegramBotService $telegramBot
+    ) {}
 
     /**
      * Handle incoming Telegram webhook requests.
      */
     public function handle(Request $request): JsonResponse
     {
+        // Validate webhook secret token
+        if (config('telegram.webhook_secret')) {
+            $expectedToken = config('telegram.webhook_secret');
+            $receivedToken = $request->header('X-Telegram-Bot-Api-Secret-Token');
+            
+            if (! $receivedToken || ! hash_equals($expectedToken, $receivedToken)) {
+                Log::warning('Invalid Telegram webhook token', [
+                    'ip' => $request->ip(),
+                ]);
+                abort(403, 'Invalid webhook token');
+            }
+        }
+
         $update = $request->all();
 
         Log::info('Telegram webhook received', ['update' => $update]);
@@ -51,7 +62,7 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $user = User::query()->where('telegram_id', (string) $from['id'])->first();
+        $user = User::query()->where('telegram_id', $from['id'])->first();
 
         if (! $user) {
             $this->sendMessage(
@@ -78,18 +89,7 @@ class TelegramWebhookController extends Controller
      */
     protected function sendMessage(int $chatId, string $text): void
     {
-        try {
-            $this->bot->sendMessage([
-                'chat_id' => $chatId,
-                'text' => $text,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to send Telegram message', [
-                'chat_id' => $chatId,
-                'text' => $text,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->telegramBot->sendMessage($chatId, $text);
     }
 
     /**
