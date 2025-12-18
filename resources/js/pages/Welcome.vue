@@ -246,7 +246,7 @@ const sortedPredictions = computed(() => {
                             @click="activeTab = 'recommendations'"
                         >
                             {{ t('recommendations.title') }}
-                            <span v-if="activeTab === 'recommendations'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                            <span v-if="activeTab === 'recommendations'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
                         </button>
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
@@ -254,7 +254,7 @@ const sortedPredictions = computed(() => {
                             @click="activeTab = 'predictions'"
                         >
                             {{ t('home.predictions') }}
-                            <span v-if="activeTab === 'predictions'" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                            <span v-if="activeTab === 'predictions'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
                         </button>
                     </div>
 
@@ -417,17 +417,18 @@ const sortedPredictions = computed(() => {
                                             <td class="px-4 py-3 text-sm text-muted-foreground">
                                                 {{ prediction.asset.name }}
                                             </td>
-                                            <td class="px-4 py-3 text-end text-sm">
+                                            <td dir="ltr" class="px-4 py-3 text-end text-sm">
                                                 <template v-if="prediction.currentPrice">
                                                     {{ prediction.currentPrice.toFixed(2) }}
                                                 </template>
                                                 <span v-else class="text-muted-foreground">-</span>
                                             </td>
-                                            <td class="px-4 py-3 text-end text-sm font-medium">
+                                            <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium">
                                                 {{ prediction.predictedPrice.toFixed(2) }}
                                             </td>
                                             <td class="px-4 py-3 text-end">
                                                 <span
+                                                    dir="ltr"
                                                     class="inline-flex items-center gap-0.5 font-medium"
                                                     :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
                                                 >
@@ -441,7 +442,7 @@ const sortedPredictions = computed(() => {
                                                     {{ prediction.horizonLabel }}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-3 text-end">
+                                            <td dir="ltr" class="px-4 py-3 text-end">
                                                 <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                                     {{ prediction.confidence }}%
                                                 </span>
@@ -500,7 +501,7 @@ const sortedPredictions = computed(() => {
                                             <span class="font-medium">{{ mover.symbol }}</span>
                                             <span class="ms-1 text-xs text-muted-foreground">{{ mover.market.code }}</span>
                                         </div>
-                                        <span class="font-medium text-green-600 dark:text-green-400">
+                                        <span dir="ltr" class="font-medium text-green-600 dark:text-green-400">
                                             {{ formatGain(mover.priceChangePercent) }}
                                         </span>
                                     </LocalizedLink>
@@ -537,7 +538,7 @@ const sortedPredictions = computed(() => {
                                             <span class="font-medium">{{ prediction.asset.symbol }}</span>
                                             <span v-if="prediction.asset.market" class="ms-1 text-xs text-muted-foreground">{{ prediction.asset.market.code }}</span>
                                         </div>
-                                        <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                        <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                             {{ prediction.confidence }}%
                                         </span>
                                     </LocalizedLink>

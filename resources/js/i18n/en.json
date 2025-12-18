@@ -18,7 +18,13 @@
         "saved": "Saved.",
         "delete": "Delete",
         "cancel": "Cancel",
-        "logout": "Log out"
+        "logout": "Log out",
+        "toggleSidebar": "Toggle Sidebar",
+        "sidebar": "Sidebar",
+        "sidebarDescription": "Displays the mobile sidebar.",
+        "openMenu": "Open menu",
+        "navigationMenu": "Navigation Menu",
+        "more": "More"
     },
     "auth": {
         "login": {

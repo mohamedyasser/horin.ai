@@ -78,7 +78,7 @@ const navigateToAsset = (symbol: string) => {
                                 {{ t(`recommendations.actions.${rec.recommendation}`) }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-end">
+                        <td dir="ltr" class="px-4 py-3 text-end">
                             <span class="font-medium">{{ rec.score.toFixed(1) }}</span>
                         </td>
                         <td class="px-4 py-3 text-end text-sm text-muted-foreground">

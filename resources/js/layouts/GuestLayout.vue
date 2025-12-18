@@ -103,7 +103,7 @@ withDefaults(defineProps<Props>(), {
                         @click="mobileMenuOpen = true"
                     >
                         <Menu class="size-5" />
-                        <span class="sr-only">Open menu</span>
+                        <span class="sr-only">{{ t('common.openMenu') }}</span>
                     </Button>
                 </nav>
             </div>

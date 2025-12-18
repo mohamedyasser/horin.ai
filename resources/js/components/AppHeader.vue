@@ -36,6 +36,9 @@ import type { BreadcrumbItem, NavItem } from '@/types';
 import { InertiaLinkProps, Link, usePage } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -99,9 +102,7 @@ const rightNavItems: NavItem[] = [
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" class="w-[300px] p-6">
-                            <SheetTitle class="sr-only"
-                                >Navigation Menu</SheetTitle
-                            >
+                            <SheetTitle class="sr-only">{{ t('common.navigationMenu') }}</SheetTitle>
                             <SheetHeader class="flex justify-start text-start">
                                 <AppLogoIcon
                                     class="size-6 fill-current text-black dark:text-white"

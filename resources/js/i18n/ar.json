@@ -18,7 +18,13 @@
         "saved": "تم الحفظ.",
         "delete": "حذف",
         "cancel": "إلغاء",
-        "logout": "تسجيل الخروج"
+        "logout": "تسجيل الخروج",
+        "toggleSidebar": "تبديل الشريط الجانبي",
+        "sidebar": "الشريط الجانبي",
+        "sidebarDescription": "يعرض الشريط الجانبي للجوال.",
+        "openMenu": "افتح القائمة",
+        "navigationMenu": "قائمة التنقل",
+        "more": "المزيد"
     },
     "auth": {
         "login": {

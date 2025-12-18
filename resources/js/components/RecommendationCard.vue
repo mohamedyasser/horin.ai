@@ -95,7 +95,7 @@ const recommendationIsStale = computed(() => {
                 </div>
                 <div class="text-end">
                     <p class="text-sm text-muted-foreground">{{ t('recommendations.score') }}</p>
-                    <p class="text-xl font-bold">{{ recommendation.score.toFixed(1) }}</p>
+                    <p dir="ltr" class="text-xl font-bold">{{ recommendation.score.toFixed(1) }}</p>
                 </div>
             </div>
         </CardHeader>
@@ -143,7 +143,7 @@ const recommendationIsStale = computed(() => {
                             class="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm"
                         >
                             <span>{{ signal.indicator }} - {{ signal.signal_type }}</span>
-                            <span :class="getStrengthColor(signal.strength * 100)" class="font-medium">
+                            <span dir="ltr" :class="getStrengthColor(signal.strength * 100)" class="font-medium">
                                 {{ (signal.strength * 100).toFixed(0) }}%
                             </span>
                         </div>
@@ -194,7 +194,7 @@ const recommendationIsStale = computed(() => {
                             class="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm"
                         >
                             <span>{{ anomaly.anomaly_type }}</span>
-                            <span class="text-muted-foreground">
+                            <span dir="ltr" class="text-muted-foreground">
                                 {{ (anomaly.confidence_score * 100).toFixed(0) }}%
                             </span>
                         </div>

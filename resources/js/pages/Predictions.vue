@@ -422,14 +422,15 @@ const goToPage = (page: number) => {
                                                         {{ prediction.asset.market.code }}
                                                     </span>
                                                 </td>
-                                                <td class="px-4 py-3 text-end text-sm">
+                                                <td dir="ltr" class="px-4 py-3 text-end text-sm">
                                                     {{ prediction.asset.currentPrice?.toFixed(2) ?? '-' }}
                                                 </td>
-                                                <td class="px-4 py-3 text-end text-sm font-medium">
+                                                <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium">
                                                     {{ prediction.predictedPrice.toFixed(2) }}
                                                 </td>
                                                 <td class="px-4 py-3 text-end">
                                                     <span
+                                                        dir="ltr"
                                                         class="inline-flex items-center gap-0.5 font-medium"
                                                         :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
                                                     >
@@ -443,7 +444,7 @@ const goToPage = (page: number) => {
                                                         {{ prediction.horizonLabel }}
                                                     </span>
                                                 </td>
-                                                <td class="px-4 py-3 text-end">
+                                                <td dir="ltr" class="px-4 py-3 text-end">
                                                     <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                                         {{ prediction.confidence }}%
                                                     </span>
@@ -487,7 +488,7 @@ const goToPage = (page: number) => {
                                 >
                                     {{ t('common.previous') }}
                                 </Button>
-                                <span class="text-sm text-muted-foreground">
+                                <span dir="ltr" class="text-sm text-muted-foreground">
                                     {{ predictionsMeta.currentPage }} / {{ predictionsMeta.lastPage }}
                                 </span>
                                 <Button
@@ -528,7 +529,7 @@ const goToPage = (page: number) => {
                                             {{ prediction.asset.market.code }}
                                         </span>
                                     </div>
-                                    <span class="font-medium text-green-600 dark:text-green-400">
+                                    <span dir="ltr" class="font-medium text-green-600 dark:text-green-400">
                                         {{ formatGain(prediction.expectedGainPercent) }}
                                     </span>
                                 </LocalizedLink>
@@ -559,7 +560,7 @@ const goToPage = (page: number) => {
                                             {{ prediction.asset.market.code }}
                                         </span>
                                     </div>
-                                    <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                    <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                         {{ prediction.confidence }}%
                                     </span>
                                 </LocalizedLink>

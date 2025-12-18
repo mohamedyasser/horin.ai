@@ -211,8 +211,9 @@ const isPredictionsOpen = ref(true);
                     <!-- Current Price -->
                     <div v-if="price" class="flex flex-col items-start lg:items-end">
                         <div class="flex items-baseline gap-3">
-                            <span class="text-3xl font-bold">{{ formatPrice(price.last) }}</span>
+                            <span dir="ltr" class="text-3xl font-bold">{{ formatPrice(price.last) }}</span>
                             <span
+                                dir="ltr"
                                 class="flex items-center gap-1 text-lg font-medium"
                                 :class="priceChangeIsPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
                             >
@@ -265,30 +266,31 @@ const isPredictionsOpen = ref(true);
                             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                 <div>
                                     <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.current') }}</p>
-                                    <p class="text-lg font-semibold">{{ formatPrice(price.last) }}</p>
+                                    <p dir="ltr" class="text-lg font-semibold">{{ formatPrice(price.last) }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.lastClose') }}</p>
-                                    <p class="text-lg font-semibold">{{ formatPrice(price.previousClose) }}</p>
+                                    <p dir="ltr" class="text-lg font-semibold">{{ formatPrice(price.previousClose) }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.high') }}</p>
-                                    <p class="text-lg font-semibold text-green-600 dark:text-green-400">{{ formatPrice(price.high) }}</p>
+                                    <p dir="ltr" class="text-lg font-semibold text-green-600 dark:text-green-400">{{ formatPrice(price.high) }}</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.low') }}</p>
-                                    <p class="text-lg font-semibold text-red-600 dark:text-red-400">{{ formatPrice(price.low) }}</p>
+                                    <p dir="ltr" class="text-lg font-semibold text-red-600 dark:text-red-400">{{ formatPrice(price.low) }}</p>
                                 </div>
                             </div>
                             <div class="mt-4 pt-4 border-t border-border">
                                 <div class="flex items-center justify-between">
                                     <div>
                                         <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.volume') }}</p>
-                                        <p class="text-lg font-semibold">{{ formatVolume(price.volume) }}</p>
+                                        <p dir="ltr" class="text-lg font-semibold">{{ formatVolume(price.volume) }}</p>
                                     </div>
                                     <div class="text-end">
                                         <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.change') }}</p>
                                         <p
+                                            dir="ltr"
                                             class="text-lg font-semibold"
                                             :class="priceChangeIsPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
                                         >
@@ -342,6 +344,7 @@ const isPredictionsOpen = ref(true);
                                                                 {{ prediction.horizonLabel }}
                                                             </span>
                                                             <span
+                                                                dir="ltr"
                                                                 :class="[getConfidenceBgColor(prediction.confidence), getConfidenceColor(prediction.confidence)]"
                                                                 class="rounded-full px-2.5 py-1 text-xs font-medium"
                                                             >
@@ -349,8 +352,9 @@ const isPredictionsOpen = ref(true);
                                                             </span>
                                                         </div>
                                                         <div class="mt-3 flex items-baseline gap-2">
-                                                            <span class="text-2xl font-bold">{{ formatPrice(prediction.predictedPrice) }}</span>
+                                                            <span dir="ltr" class="text-2xl font-bold">{{ formatPrice(prediction.predictedPrice) }}</span>
                                                             <span
+                                                                dir="ltr"
                                                                 class="flex items-center gap-0.5 text-lg font-medium"
                                                                 :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
                                                             >
@@ -454,7 +458,7 @@ const isPredictionsOpen = ref(true);
                                         <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.rsiDesc') }}</p>
                                     </div>
                                     <div class="text-end">
-                                        <p class="font-bold">{{ indicators.rsi?.toFixed(1) }}</p>
+                                        <p dir="ltr" class="font-bold">{{ indicators.rsi?.toFixed(1) }}</p>
                                         <p v-if="getRsiSignal(indicators.rsi)" :class="getRsiSignal(indicators.rsi)?.color" class="text-xs font-medium">
                                             {{ t(`assetDetail.indicators.${getRsiSignal(indicators.rsi)?.key}`) }}
                                         </p>
@@ -468,7 +472,7 @@ const isPredictionsOpen = ref(true);
                                         <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.macdDesc') }}</p>
                                     </div>
                                     <div class="text-end">
-                                        <p class="font-bold">{{ indicators.macd?.line?.toFixed(2) }}</p>
+                                        <p dir="ltr" class="font-bold">{{ indicators.macd?.line?.toFixed(2) }}</p>
                                         <p v-if="getMacdSignal(indicators.macd?.line)" :class="getMacdSignal(indicators.macd?.line)?.color" class="text-xs font-medium">
                                             {{ t(`assetDetail.indicators.${getMacdSignal(indicators.macd?.line)?.key}`) }}
                                         </p>
@@ -481,7 +485,7 @@ const isPredictionsOpen = ref(true);
                                         <p class="font-medium">{{ t('assetDetail.indicators.ema') }}</p>
                                         <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.emaDesc') }}</p>
                                     </div>
-                                    <p class="font-bold">{{ indicators.ema?.toFixed(2) }}</p>
+                                    <p dir="ltr" class="font-bold">{{ indicators.ema?.toFixed(2) }}</p>
                                 </div>
 
                                 <!-- SMA -->
@@ -490,7 +494,7 @@ const isPredictionsOpen = ref(true);
                                         <p class="font-medium">{{ t('assetDetail.indicators.sma') }}</p>
                                         <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.smaDesc') }}</p>
                                     </div>
-                                    <p class="font-bold">{{ indicators.sma?.toFixed(2) }}</p>
+                                    <p dir="ltr" class="font-bold">{{ indicators.sma?.toFixed(2) }}</p>
                                 </div>
 
                                 <!-- ATR -->
@@ -499,7 +503,7 @@ const isPredictionsOpen = ref(true);
                                         <p class="font-medium">{{ t('assetDetail.indicators.atr') }}</p>
                                         <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.atrDesc') }}</p>
                                     </div>
-                                    <p class="font-bold">{{ indicators.atr?.toFixed(2) }}</p>
+                                    <p dir="ltr" class="font-bold">{{ indicators.atr?.toFixed(2) }}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -541,14 +545,14 @@ const isPredictionsOpen = ref(true);
                                         class="flex items-center justify-between py-2 border-b border-border last:border-0"
                                     >
                                         <div>
-                                            <p class="font-medium">{{ formatPrice(prediction.predictedPrice) }}</p>
+                                            <p dir="ltr" class="font-medium">{{ formatPrice(prediction.predictedPrice) }}</p>
                                             <p class="text-xs text-muted-foreground">{{ formatShortDate(prediction.timestamp) }}</p>
                                         </div>
                                         <div class="text-end">
                                             <span class="rounded bg-muted px-2 py-0.5 text-xs font-medium">
                                                 {{ prediction.horizonLabel }}
                                             </span>
-                                            <p :class="getConfidenceColor(prediction.confidence)" class="text-sm font-medium mt-1">
+                                            <p dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="text-sm font-medium mt-1">
                                                 {{ prediction.confidence }}%
                                             </p>
                                         </div>
