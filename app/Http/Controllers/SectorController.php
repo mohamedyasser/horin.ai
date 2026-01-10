@@ -116,13 +116,15 @@ class SectorController extends Controller
             $results = SearchService::searchAssetsInSector($sector->id, $search, 10, $page);
 
             // Filter by market if specified (post-search filter)
-            $data = collect($results->items());
+            // Also filter out assets with inactive markets
+            $data = collect($results->items())
+                ->filter(fn ($asset) => $asset->market !== null);
             if ($marketId) {
-                $data = $data->filter(fn ($asset) => $asset->market_id === $marketId)->values();
+                $data = $data->filter(fn ($asset) => $asset->market_id === $marketId);
             }
 
             return [
-                'data' => $data->map(fn ($asset) => [
+                'data' => $data->values()->map(fn ($asset) => [
                     'id' => $asset->id,
                     'symbol' => $asset->symbol,
                     'name' => $asset->name,
@@ -150,7 +152,9 @@ class SectorController extends Controller
         }
 
         // Default: no search, just filter and paginate
+        // Only include assets with active markets
         $query = Asset::where('sector_id', $sector->id)
+            ->whereHas('market') // This uses the global scope to filter active markets
             ->with(['market', 'cachedPrice', 'cachedPrediction']);
 
         if ($marketId) {

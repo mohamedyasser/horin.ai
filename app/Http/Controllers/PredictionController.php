@@ -124,7 +124,7 @@ class PredictionController extends Controller
         $predictions = $query->paginate(20);
 
         $data = $predictions
-            ->filter(fn ($p) => $p->asset !== null)
+            ->filter(fn ($p) => $p->asset !== null && $p->asset->market !== null)
             ->map(fn ($p) => $this->formatPrediction($p));
 
         return [

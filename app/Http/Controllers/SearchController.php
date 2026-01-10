@@ -58,28 +58,31 @@ class SearchController extends Controller
         $invIds = collect($results->items())->pluck('inv_id')->filter()->toArray();
         $prices = LatestAssetPrice::whereIn('pid', $invIds)->get()->keyBy('pid');
 
-        $data = collect($results->items())->map(function ($asset) use ($locale, $prices) {
-            $price = $prices[$asset->inv_id] ?? null;
+        // Filter out assets with inactive markets
+        $data = collect($results->items())
+            ->filter(fn ($asset) => $asset->market !== null)
+            ->map(function ($asset) use ($locale, $prices) {
+                $price = $prices[$asset->inv_id] ?? null;
 
-            return [
-                'id' => $asset->id,
-                'symbol' => $asset->symbol,
-                'name' => $locale === 'ar' ? $asset->name_ar : $asset->name_en,
-                'market' => $asset->market ? [
-                    'id' => $asset->market->id,
-                    'code' => $asset->market->code,
-                    'name' => $locale === 'ar' ? $asset->market->name_ar : $asset->market->name_en,
-                ] : null,
-                'sector' => $asset->sector ? [
-                    'id' => $asset->sector->id,
-                    'name' => $locale === 'ar' ? $asset->sector->name_ar : $asset->sector->name_en,
-                ] : null,
-                'latestPrice' => $price ? [
-                    'last' => $price->price,
-                    'pcp' => $price->percent_change,
-                ] : null,
-            ];
-        })->toArray();
+                return [
+                    'id' => $asset->id,
+                    'symbol' => $asset->symbol,
+                    'name' => $locale === 'ar' ? $asset->name_ar : $asset->name_en,
+                    'market' => $asset->market ? [
+                        'id' => $asset->market->id,
+                        'code' => $asset->market->code,
+                        'name' => $locale === 'ar' ? $asset->market->name_ar : $asset->market->name_en,
+                    ] : null,
+                    'sector' => $asset->sector ? [
+                        'id' => $asset->sector->id,
+                        'name' => $locale === 'ar' ? $asset->sector->name_ar : $asset->sector->name_en,
+                    ] : null,
+                    'latestPrice' => $price ? [
+                        'last' => $price->price,
+                        'pcp' => $price->percent_change,
+                    ] : null,
+                ];
+            })->toArray();
 
         return [
             'data' => $data,

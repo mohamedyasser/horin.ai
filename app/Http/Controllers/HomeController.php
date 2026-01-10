@@ -140,10 +140,11 @@ class HomeController extends Controller
         }
 
         // Order by timestamp (newest first) and get results
+        // Filter out predictions where asset or market is null (inactive markets)
         $predictions = $query->orderByDesc('timestamp')
             ->limit(100) // Get more to allow for deduplication
             ->get()
-            ->filter(fn ($p) => $p->asset !== null);
+            ->filter(fn ($p) => $p->asset !== null && $p->asset->market !== null);
 
         // Deduplicate: keep only the latest prediction per asset (pid)
         $uniquePredictions = $predictions
@@ -169,6 +170,7 @@ class HomeController extends Controller
         return Asset::with(['market', 'cachedPrice'])
             ->whereHas('cachedPrice')
             ->get()
+            ->filter(fn ($asset) => $asset->market !== null)
             ->sortByDesc(fn ($a) => (float) str_replace('%', '', $a->cachedPrice->percent_change ?? '0'))
             ->take(5)
             ->map(fn ($asset) => [
@@ -190,7 +192,7 @@ class HomeController extends Controller
             ->orderByDesc('timestamp')
             ->limit(5)
             ->get()
-            ->filter(fn ($p) => $p->asset !== null)
+            ->filter(fn ($p) => $p->asset !== null && $p->asset->market !== null)
             ->map(function ($p) {
                 $timestamp = $p->timestamp ? Carbon::createFromTimestamp($p->timestamp) : null;
                 $horizonMinutes = $p->horizon_minutes ?? Horizon::minutes($p->horizon);
@@ -294,7 +296,7 @@ class HomeController extends Controller
         $recommendations = $query->orderByDesc('score')
             ->limit(20)
             ->get()
-            ->filter(fn ($r) => $r->asset !== null);
+            ->filter(fn ($r) => $r->asset !== null && $r->asset->market !== null);
 
         return [
             'data' => $recommendations->map(fn ($r) => [
@@ -321,7 +323,7 @@ class HomeController extends Controller
             ->orderByDesc('score')
             ->limit(5)
             ->get()
-            ->filter(fn ($r) => $r->asset !== null)
+            ->filter(fn ($r) => $r->asset !== null && $r->asset->market !== null)
             ->map(fn ($r) => [
                 'id' => $r->id,
                 'pid' => $r->pid,
@@ -345,7 +347,7 @@ class HomeController extends Controller
             ->orderByDesc('score')
             ->limit(5)
             ->get()
-            ->filter(fn ($r) => $r->asset !== null)
+            ->filter(fn ($r) => $r->asset !== null && $r->asset->market !== null)
             ->map(fn ($r) => [
                 'id' => $r->id,
                 'pid' => $r->pid,
@@ -368,7 +370,7 @@ class HomeController extends Controller
             ->orderByDesc('created_at')
             ->limit(5)
             ->get()
-            ->filter(fn ($r) => $r->asset !== null)
+            ->filter(fn ($r) => $r->asset !== null && $r->asset->market !== null)
             ->map(fn ($r) => [
                 'id' => $r->id,
                 'pid' => $r->pid,
