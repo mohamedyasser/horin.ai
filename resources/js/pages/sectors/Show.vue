@@ -4,6 +4,7 @@ import { Head, router, Deferred } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
+import AssetDisplay from '@/components/AssetDisplay.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -181,7 +182,12 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                                 @click="router.visit(`/${locale}/assets/${asset.symbol}`)"
                                             >
                                                 <td class="px-4 py-3">
-                                                    <span class="font-medium">{{ asset.symbol }}</span>
+                                                    <AssetDisplay
+                                                        :symbol="asset.symbol"
+                                                        :show-name="false"
+                                                        :show-logo="false"
+                                                        size="md"
+                                                    />
                                                 </td>
                                                 <td class="px-4 py-3 text-sm text-muted-foreground">
                                                     {{ asset.name }}
@@ -326,12 +332,13 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                         :href="`/assets/${asset.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
-                                        <div>
-                                            <span class="font-medium">{{ asset.symbol }}</span>
-                                            <span v-if="asset.market" class="ms-1 text-xs text-muted-foreground">
-                                                {{ asset.market.code }}
-                                            </span>
-                                        </div>
+                                        <AssetDisplay
+                                            :symbol="asset.symbol"
+                                            :market-code="asset.market?.code"
+                                            :show-name="false"
+                                            :show-logo="false"
+                                            size="sm"
+                                        />
                                         <span class="font-medium text-green-600 dark:text-green-400">
                                             {{ formatGain(calculateGainPercent(asset)) }}
                                         </span>
@@ -367,12 +374,13 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                         :href="`/assets/${asset.symbol}`"
                                         class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                     >
-                                        <div>
-                                            <span class="font-medium">{{ asset.symbol }}</span>
-                                            <span v-if="asset.market" class="ms-1 text-xs text-muted-foreground">
-                                                {{ asset.market.code }}
-                                            </span>
-                                        </div>
+                                        <AssetDisplay
+                                            :symbol="asset.symbol"
+                                            :market-code="asset.market?.code"
+                                            :show-name="false"
+                                            :show-logo="false"
+                                            size="sm"
+                                        />
                                         <span v-if="asset.latestPrediction" :class="getConfidenceColor(asset.latestPrediction.confidence)" class="font-medium">
                                             {{ asset.latestPrediction.confidence }}%
                                         </span>

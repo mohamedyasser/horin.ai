@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
 import FilterButtonBar from '@/components/FilterButtonBar.vue';
 import ClickableTableRow from '@/components/ClickableTableRow.vue';
+import AssetDisplay from '@/components/AssetDisplay.vue';
 import { SearchableSelect } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -401,15 +402,13 @@ const goToPage = (page: number) => {
                                                 @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
                                             >
                                                 <td class="px-4 py-3">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="font-medium">{{ prediction.asset.symbol }}</span>
-                                                        <span
-                                                            v-if="prediction.asset.sector"
-                                                            class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
-                                                        >
-                                                            {{ prediction.asset.sector.name }}
-                                                        </span>
-                                                    </div>
+                                                    <AssetDisplay
+                                                        :symbol="prediction.asset.symbol"
+                                                        :sector-name="prediction.asset.sector?.name"
+                                                        :show-name="false"
+                                                        :show-logo="false"
+                                                        size="md"
+                                                    />
                                                 </td>
                                                 <td class="px-4 py-3 text-sm text-muted-foreground">
                                                     {{ prediction.asset.name }}
@@ -523,12 +522,13 @@ const goToPage = (page: number) => {
                                     :href="`/assets/${prediction.asset.symbol}`"
                                     class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                 >
-                                    <div>
-                                        <span class="font-medium">{{ prediction.asset.symbol }}</span>
-                                        <span v-if="prediction.asset.market" class="ms-1 text-xs text-muted-foreground">
-                                            {{ prediction.asset.market.code }}
-                                        </span>
-                                    </div>
+                                    <AssetDisplay
+                                        :symbol="prediction.asset.symbol"
+                                        :market-code="prediction.asset.market?.code"
+                                        :show-name="false"
+                                        :show-logo="false"
+                                        size="sm"
+                                    />
                                     <span dir="ltr" class="font-medium text-green-600 dark:text-green-400">
                                         {{ formatGain(prediction.expectedGainPercent) }}
                                     </span>
@@ -554,12 +554,13 @@ const goToPage = (page: number) => {
                                     :href="`/assets/${prediction.asset.symbol}`"
                                     class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
                                 >
-                                    <div>
-                                        <span class="font-medium">{{ prediction.asset.symbol }}</span>
-                                        <span v-if="prediction.asset.market" class="ms-1 text-xs text-muted-foreground">
-                                            {{ prediction.asset.market.code }}
-                                        </span>
-                                    </div>
+                                    <AssetDisplay
+                                        :symbol="prediction.asset.symbol"
+                                        :market-code="prediction.asset.market?.code"
+                                        :show-name="false"
+                                        :show-logo="false"
+                                        size="sm"
+                                    />
                                     <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                         {{ prediction.confidence }}%
                                     </span>

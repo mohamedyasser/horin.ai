@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
+import AssetDisplay from '@/components/AssetDisplay.vue';
 
 interface Props {
     symbol: string;
@@ -20,12 +21,13 @@ const props = defineProps<Props>();
             props.class,
         ]"
     >
-        <div>
-            <span class="font-medium">{{ symbol }}</span>
-            <span v-if="marketCode" class="ms-1 text-xs text-muted-foreground">
-                {{ marketCode }}
-            </span>
-        </div>
+        <AssetDisplay
+            :symbol="symbol"
+            :market-code="marketCode"
+            :show-name="false"
+            :show-logo="false"
+            size="sm"
+        />
         <slot name="value" />
     </LocalizedLink>
 </template>

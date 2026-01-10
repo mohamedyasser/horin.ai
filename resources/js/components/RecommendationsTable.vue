@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { TrendingUp, TrendingDown, Minus, Search } from 'lucide-vue-next';
 import { useRecommendationFormatters } from '@/composables/useRecommendationFormatters';
 import ClickableTableRow from '@/components/ClickableTableRow.vue';
+import AssetDisplay from '@/components/AssetDisplay.vue';
 import type { Recommendation } from '@/types';
 
 const { t, locale } = useI18n();
@@ -59,12 +60,14 @@ const navigateToAsset = (symbol: string) => {
                         @click="navigateToAsset(rec.asset?.symbol ?? '')"
                     >
                         <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <span class="font-medium">{{ rec.asset?.symbol }}</span>
-                                <span v-if="rec.asset?.market" class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                                    {{ rec.asset.market.code }}
-                                </span>
-                            </div>
+                            <AssetDisplay
+                                v-if="rec.asset"
+                                :symbol="rec.asset.symbol"
+                                :market-code="rec.asset.market?.code"
+                                :show-name="false"
+                                :show-logo="false"
+                                size="md"
+                            />
                         </td>
                         <td class="px-4 py-3 text-sm text-muted-foreground">
                             {{ rec.asset?.name }}
