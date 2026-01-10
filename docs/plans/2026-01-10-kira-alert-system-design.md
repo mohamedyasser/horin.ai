@@ -724,7 +724,975 @@ The alert system integrates with existing Redis Pub/Sub channels from the ML pip
 
 ---
 
+## Price Feed Integration
+
+Price-based alerts require real-time price data. Unlike intelligence alerts which use Redis Pub/Sub, price alerts poll from the database and Redis cache.
+
+### Price Data Sources
+
+| Source | Location | Format | Freshness |
+|--------|----------|--------|-----------|
+| Latest prices | `latest_asset_prices` (materialized view) | SQL | Every tick |
+| Redis cache | `price:{symbol}` | JSON | 1 second TTL |
+| OHLCV candles | `asset_prices` (TimescaleDB) | SQL | Historical |
+| Market status | `market:status` Redis key | JSON | On change |
+
+### Price Cache Structure
+
+```json
+{
+  "symbol": "COMI",
+  "price": 52.50,
+  "open": 50.35,
+  "high": 52.80,
+  "low": 50.10,
+  "prev_close": 50.35,
+  "volume": 3250000,
+  "change": 2.15,
+  "change_percent": 4.27,
+  "bid": 52.45,
+  "ask": 52.55,
+  "updated_at": "2026-01-10T10:45:00+02:00"
+}
+```
+
+### Price Alert Processing Flow
+
+```php
+// app/Jobs/Alerts/ProcessPriceAlerts.php
+
+public function handle()
+{
+    // 1. Get all assets with active price alerts
+    $assetIds = Alert::where('type', 'price')
+        ->where('status', 'active')
+        ->whereNull('snoozed_until')
+        ->orWhere('snoozed_until', '<', now())
+        ->distinct()
+        ->pluck('asset_id');
+
+    // 2. Batch fetch latest prices
+    $prices = LatestAssetPrice::whereIn('asset_id', $assetIds)
+        ->get()
+        ->keyBy('asset_id');
+
+    // 3. Fetch alerts grouped by asset for efficiency
+    $alertsByAsset = Alert::where('type', 'price')
+        ->where('status', 'active')
+        ->whereIn('asset_id', $assetIds)
+        ->get()
+        ->groupBy('asset_id');
+
+    // 4. Process each asset's alerts
+    foreach ($alertsByAsset as $assetId => $alerts) {
+        $price = $prices->get($assetId);
+        if (!$price) continue;
+
+        foreach ($alerts as $alert) {
+            $this->evaluateAlert($alert, $price);
+        }
+    }
+}
+```
+
+### Market Hours Awareness
+
+```php
+// Only process during market hours (10:00 AM - 2:30 PM Cairo)
+private function isMarketOpen(): bool
+{
+    $cairo = new DateTimeZone('Africa/Cairo');
+    $now = new DateTime('now', $cairo);
+
+    $dayOfWeek = (int) $now->format('N');
+    if ($dayOfWeek >= 6) return false; // Weekend
+
+    $time = $now->format('H:i');
+    return $time >= '10:00' && $time <= '14:30';
+}
+```
+
+---
+
+## Alert Matching Optimization
+
+Efficient alert matching is critical when processing thousands of active alerts against real-time data.
+
+### Database Indexes
+
+```sql
+-- alerts table indexes
+CREATE INDEX idx_alerts_user_status ON alerts(user_id, status);
+CREATE INDEX idx_alerts_asset_type_status ON alerts(asset_id, type, status)
+    WHERE status = 'active';
+CREATE INDEX idx_alerts_type_status ON alerts(type, status)
+    WHERE status = 'active';
+CREATE INDEX idx_alerts_expires ON alerts(expires_at)
+    WHERE expires_at IS NOT NULL AND status = 'active';
+CREATE INDEX idx_alerts_snoozed ON alerts(snoozed_until)
+    WHERE snoozed_until IS NOT NULL;
+
+-- Partial index for price alerts specifically
+CREATE INDEX idx_alerts_price_active ON alerts(asset_id, trigger_type)
+    WHERE type = 'price' AND status = 'active';
+
+-- JSON path indexes for common queries
+CREATE INDEX idx_alerts_target_price ON alerts
+    USING gin ((parameters->'target_price'));
+
+-- alert_history indexes
+CREATE INDEX idx_history_user_triggered ON alert_history(user_id, triggered_at DESC);
+CREATE INDEX idx_history_alert ON alert_history(alert_id, triggered_at DESC);
+CREATE INDEX idx_history_asset ON alert_history(asset_id, triggered_at DESC);
+
+-- notifications indexes
+CREATE INDEX idx_notifications_user_status ON notifications(user_id, status, created_at DESC);
+CREATE INDEX idx_notifications_scheduled ON notifications(scheduled_at)
+    WHERE status = 'pending';
+CREATE INDEX idx_notifications_escalation ON notifications(escalation_level, escalated_at)
+    WHERE escalation_level > 0;
+```
+
+### In-Memory Alert Cache
+
+```php
+// app/Services/AlertCacheService.php
+
+class AlertCacheService
+{
+    private const CACHE_TTL = 60; // seconds
+
+    /**
+     * Cache active alerts by asset for fast lookup
+     */
+    public function cacheActiveAlerts(): void
+    {
+        $alerts = Alert::where('status', 'active')
+            ->whereNull('snoozed_until')
+            ->orWhere('snoozed_until', '<', now())
+            ->get();
+
+        // Group by asset_id
+        $byAsset = $alerts->groupBy('asset_id');
+        foreach ($byAsset as $assetId => $assetAlerts) {
+            Cache::put(
+                "active_alerts:asset:{$assetId}",
+                $assetAlerts->toArray(),
+                self::CACHE_TTL
+            );
+        }
+
+        // Group by type for intelligence alerts
+        $byType = $alerts->groupBy('type');
+        foreach ($byType as $type => $typeAlerts) {
+            Cache::put(
+                "active_alerts:type:{$type}",
+                $typeAlerts->toArray(),
+                self::CACHE_TTL
+            );
+        }
+
+        // Store asset IDs with active alerts in a set
+        Redis::del('active_alert_assets');
+        Redis::sadd('active_alert_assets', ...$byAsset->keys()->toArray());
+    }
+
+    /**
+     * Get alerts for a specific asset
+     */
+    public function getAlertsForAsset(string $assetId): Collection
+    {
+        return Cache::remember(
+            "active_alerts:asset:{$assetId}",
+            self::CACHE_TTL,
+            fn() => Alert::where('asset_id', $assetId)
+                ->where('status', 'active')
+                ->get()
+        );
+    }
+
+    /**
+     * Check if asset has any active alerts (O(1) lookup)
+     */
+    public function hasActiveAlerts(string $assetId): bool
+    {
+        return Redis::sismember('active_alert_assets', $assetId);
+    }
+}
+```
+
+### Optimized Matching Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Event Arrives (price update or ML signal)                │
+└─────────────────────────────────┬───────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Quick Check: Does this asset have any active alerts?     │
+│    Redis SISMEMBER 'active_alert_assets' {asset_id}         │
+│    If NO → Skip (O(1))                                      │
+└─────────────────────────────────┬───────────────────────────┘
+                                  │ YES
+                                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. Load alerts from cache                                   │
+│    Cache::get("active_alerts:asset:{asset_id}")             │
+│    If miss → Query DB and cache (O(log n))                  │
+└─────────────────────────────────┬───────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Filter alerts by type matching event                     │
+│    Price event → price alerts only                          │
+│    Signal event → signal/compound alerts only               │
+└─────────────────────────────────┬───────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 5. Evaluate each matching alert                             │
+│    Check trigger condition                                  │
+│    Check cooldown                                           │
+│    Check rate limits                                        │
+└─────────────────────────────────┬───────────────────────────┘
+                                  │
+                                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 6. Queue notifications for triggered alerts                 │
+│    SendAlertNotification::dispatch($alert, $data)           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Cache Invalidation
+
+```php
+// Invalidate cache when alert is created/updated/deleted
+Alert::created(fn($alert) => app(AlertCacheService::class)->invalidateAsset($alert->asset_id));
+Alert::updated(fn($alert) => app(AlertCacheService::class)->invalidateAsset($alert->asset_id));
+Alert::deleted(fn($alert) => app(AlertCacheService::class)->invalidateAsset($alert->asset_id));
+```
+
+---
+
+## Scope Resolution
+
+Alerts can target single assets, watchlists, portfolios, sectors, or the entire market.
+
+### Scope Types
+
+| Scope | Description | Use Case |
+|-------|-------------|----------|
+| `single_asset` | One specific asset | "Alert me when COMI hits 52 EGP" |
+| `watchlist` | All assets in user's watchlist | "Alert me when any watchlist stock gaps up 5%" |
+| `portfolio` | All assets user owns | "Alert me when any holding drops 10%" |
+| `sector` | All assets in a sector | "Alert me when any bank stock is oversold" |
+| `market` | All active assets | "Alert me on any 52-week high" (premium) |
+
+### Scope Resolution Logic
+
+```php
+// app/Services/AlertScopeResolver.php
+
+class AlertScopeResolver
+{
+    /**
+     * Resolve which assets an alert applies to
+     */
+    public function resolveAssets(Alert $alert): Collection
+    {
+        return match ($alert->scope) {
+            'single_asset' => collect([$alert->asset_id]),
+
+            'watchlist' => $alert->user
+                ->watchlist()
+                ->pluck('asset_id'),
+
+            'portfolio' => $alert->user
+                ->portfolioHoldings()
+                ->where('quantity', '>', 0)
+                ->pluck('asset_id'),
+
+            'sector' => Asset::where('sector_id', $alert->parameters['sector_id'])
+                ->where('is_active', true)
+                ->pluck('id'),
+
+            'market' => Asset::where('is_active', true)
+                ->pluck('id'),
+
+            default => collect([]),
+        };
+    }
+
+    /**
+     * Check if an event matches an alert's scope
+     */
+    public function matchesScope(Alert $alert, string $eventAssetId): bool
+    {
+        if ($alert->scope === 'single_asset') {
+            return $alert->asset_id === $eventAssetId;
+        }
+
+        // For multi-asset scopes, check membership
+        $assets = $this->resolveAssets($alert);
+        return $assets->contains($eventAssetId);
+    }
+
+    /**
+     * Get entry price for portfolio alerts
+     */
+    public function getEntryPrice(Alert $alert, string $assetId): ?float
+    {
+        if ($alert->scope !== 'portfolio') {
+            return $alert->parameters['entry_price'] ?? null;
+        }
+
+        $holding = $alert->user
+            ->portfolioHoldings()
+            ->where('asset_id', $assetId)
+            ->first();
+
+        return $holding?->average_cost;
+    }
+}
+```
+
+### Multi-Asset Alert History
+
+When a watchlist/portfolio alert triggers for multiple assets:
+
+```php
+// Create separate history entry per triggered asset
+foreach ($triggeredAssets as $assetId => $triggerData) {
+    AlertHistory::create([
+        'alert_id' => $alert->id,
+        'user_id' => $alert->user_id,
+        'asset_id' => $assetId,  // Specific asset that triggered
+        'triggered_at' => now(),
+        'trigger_value' => $triggerData['value'],
+        'trigger_context' => $triggerData['context'],
+    ]);
+}
+```
+
+---
+
+## Failure Handling & Recovery
+
+### Redis Subscriber Recovery
+
+```php
+// app/Console/Commands/AlertsListen.php
+
+class AlertsListen extends Command
+{
+    private int $reconnectAttempts = 0;
+    private const MAX_RECONNECT_DELAY = 30; // seconds
+
+    public function handle()
+    {
+        while (true) {
+            try {
+                $this->subscribeToChannels();
+            } catch (ConnectionException $e) {
+                $this->handleDisconnection($e);
+            }
+        }
+    }
+
+    private function handleDisconnection(ConnectionException $e): void
+    {
+        $this->reconnectAttempts++;
+        $delay = min(
+            pow(2, $this->reconnectAttempts), // Exponential backoff
+            self::MAX_RECONNECT_DELAY
+        );
+
+        Log::warning("Redis disconnected, reconnecting in {$delay}s", [
+            'attempt' => $this->reconnectAttempts,
+            'error' => $e->getMessage()
+        ]);
+
+        // Alert ops if too many failures
+        if ($this->reconnectAttempts >= 5) {
+            $this->alertOpsTeam('Redis subscriber failing', $e);
+        }
+
+        sleep($delay);
+    }
+
+    private function subscribeToChannels(): void
+    {
+        $redis = Redis::connection('pubsub');
+
+        // Reset counter on successful connection
+        $this->reconnectAttempts = 0;
+
+        $redis->subscribe($this->getAllChannels(), function ($message, $channel) {
+            $this->processMessage($message, $channel);
+        });
+    }
+}
+```
+
+### Notification Delivery Failures
+
+```php
+// app/Jobs/SendAlertNotification.php
+
+class SendAlertNotification implements ShouldQueue
+{
+    public int $tries = 3;
+    public array $backoff = [10, 60, 300]; // seconds
+
+    public function handle(): void
+    {
+        $notification = $this->createNotificationRecord();
+
+        try {
+            $this->sendToChannels($notification);
+            $notification->update(['status' => 'sent', 'sent_at' => now()]);
+        } catch (TelegramRateLimitException $e) {
+            // Respect Telegram's Retry-After header
+            $this->release($e->retryAfter);
+        } catch (TelegramBadRequestException $e) {
+            // Don't retry, log and notify admin
+            $notification->update([
+                'status' => 'failed',
+                'failed_reason' => $e->getMessage()
+            ]);
+            Log::error('Telegram bad request', ['error' => $e->getMessage()]);
+        } catch (PushTokenInvalidException $e) {
+            // Mark user's push token as invalid
+            $this->alert->user->update(['push_token' => null]);
+            $notification->update(['status' => 'failed', 'failed_reason' => 'invalid_token']);
+        }
+    }
+
+    public function failed(\Throwable $e): void
+    {
+        // Move to dead letter queue after all retries exhausted
+        FailedNotification::create([
+            'notification_id' => $this->notification->id,
+            'alert_id' => $this->alert->id,
+            'user_id' => $this->alert->user_id,
+            'error' => $e->getMessage(),
+            'payload' => $this->data,
+            'failed_at' => now()
+        ]);
+    }
+}
+```
+
+### Idempotency
+
+```php
+// Prevent duplicate notifications
+private function createNotificationRecord(): Notification
+{
+    $uniqueKey = "{$this->alert->id}:{$this->triggerTimestamp}";
+
+    return Notification::firstOrCreate(
+        ['idempotency_key' => $uniqueKey],
+        [
+            'user_id' => $this->alert->user_id,
+            'alert_id' => $this->alert->id,
+            'type' => 'alert.triggered',
+            'status' => 'pending',
+            // ... other fields
+        ]
+    );
+}
+```
+
+### Dead Letter Queue Processing
+
+```php
+// app/Jobs/ProcessFailedNotifications.php
+// Runs daily to review and retry failed notifications
+
+Schedule::job(new ProcessFailedNotifications())
+    ->dailyAt('04:00')
+    ->timezone('Africa/Cairo');
+```
+
+---
+
+## Monitoring & Observability
+
+### Key Metrics
+
+```php
+// app/Services/AlertMetricsService.php
+
+class AlertMetricsService
+{
+    public function recordAlertTriggered(Alert $alert): void
+    {
+        // Counter: total alerts triggered
+        Metrics::counter('alerts.triggered.total', 1, [
+            'type' => $alert->type,
+            'trigger_type' => $alert->trigger_type,
+            'priority' => $alert->priority,
+        ]);
+    }
+
+    public function recordNotificationSent(Notification $notification): void
+    {
+        Metrics::counter('notifications.sent.total', 1, [
+            'channel' => $notification->channel,
+            'priority' => $notification->priority,
+        ]);
+    }
+
+    public function recordNotificationFailed(Notification $notification, string $reason): void
+    {
+        Metrics::counter('notifications.failed.total', 1, [
+            'channel' => $notification->channel,
+            'reason' => $reason,
+        ]);
+    }
+
+    public function recordProcessingLatency(string $type, float $durationMs): void
+    {
+        Metrics::histogram('alerts.processing.duration_ms', $durationMs, [
+            'type' => $type,
+        ]);
+    }
+}
+```
+
+### Metrics Dashboard
+
+| Metric | Type | Labels | Alert Threshold |
+|--------|------|--------|-----------------|
+| `alerts.active.count` | Gauge | type, scope | - |
+| `alerts.triggered.total` | Counter | type, trigger_type, priority | - |
+| `alerts.processing.duration_ms` | Histogram | type | p99 > 1000ms |
+| `notifications.sent.total` | Counter | channel, priority | - |
+| `notifications.failed.total` | Counter | channel, reason | rate > 5% |
+| `notifications.delivery.latency_ms` | Histogram | channel | p99 > 5000ms |
+| `redis.subscriber.connected` | Gauge | - | 0 for > 1 min |
+| `alerts.queue.depth` | Gauge | queue_name | > 1000 |
+
+### Structured Logging
+
+```php
+// All alert-related logs include these fields
+Log::info('Alert triggered', [
+    'alert_id' => $alert->id,
+    'user_id' => $alert->user_id,
+    'asset_id' => $assetId,
+    'type' => $alert->type,
+    'trigger_type' => $alert->trigger_type,
+    'trigger_value' => $triggerValue,
+    'current_value' => $currentValue,
+    'latency_ms' => $latencyMs,
+]);
+```
+
+### Internal Alerts (for Ops)
+
+```php
+// app/Console/Commands/AlertSystemHealthCheck.php
+
+class AlertSystemHealthCheck extends Command
+{
+    protected $signature = 'alerts:health-check';
+
+    public function handle(): void
+    {
+        $issues = [];
+
+        // Check Redis subscriber
+        if (!$this->isRedisSubscriberRunning()) {
+            $issues[] = 'Redis subscriber not running';
+        }
+
+        // Check queue depth
+        $queueDepth = Queue::size('alerts');
+        if ($queueDepth > 1000) {
+            $issues[] = "Alert queue depth high: {$queueDepth}";
+        }
+
+        // Check failure rate (last hour)
+        $failureRate = $this->getNotificationFailureRate();
+        if ($failureRate > 0.05) {
+            $issues[] = "Notification failure rate: " . ($failureRate * 100) . "%";
+        }
+
+        // Check processing latency
+        $p99Latency = $this->getP99Latency();
+        if ($p99Latency > 5000) {
+            $issues[] = "P99 latency high: {$p99Latency}ms";
+        }
+
+        if (count($issues) > 0) {
+            $this->alertOpsTeam($issues);
+        }
+    }
+}
+
+// Run every 5 minutes
+Schedule::command('alerts:health-check')->everyFiveMinutes();
+```
+
+---
+
+## Backtest Implementation
+
+### Backtest Request
+
+```php
+// POST /alerts/{alert}/backtest
+{
+    "lookback_days": 90,        // 1-365 days
+    "include_ml_signals": true  // Include historical ML data
+}
+```
+
+### Backtest Job
+
+```php
+// app/Jobs/Alerts/RunAlertBacktest.php
+
+class RunAlertBacktest implements ShouldQueue
+{
+    public function handle(): void
+    {
+        $results = [];
+        $startDate = now()->subDays($this->lookbackDays);
+
+        // Load historical price data
+        $prices = AssetPrice::where('asset_id', $this->alert->asset_id)
+            ->where('date', '>=', $startDate)
+            ->orderBy('date')
+            ->get();
+
+        // Simulate alert matching day by day
+        foreach ($prices as $index => $price) {
+            $wouldTrigger = $this->evaluateHistoricalTrigger($price, $prices, $index);
+
+            if ($wouldTrigger) {
+                $results[] = [
+                    'date' => $price->date,
+                    'trigger_price' => $price->close,
+                    'performance' => $this->calculatePerformance($prices, $index),
+                ];
+            }
+        }
+
+        // Store results
+        AlertBacktestResult::create([
+            'alert_id' => $this->alert->id,
+            'lookback_days' => $this->lookbackDays,
+            'trigger_count' => count($results),
+            'triggers' => $results,
+            'avg_return_1d' => $this->avgReturn($results, '1d'),
+            'avg_return_1w' => $this->avgReturn($results, '1w'),
+            'avg_return_1m' => $this->avgReturn($results, '1m'),
+            'completed_at' => now(),
+        ]);
+    }
+
+    private function calculatePerformance(Collection $prices, int $triggerIndex): array
+    {
+        $triggerPrice = $prices[$triggerIndex]->close;
+
+        return [
+            '1d' => $this->getReturn($prices, $triggerIndex, 1, $triggerPrice),
+            '1w' => $this->getReturn($prices, $triggerIndex, 5, $triggerPrice),
+            '1m' => $this->getReturn($prices, $triggerIndex, 22, $triggerPrice),
+        ];
+    }
+}
+```
+
+### Backtest Response
+
+```json
+{
+    "alert_id": "uuid",
+    "lookback_days": 90,
+    "results": {
+        "trigger_count": 3,
+        "avg_time_to_trigger_days": 12,
+        "max_wait_days": 28,
+        "triggers": [
+            {
+                "date": "2025-12-05",
+                "trigger_price": 51.80,
+                "performance": {
+                    "1d": 0.012,
+                    "1w": 0.035,
+                    "1m": 0.078
+                }
+            }
+        ],
+        "summary": {
+            "avg_return_1d": 0.012,
+            "avg_return_1w": 0.035,
+            "avg_return_1m": 0.078,
+            "win_rate": 0.67
+        }
+    },
+    "recommendation": "This alert level has historically shown good follow-through."
+}
+```
+
+### Backtest Limitations
+
+- Max lookback: 365 days
+- Price-based alerts: Full support
+- Intelligence alerts: Limited to cached historical signals (may have gaps)
+- Compound alerts: Not supported for backtest
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+
+```php
+// tests/Unit/Alerts/
+
+class TargetPriceAlertTest extends TestCase
+{
+    /** @test */
+    public function it_triggers_when_price_crosses_target_from_below(): void
+    {
+        $alert = Alert::factory()->create([
+            'trigger_type' => 'target_price',
+            'parameters' => ['target_price' => 50.00, 'direction' => 'above'],
+        ]);
+
+        $previousPrice = 49.00;
+        $currentPrice = 51.00;
+
+        $matcher = new AlertMatcher();
+        $result = $matcher->evaluate($alert, $currentPrice, $previousPrice);
+
+        $this->assertTrue($result->triggered);
+        $this->assertEquals(51.00, $result->triggerValue);
+    }
+
+    /** @test */
+    public function it_respects_cooldown_period(): void
+    {
+        $alert = Alert::factory()->create([
+            'cooldown_minutes' => 60,
+            'last_triggered_at' => now()->subMinutes(30),
+        ]);
+
+        $matcher = new AlertMatcher();
+        $result = $matcher->canTrigger($alert);
+
+        $this->assertFalse($result);
+    }
+}
+```
+
+### Integration Tests
+
+```php
+// tests/Feature/Alerts/
+
+class AlertProcessingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /** @test */
+    public function it_processes_price_alerts_and_sends_notifications(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['telegram_id' => '123456']);
+        $asset = Asset::factory()->create();
+        $alert = Alert::factory()->create([
+            'user_id' => $user->id,
+            'asset_id' => $asset->id,
+            'type' => 'price',
+            'trigger_type' => 'target_price',
+            'parameters' => ['target_price' => 50.00],
+        ]);
+
+        // Simulate price update
+        LatestAssetPrice::factory()->create([
+            'asset_id' => $asset->id,
+            'price' => 51.00,
+        ]);
+
+        // Run processing job
+        (new ProcessPriceAlerts())->handle();
+
+        // Assert notification was sent
+        Notification::assertSentTo($user, AlertTriggeredNotification::class);
+
+        // Assert alert history created
+        $this->assertDatabaseHas('alert_history', [
+            'alert_id' => $alert->id,
+            'trigger_value' => 51.00,
+        ]);
+    }
+}
+```
+
+### Load Tests
+
+```yaml
+# k6 load test config
+scenarios:
+  price_updates:
+    executor: constant-arrival-rate
+    rate: 100           # 100 price updates per second
+    duration: 5m
+    preAllocatedVUs: 50
+
+thresholds:
+  http_req_duration: ['p99<100']  # 99th percentile < 100ms
+  alerts_processed: ['rate>95']   # Process 95%+ of alerts
+```
+
+### Chaos Tests
+
+```php
+// tests/Chaos/
+
+class RedisFailureTest extends TestCase
+{
+    /** @test */
+    public function alert_listener_recovers_from_redis_disconnect(): void
+    {
+        // Start listener
+        $listener = new AlertsListen();
+        $listener->handle();
+
+        // Simulate Redis disconnect
+        Redis::disconnect();
+
+        // Wait for reconnection
+        sleep(5);
+
+        // Assert listener is back online
+        $this->assertTrue($listener->isConnected());
+    }
+}
+```
+
+---
+
+## Data Retention Policy
+
+### Retention Periods
+
+| Table | Retention | Action |
+|-------|-----------|--------|
+| `alerts` | Indefinite | Soft delete (status = 'deleted') |
+| `alert_history` | 90 days | Hard delete older records |
+| `notifications` | 30 days | Hard delete older records |
+| `alert_templates` | Indefinite | - |
+| `alert_backtest_results` | 7 days | Hard delete |
+| `failed_notifications` | 30 days | Hard delete after review |
+
+### Cleanup Jobs
+
+```php
+// routes/console.php
+
+// Daily cleanup at 3 AM Cairo time
+Schedule::job(new CleanupAlertHistory(days: 90))
+    ->dailyAt('03:00')
+    ->timezone('Africa/Cairo');
+
+Schedule::job(new CleanupNotifications(days: 30))
+    ->dailyAt('03:15')
+    ->timezone('Africa/Cairo');
+
+Schedule::job(new CleanupBacktestResults(days: 7))
+    ->dailyAt('03:30')
+    ->timezone('Africa/Cairo');
+```
+
+### Cleanup Implementation
+
+```php
+// app/Jobs/CleanupAlertHistory.php
+
+class CleanupAlertHistory implements ShouldQueue
+{
+    public function __construct(private int $days = 90) {}
+
+    public function handle(): void
+    {
+        $cutoff = now()->subDays($this->days);
+
+        $deleted = AlertHistory::where('triggered_at', '<', $cutoff)
+            ->delete();
+
+        Log::info("Cleaned up {$deleted} alert history records older than {$this->days} days");
+
+        Metrics::gauge('cleanup.alert_history.deleted', $deleted);
+    }
+}
+```
+
+---
+
 ## API Routes
+
+### Web Routes
+
+```php
+// Alerts CRUD
+Route::resource('alerts', AlertController::class);
+
+// Snooze endpoint
+Route::post('alerts/{alert}/snooze', [AlertController::class, 'snooze']);
+
+// Backtest endpoint
+Route::post('alerts/{alert}/backtest', [AlertController::class, 'backtest']);
+Route::get('alerts/{alert}/backtest/results', [AlertController::class, 'backtestResults']);
+
+// Alert History
+Route::get('alerts/history', [AlertHistoryController::class, 'index']);
+Route::post('alerts/history/{history}/acknowledge', [AlertHistoryController::class, 'acknowledge']);
+
+// Settings
+Route::get('settings/alerts', [AlertPreferencesController::class, 'edit']);
+Route::patch('settings/alerts', [AlertPreferencesController::class, 'update']);
+```
+
+### Snooze Endpoint Details
+
+**POST** `/alerts/{alert}/snooze`
+
+**Request Body:**
+```json
+{
+    "duration_minutes": 60,
+    // OR use preset
+    "preset": "1h" | "4h" | "1d" | "until_market_close" | "until_market_open"
+}
+```
+
+**Response:**
+```json
+{
+    "success": true,
+    "alert": {
+        "id": "uuid",
+        "snoozed_until": "2026-01-10T12:45:00+02:00",
+        "status": "active"
+    }
+}
+```
+
+**Preset Resolution:**
+- `1h`: now + 1 hour
+- `4h`: now + 4 hours
+- `1d`: now + 24 hours
+- `until_market_close`: Same day 14:30 Cairo (or next trading day if after close)
+- `until_market_open`: Next trading day 10:00 Cairo
 
 ### Web Routes
 
@@ -805,9 +1773,35 @@ resources/js/
 
 ```typescript
 // composables/useNotifications.ts
-echoInstance
-    .private(`user.${userId}.alerts`)
-    .listen('.alert.triggered', (event: AlertNotification) => {
+import { ref, onMounted, onUnmounted } from 'vue';
+import Echo from 'laravel-echo';
+
+export function useNotifications(userId: string) {
+    const notifications = ref<AlertNotification[]>([]);
+    const toastQueue = ref<AlertNotification[]>([]);
+    const isConnected = ref(false);
+    const reconnectAttempts = ref(0);
+    const MAX_RECONNECT_DELAY = 30000; // 30 seconds
+
+    let echoInstance: Echo;
+    let reconnectTimeout: number | null = null;
+
+    const setupAlertChannel = () => {
+        echoInstance
+            .private(`user.${userId}.alerts`)
+            .listen('.alert.triggered', handleAlert)
+            .error((error: Error) => {
+                console.error('WebSocket error:', error);
+                isConnected.value = false;
+                scheduleReconnect();
+            });
+
+        // Mark as connected when subscription succeeds
+        isConnected.value = true;
+        reconnectAttempts.value = 0;
+    };
+
+    const handleAlert = (event: AlertNotification) => {
         notifications.value.unshift(event);
 
         if (['critical', 'high'].includes(event.priority)) {
@@ -817,7 +1811,77 @@ echoInstance
         if (event.priority === 'critical') {
             playSound();
         }
+    };
+
+    const scheduleReconnect = () => {
+        if (reconnectTimeout) return;
+
+        reconnectAttempts.value++;
+        const delay = Math.min(
+            Math.pow(2, reconnectAttempts.value) * 1000,
+            MAX_RECONNECT_DELAY
+        );
+
+        console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts.value})`);
+
+        reconnectTimeout = window.setTimeout(() => {
+            reconnectTimeout = null;
+            echoInstance.connector.connect();
+            setupAlertChannel();
+        }, delay);
+    };
+
+    const fetchMissedNotifications = async () => {
+        // Fetch any notifications missed while disconnected
+        const lastSeen = notifications.value[0]?.created_at;
+        const response = await fetch(`/api/notifications?since=${lastSeen || ''}`);
+        const missed = await response.json();
+
+        if (missed.length > 0) {
+            notifications.value = [...missed, ...notifications.value];
+        }
+    };
+
+    const playSound = () => {
+        const audio = new Audio('/sounds/alert-critical.mp3');
+        audio.play().catch(() => {
+            // Audio play failed (likely due to autoplay policy)
+        });
+    };
+
+    // Handle tab visibility change
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+            // Tab became active - check for missed notifications
+            fetchMissedNotifications();
+
+            // Reconnect if disconnected
+            if (!isConnected.value) {
+                echoInstance.connector.connect();
+                setupAlertChannel();
+            }
+        }
+    };
+
+    onMounted(() => {
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        setupAlertChannel();
     });
+
+    onUnmounted(() => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+        }
+    });
+
+    return {
+        notifications,
+        toastQueue,
+        isConnected,
+        fetchMissedNotifications,
+    };
+}
 ```
 
 ---
