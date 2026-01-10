@@ -12,6 +12,772 @@ This document provides complete notification message examples for all 13 alert t
 
 ---
 
+## Redis Channel Messages
+
+This section documents the exact message format received from each Redis channel in the ML pipeline, and how Laravel processes them into user notifications.
+
+### Channel Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        ML PIPELINE CHANNELS                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  PRIORITY CHANNELS (MessagePack)          ACTION CHANNELS (MessagePack) │
+│  ├── classified_critical                  ├── action_strong_buy         │
+│  ├── classified_high                      ├── action_buy                │
+│  ├── classified_medium                    ├── action_hold               │
+│  ├── classified_low                       ├── action_sell               │
+│  └── classified_info                      ├── action_strong_sell        │
+│                                           ├── action_wait               │
+│  SPECIAL CHANNELS                         ├── action_monitor            │
+│  ├── pattern_updates (MessagePack)        ├── action_take_profit        │
+│  ├── anomaly_alerts (JSON)                └── action_stop_loss          │
+│  └── trading_recommendations (JSON)                                      │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 1. Classified Signal Channels
+
+**Channels:** `classified_critical`, `classified_high`, `classified_medium`, `classified_low`, `classified_info`
+
+**Encoding:** MessagePack (binary)
+
+**Used By:** Signal Alerts, Anomaly Alerts, Compound Alerts
+
+#### Raw Message Example (decoded from MessagePack)
+
+```python
+{
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "pid": "EGS48031C016",  # COMI stock ID
+    "original_signal": {
+        "id": "sig-001-rsi-oversold",
+        "indicator": "RSI",
+        "signal_type": "oversold",
+        "strength": 0.85,
+        "value": {
+            "RSI": 28.5,
+            "RSI_14": 28.5
+        },
+        "confidence": 0.82,
+        "price": 52.30,
+        "volume": 1250000,
+        "timestamp": 1736502300.0
+    },
+    "category": "strong_reversal",
+    "priority": 1,  # 1=critical, 2=high, 3=medium, 4=low, 5=info
+    "action": "strong_buy",
+    "confidence": 0.87,
+    "risk_score": 0.25,
+    "reward_score": 0.78,
+    "risk_reward_ratio": 3.12,
+    "timestamp": 1736502305.0,
+    "metadata": {
+        "model_version": "signal-classification-v2.1",
+        "processing_time_ms": 45
+    }
+}
+```
+
+#### Laravel Processing
+
+```php
+// app/Console/Commands/AlertsListen.php
+$message = msgpack_unpack($rawMessage);
+
+// Find matching user alerts
+$alerts = Alert::where('type', 'signal')
+    ->where('status', 'active')
+    ->where(function ($query) use ($message) {
+        $query->where('asset_id', $this->resolveAssetId($message['pid']))
+              ->orWhere('scope', 'watchlist');
+    })
+    ->get();
+
+foreach ($alerts as $alert) {
+    if ($this->matchesSignalCriteria($alert, $message)) {
+        SendAlertNotification::dispatch($alert, $message);
+    }
+}
+```
+
+#### Resulting Telegram Notification
+
+```
+🎯 *Technical Signal Detected*
+━━━━━━━━━━━━━━━━━━
+
+*COMI* - Commercial International Bank
+
+🔍 Signal Type: *RSI Oversold*
+📊 Indicator: RSI(14) = 28.5
+💪 Strength: 85%
+📈 Action: Strong Buy
+
+🧠 Confidence: 87%
+⚖️ Risk/Reward: 3.12
+
+Current Price: 52.30 EGP
+Volume: 1.25M shares
+
+🕐 10:45 AM · Jan 10, 2026
+
+━━━━━━━━━━━━━━━━━━
+[View Analysis](https://kira.app/ar/assets/COMI/signals) · [Manage Alert](https://kira.app/alerts/123)
+```
+
+---
+
+### 2. Action-Based Channels
+
+**Channels:** `action_strong_buy`, `action_buy`, `action_hold`, `action_sell`, `action_strong_sell`, `action_wait`, `action_monitor`, `action_take_profit`, `action_stop_loss`
+
+**Encoding:** MessagePack (binary)
+
+**Used By:** Recommendation Alerts, Compound Alerts
+
+#### Raw Message Example (action_strong_buy)
+
+```python
+{
+    "id": "cls-strong-buy-001",
+    "pid": "EGS38191C010",  # HRHO stock ID
+    "original_signal": {
+        "id": "sig-macd-cross-001",
+        "indicator": "MACD",
+        "signal_type": "bullish_cross",
+        "strength": 0.91,
+        "value": {
+            "MACD": 0.45,
+            "MACD_Signal": 0.32,
+            "MACD_Hist": 0.13
+        },
+        "confidence": 0.88,
+        "price": 15.75,
+        "volume": 2100000
+    },
+    "category": "momentum",
+    "priority": 2,
+    "action": "strong_buy",
+    "confidence": 0.89,
+    "risk_score": 0.22,
+    "reward_score": 0.81,
+    "risk_reward_ratio": 3.68,
+    "timestamp": 1736503200.0,
+    "metadata": {
+        "confluence_signals": ["MACD", "RSI", "Volume"],
+        "trend_alignment": "bullish"
+    }
+}
+```
+
+#### Resulting Telegram Notification (Recommendation Alert)
+
+```
+⭐ *Strong Buy Signal*
+━━━━━━━━━━━━━━━━━━
+
+*HRHO* - Hermes Holding
+
+🚀 Action: *STRONG BUY*
+🎯 Confidence: 89%
+⚖️ Risk/Reward: 3.68
+
+📊 Signal Confluence:
+• MACD: Bullish Cross ✓
+• RSI: Momentum ✓
+• Volume: Above Average ✓
+
+Current Price: 15.75 EGP
+Trend: Bullish Alignment
+
+🕐 11:00 AM · Jan 10, 2026
+
+━━━━━━━━━━━━━━━━━━
+[View Stock](https://kira.app/ar/assets/HRHO) · [Manage Alert](https://kira.app/alerts/456)
+```
+
+---
+
+### 3. Pattern Updates Channel
+
+**Channel:** `pattern_updates`
+
+**Encoding:** MessagePack (binary)
+
+**Used By:** Pattern Alerts
+
+#### Raw Message Example
+
+```python
+{
+    "pid": "EGS30901C013",  # EAST stock ID
+    "timestamp": 1736505600.0,
+    "patterns": [
+        {
+            "type": "double_bottom",
+            "confidence": 0.78,
+            "start_idx": 45,
+            "end_idx": 89,
+            "support": 12.45,
+            "resistance": 13.80,
+            "target": 15.15,
+            "timestamp": 1736505600.0,
+            "metadata": {
+                "neckline": 13.80,
+                "pattern_height": 1.35,
+                "volume_confirmation": True,
+                "breakout_confirmed": True
+            }
+        }
+    ],
+    "count": 1
+}
+```
+
+#### Laravel Processing
+
+```php
+// Decode pattern update
+$message = msgpack_unpack($rawMessage);
+
+foreach ($message['patterns'] as $pattern) {
+    // Find matching pattern alerts
+    $alerts = Alert::where('type', 'pattern')
+        ->where('status', 'active')
+        ->whereJsonContains('parameters->patterns', $pattern['type'])
+        ->where(function ($query) use ($message) {
+            $query->where('asset_id', $this->resolveAssetId($message['pid']))
+                  ->orWhere('scope', 'watchlist');
+        })
+        ->get();
+
+    foreach ($alerts as $alert) {
+        $params = $alert->parameters;
+
+        // Check confidence threshold
+        if ($pattern['confidence'] >= ($params['min_confidence'] ?? 0.7)) {
+            // Check pattern status (forming/confirmed)
+            if ($pattern['metadata']['breakout_confirmed'] ||
+                ($params['pattern_status'] ?? 'confirmed') === 'forming') {
+                SendAlertNotification::dispatch($alert, $pattern, $message['pid']);
+            }
+        }
+    }
+}
+```
+
+#### Resulting Telegram Notification
+
+```
+📐 *Chart Pattern Confirmed*
+━━━━━━━━━━━━━━━━━━
+
+*EAST* - Eastern Company
+
+🔍 Pattern: *Double Bottom*
+✅ Status: Confirmed (Breakout)
+🎯 Confidence: 78%
+⬆️ Bias: Bullish
+
+📈 Pattern Details:
+• First Bottom: 12.50 EGP (Dec 15)
+• Second Bottom: 12.45 EGP (Jan 8)
+• Neckline: 13.80 EGP
+• Target: 15.15 EGP (+9.8%)
+
+Current Price: 13.95 EGP
+📊 Volume: Confirmed
+
+🧠 Classic reversal pattern with volume confirmation.
+
+🕐 2:00 PM · Jan 10, 2026
+
+━━━━━━━━━━━━━━━━━━
+[View Pattern](https://kira.app/ar/assets/EAST/patterns) · [Manage Alert](https://kira.app/alerts/789)
+```
+
+---
+
+### 4. Anomaly Alerts Channel
+
+**Channel:** `anomaly_alerts`
+
+**Encoding:** JSON (string)
+
+**Used By:** Anomaly Alerts
+
+#### Raw Message Example
+
+```json
+{
+    "pid": "EGS74081C017",
+    "score": 0.92,
+    "types": ["volume_surge", "price_spike"],
+    "reasons": [
+        "Volume 6.2x above 20-day average",
+        "Price moved 4.8% in 15 minutes",
+        "Unusual order flow detected"
+    ],
+    "timestamp": 1736501400.0,
+    "price": 8.75,
+    "metadata": {
+        "current_volume": 12500000,
+        "avg_volume": 2015000,
+        "volume_ratio": 6.2,
+        "price_change_15m": 0.048,
+        "order_imbalance": 0.73,
+        "detection_model": "anomaly-v1.3"
+    }
+}
+```
+
+#### Laravel Processing
+
+```php
+// JSON decode (not MessagePack)
+$message = json_decode($rawMessage, true);
+
+// Find matching anomaly alerts
+$alerts = Alert::where('type', 'anomaly')
+    ->where('status', 'active')
+    ->where(function ($query) use ($message) {
+        $query->where('asset_id', $this->resolveAssetId($message['pid']))
+              ->orWhere('scope', 'watchlist');
+    })
+    ->get();
+
+foreach ($alerts as $alert) {
+    $params = $alert->parameters;
+
+    // Check anomaly type match
+    $requestedTypes = $params['anomaly_types'] ?? [];
+    $matchingTypes = array_intersect($requestedTypes, $message['types']);
+
+    if (count($matchingTypes) > 0) {
+        // Check confidence threshold
+        if ($message['score'] >= ($params['min_confidence'] ?? 0.8)) {
+            // Check severity
+            $severity = $this->calculateSeverity($message['score']);
+            if (in_array($severity, $params['severity'] ?? ['high', 'critical'])) {
+                SendAlertNotification::dispatch($alert, $message);
+            }
+        }
+    }
+}
+```
+
+#### Resulting Telegram Notification
+
+```
+🚨 *Market Anomaly Detected*
+━━━━━━━━━━━━━━━━━━
+
+*GBCO* - GB Auto
+
+⚠️ Anomaly Type: *Volume Surge + Price Spike*
+⚡ Severity: Critical
+🎯 Confidence: 92%
+
+📊 Details:
+• Current Volume: 12.5M shares
+• Average Volume: 2.0M shares
+• Ratio: *6.2x normal*
+• Price Change (15m): +4.8%
+
+🧠 Reasons:
+• Volume 6.2x above 20-day average
+• Price moved 4.8% in 15 minutes
+• Unusual order flow detected
+
+Current Price: 8.75 EGP
+
+🕐 10:30 AM · Jan 10, 2026
+
+━━━━━━━━━━━━━━━━━━
+[View Anomaly](https://kira.app/ar/assets/GBCO/anomalies) · [Manage Alert](https://kira.app/alerts/707)
+```
+
+---
+
+### 5. Trading Recommendations Channel
+
+**Channel:** `trading_recommendations`
+
+**Encoding:** JSON (string)
+
+**Used By:** Recommendation Alerts (batch updates)
+
+#### Raw Message Example
+
+```json
+{
+    "event": "recommendations_updated",
+    "count": 45,
+    "by_action": {
+        "STRONG_BUY": 3,
+        "BUY": 8,
+        "ACCUMULATE": 12,
+        "HOLD": 15,
+        "REDUCE": 4,
+        "SELL": 2,
+        "STRONG_SELL": 1,
+        "AVOID": 0
+    },
+    "urgent_count": 5,
+    "timestamp": "2026-01-10T09:00:00+02:00"
+}
+```
+
+#### Fetching Individual Recommendations
+
+When this event fires, Laravel fetches detailed recommendations from Redis keys:
+
+```php
+// Get specific recommendation for user's watched assets
+$recommendation = Redis::get("recommendations:all");
+$allRecs = json_decode($recommendation, true);
+
+// Filter for user's assets
+foreach ($userWatchlist as $asset) {
+    $assetRec = collect($allRecs)->firstWhere('pid', $asset->external_id);
+    if ($assetRec && $this->matchesRecommendationCriteria($alert, $assetRec)) {
+        SendAlertNotification::dispatch($alert, $assetRec);
+    }
+}
+```
+
+#### Individual Recommendation Data (from Redis key)
+
+```json
+{
+    "pid": "EGS60121C018",
+    "symbol": "FWRY",
+    "action": "STRONG_BUY",
+    "score": 8.5,
+    "previous_action": "BUY",
+    "components": {
+        "technical": 8.2,
+        "momentum": 9.1,
+        "value": 7.8,
+        "sentiment": 8.9
+    },
+    "confidence": 0.86,
+    "target_price": {
+        "low": 9.00,
+        "high": 9.50
+    },
+    "current_price": 7.85,
+    "upside_potential": 0.18,
+    "risk_level": "medium",
+    "updated_at": "2026-01-10T09:00:00+02:00"
+}
+```
+
+#### Resulting Telegram Notification
+
+```
+⭐ *Recommendation Updated*
+━━━━━━━━━━━━━━━━━━
+
+*FWRY* - Fawry
+
+⬆️ New Rating: *Strong Buy*
+↩️ Previous: Buy
+🎯 Score: 8.5/10
+📈 Upgrade!
+
+📊 Score Breakdown:
+• Technical: 8.2/10
+• Momentum: 9.1/10
+• Value: 7.8/10
+• Sentiment: 8.9/10
+
+Current Price: 7.85 EGP
+Target Range: 9.00 - 9.50 EGP (+15-21%)
+
+🧠 Strong momentum with improving fundamentals.
+
+🕐 9:00 AM · Jan 10, 2026
+
+━━━━━━━━━━━━━━━━━━
+[View Full Analysis](https://kira.app/ar/assets/FWRY/recommendation) · [Manage Alert](https://kira.app/alerts/909)
+```
+
+---
+
+### 6. Price-Based Alerts (Polled, Not Pub/Sub)
+
+Price-based alerts don't use Redis Pub/Sub. Instead, they're processed by a scheduled job that polls the latest prices.
+
+#### Price Data Source
+
+```php
+// From LatestAssetPrice model (materialized view)
+$prices = LatestAssetPrice::whereIn('asset_id', $activeAlertAssetIds)
+    ->get()
+    ->keyBy('asset_id');
+```
+
+#### Price Data Structure
+
+```php
+[
+    'asset_id' => 'uuid-here',
+    'symbol' => 'COMI',
+    'price' => 52.50,
+    'open' => 50.35,
+    'high' => 52.80,
+    'low' => 50.10,
+    'close' => 52.50,  // Previous day close
+    'volume' => 3250000,
+    'change' => 2.15,
+    'change_percent' => 4.27,
+    'updated_at' => '2026-01-10T10:45:00+02:00'
+]
+```
+
+#### Processing Target Price Alerts
+
+```php
+// app/Jobs/Alerts/ProcessPriceAlerts.php
+public function handle()
+{
+    $priceAlerts = Alert::where('type', 'price')
+        ->where('status', 'active')
+        ->whereIn('trigger_type', ['target_price', 'breakout', 'zone', 'daily_change'])
+        ->with('asset')
+        ->get();
+
+    foreach ($priceAlerts as $alert) {
+        $price = $this->getLatestPrice($alert->asset_id);
+
+        if ($this->checkTriggerCondition($alert, $price)) {
+            // Check cooldown
+            if (!$this->isInCooldown($alert)) {
+                SendAlertNotification::dispatch($alert, [
+                    'current_price' => $price->price,
+                    'trigger_value' => $alert->parameters['target_price'],
+                    'change_percent' => $price->change_percent,
+                    'volume' => $price->volume
+                ]);
+
+                // Update alert status
+                $alert->update([
+                    'status' => $alert->is_recurring ? 'active' : 'triggered',
+                    'last_triggered_at' => now(),
+                    'triggered_count' => $alert->triggered_count + 1
+                ]);
+            }
+        }
+    }
+}
+```
+
+---
+
+### 7. Compound Alert Processing
+
+Compound alerts combine multiple conditions and may listen to multiple channels.
+
+#### Compound Alert Configuration
+
+```json
+{
+    "trigger_type": "compound_intelligence",
+    "condition_logic": "and",
+    "parameters": {
+        "conditions": [
+            {
+                "type": "signal",
+                "indicators": ["RSI"],
+                "signal_types": ["oversold"],
+                "min_strength": 0.7
+            },
+            {
+                "type": "prediction",
+                "direction": "up",
+                "min_confidence": 0.7
+            },
+            {
+                "type": "pattern",
+                "patterns": ["double_bottom"],
+                "pattern_status": "confirmed"
+            }
+        ]
+    }
+}
+```
+
+#### Processing Logic
+
+```php
+// app/Jobs/Alerts/ProcessCompoundAlerts.php
+public function handle()
+{
+    $compoundAlerts = Alert::where('trigger_type', 'compound_intelligence')
+        ->where('status', 'active')
+        ->get();
+
+    foreach ($compoundAlerts as $alert) {
+        $conditions = $alert->parameters['conditions'];
+        $logic = $alert->condition_logic; // 'and' or 'or'
+
+        $results = [];
+        foreach ($conditions as $condition) {
+            $results[] = $this->evaluateCondition($alert, $condition);
+        }
+
+        $triggered = $logic === 'and'
+            ? !in_array(false, $results)
+            : in_array(true, $results);
+
+        if ($triggered && !$this->isInCooldown($alert)) {
+            SendAlertNotification::dispatch($alert, [
+                'conditions' => $conditions,
+                'results' => $results,
+                'logic' => $logic
+            ]);
+        }
+    }
+}
+```
+
+#### Resulting Telegram Notification
+
+```
+⭐ *Multiple Signals Aligned!*
+━━━━━━━━━━━━━━━━━━
+
+*ABUK* - Abu Qir Fertilizers
+
+🔥 *High-Conviction Setup*
+All 3 conditions met (AND logic):
+
+1️⃣ ✅ RSI Oversold (26.3)
+   Signal strength: 85%
+   Source: classified_high
+
+2️⃣ ✅ Bullish Prediction
+   Confidence: 79%
+   Expected: +3-5% (1 hour)
+   Source: Redis prediction key
+
+3️⃣ ✅ Double Bottom Pattern
+   Status: Confirmed
+   Target: +12%
+   Source: pattern_updates
+
+🎯 Combined Confidence: *87%*
+Current Price: 28.50 EGP
+
+🧠 Rare alignment of technical, AI, and pattern signals.
+
+🕐 11:00 AM · Jan 10, 2026
+
+━━━━━━━━━━━━━━━━━━
+[View Full Analysis](https://kira.app/ar/assets/ABUK) · [Manage Alert](https://kira.app/alerts/1010)
+```
+
+---
+
+### Channel to Alert Type Mapping
+
+| Redis Channel | Alert Types | Encoding | Processing |
+|---------------|-------------|----------|------------|
+| `classified_critical` | Signal, Anomaly, Compound | MessagePack | Real-time subscriber |
+| `classified_high` | Signal, Prediction, Compound | MessagePack | Real-time subscriber |
+| `classified_medium` | Signal, Pattern | MessagePack | Real-time subscriber |
+| `classified_low` | Signal | MessagePack | Real-time subscriber |
+| `classified_info` | (Logged only) | MessagePack | Real-time subscriber |
+| `action_strong_buy` | Recommendation, Compound | MessagePack | Real-time subscriber |
+| `action_buy` | Recommendation, Compound | MessagePack | Real-time subscriber |
+| `action_sell` | Recommendation, Compound | MessagePack | Real-time subscriber |
+| `action_strong_sell` | Recommendation, Compound | MessagePack | Real-time subscriber |
+| `action_hold` | Recommendation | MessagePack | Real-time subscriber |
+| `action_take_profit` | Price proximity | MessagePack | Real-time subscriber |
+| `action_stop_loss` | Price drop | MessagePack | Real-time subscriber |
+| `pattern_updates` | Pattern | MessagePack | Real-time subscriber |
+| `anomaly_alerts` | Anomaly | JSON | Real-time subscriber |
+| `trading_recommendations` | Recommendation (batch) | JSON | Real-time subscriber |
+| (Price feed) | Target, Breakout, Zone, Gap, 52-Week, Daily Change, Entry Return | N/A | Scheduled polling |
+| (Prediction keys) | Prediction | JSON | Scheduled polling |
+
+---
+
+### Laravel Artisan Command Structure
+
+```php
+// app/Console/Commands/AlertsListen.php
+
+class AlertsListen extends Command
+{
+    protected $signature = 'alerts:listen';
+    protected $description = 'Listen to ML pipeline Redis channels for alert matching';
+
+    protected array $messagePackChannels = [
+        'classified_critical',
+        'classified_high',
+        'classified_medium',
+        'classified_low',
+        'classified_info',
+        'action_strong_buy',
+        'action_buy',
+        'action_hold',
+        'action_sell',
+        'action_strong_sell',
+        'action_wait',
+        'action_monitor',
+        'action_take_profit',
+        'action_stop_loss',
+        'pattern_updates',
+    ];
+
+    protected array $jsonChannels = [
+        'anomaly_alerts',
+        'trading_recommendations',
+    ];
+
+    public function handle()
+    {
+        $redis = Redis::connection('pubsub');
+
+        $allChannels = array_merge($this->messagePackChannels, $this->jsonChannels);
+
+        $redis->subscribe($allChannels, function ($message, $channel) {
+            try {
+                // Decode based on channel type
+                if (in_array($channel, $this->jsonChannels)) {
+                    $data = json_decode($message, true);
+                } else {
+                    $data = msgpack_unpack($message);
+                }
+
+                // Route to appropriate handler
+                match ($channel) {
+                    'pattern_updates' => $this->handlePatternUpdate($data),
+                    'anomaly_alerts' => $this->handleAnomalyAlert($data),
+                    'trading_recommendations' => $this->handleRecommendationUpdate($data),
+                    default => $this->handleClassifiedSignal($data, $channel),
+                };
+
+            } catch (\Exception $e) {
+                Log::error("Alert processing failed: {$e->getMessage()}", [
+                    'channel' => $channel,
+                    'message' => $message
+                ]);
+            }
+        });
+    }
+}
+```
+
+---
+
 ## Message Format Standards
 
 ### Priority Icons
