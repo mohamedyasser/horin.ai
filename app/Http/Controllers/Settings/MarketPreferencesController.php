@@ -33,6 +33,7 @@ class MarketPreferencesController extends Controller
                     'name' => $country->name,
                 ]),
             'markets' => Market::query()
+                ->where('status', 1)
                 ->select(['id', 'code', 'name_en', 'name_ar'])
                 ->orderBy($nameColumn)
                 ->get()

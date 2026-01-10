@@ -28,14 +28,18 @@ class StaticDataCacheService
     }
 
     /**
-     * Get all markets with country relation (cached).
+     * Get all active markets with country relation (cached).
      */
     public static function markets(): Collection
     {
         return Cache::remember(
             self::PREFIX.'markets',
             self::TTL,
-            fn () => Market::query()->with('country')->orderBy('code')->get()
+            fn () => Market::query()
+                ->where('status', 1)
+                ->with('country')
+                ->orderBy('code')
+                ->get()
         );
     }
 
