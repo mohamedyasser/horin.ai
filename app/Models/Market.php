@@ -12,6 +12,16 @@ class Market extends Model
     use HasUuids;
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('active', function ($query) {
+            $query->where('status', 1);
+        });
+    }
+
+    /**
      * Get the route key for the model.
      */
     public function getRouteKeyName(): string

@@ -35,11 +35,7 @@ class StaticDataCacheService
         return Cache::remember(
             self::PREFIX.'markets',
             self::TTL,
-            fn () => Market::query()
-                ->where('status', 1)
-                ->with('country')
-                ->orderBy('code')
-                ->get()
+            fn () => Market::query()->with('country')->orderBy('code')->get()
         );
     }
 
