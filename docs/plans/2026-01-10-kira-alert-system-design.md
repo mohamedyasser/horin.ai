@@ -23,36 +23,79 @@ The Kira Alert System enables users to create customizable alerts for Egyptian s
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    EXISTING ML PIPELINE                             │
-│  technical-analysis → signal-detection → signal-classification     │
-└─────────────────────────────────┬───────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              ENHANCED signal-consumers SERVICE                      │
-│  UserAlertConsumer: matches signals against user alerts            │
-│  Publishes to 'user_alerts' Redis channel                          │
-└─────────────────────────────────┬───────────────────────────────────┘
-                                  │
-                                  ▼
-                          user_alerts (Redis)
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      LARAVEL BACKEND                                │
-│  alerts:listen → SendAlertNotification → AlertTriggered (Broadcast)│
-│       ↓                    ↓                      ↓                 │
-│  Database            Telegram              Laravel Reverb           │
-│  Notifications       Bot API              (WebSocket)               │
-└─────────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      VUE FRONTEND                                   │
-│  Echo.private('user.{id}.alerts').listen('alert.triggered', ...)   │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         EXISTING ML PIPELINE                                 │
+│                                                                              │
+│  technical-analysis ──► signal-detection ──► anomaly ──► signal-classification
+│         │                     │                │              │              │
+│         ▼                     ▼                ▼              ▼              │
+│  technical_indicators   detected_signals  anomaly_alerts  processed_signals │
+│                                                                              │
+│  pattern-detection ────────────────────────────────────► pattern_updates     │
+│                                                                              │
+│  recommendation ───────────────────────────────────► trading_recommendations│
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                   ┌────────────────┼────────────────┐
+                   ▼                ▼                ▼
+        ┌──────────────────┬──────────────────┬──────────────────┐
+        │ Priority Channels│ Action Channels  │ Special Channels │
+        ├──────────────────┼──────────────────┼──────────────────┤
+        │classified_critical│action_strong_buy│ pattern_updates  │
+        │classified_high   │action_buy        │ anomaly_alerts   │
+        │classified_medium │action_hold       │ trading_recs     │
+        │classified_low    │action_sell       │                  │
+        │classified_info   │action_strong_sell│                  │
+        │                  │action_take_profit│                  │
+        │                  │action_stop_loss  │                  │
+        └──────────────────┴──────────────────┴──────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      LARAVEL BACKEND (alerts:listen command)                 │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │              AlertsListener (Long-running Redis subscriber)          │    │
+│  │  • Subscribes to all ML pipeline channels                           │    │
+│  │  • Decodes MessagePack/JSON messages                                │    │
+│  │  • Matches against active user alerts                               │    │
+│  │  • Dispatches SendAlertNotification jobs                            │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                    │                                         │
+│         ┌──────────────────────────┼──────────────────────────┐             │
+│         ▼                          ▼                          ▼             │
+│  ┌─────────────┐          ┌──────────────┐          ┌─────────────┐        │
+│  │   Database  │          │   Telegram   │          │   Reverb    │        │
+│  │ Notifications│          │   Bot API   │          │ (WebSocket) │        │
+│  └─────────────┘          └──────────────┘          └─────────────┘        │
+│                                                            │                │
+│                                    AlertTriggered Event ───┘                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              VUE FRONTEND                                    │
+│                                                                              │
+│  Echo.private(`user.${userId}.alerts`)                                      │
+│      .listen('.alert.triggered', (event) => {                               │
+│          notifications.value.unshift(event);                                │
+│          showToast(event);                                                  │
+│      });                                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Channel Subscription Strategy
+
+The Laravel backend subscribes to channels based on alert types:
+
+| Alert Type | Channels to Subscribe |
+|------------|----------------------|
+| Signal | `classified_*`, `action_*` |
+| Anomaly | `anomaly_alerts`, `classified_critical` |
+| Pattern | `pattern_updates` |
+| Recommendation | `trading_recommendations`, `action_strong_buy`, `action_buy`, `action_sell`, `action_strong_sell` |
+| Prediction | (Polled from Redis keys, not pub/sub) |
+| Price-based | (Polled from price feed, not pub/sub) |
 
 ---
 
@@ -536,16 +579,148 @@ Schedule::job(new GenerateDigest('weekly'))
 
 ### Redis Integration
 
-The alert system integrates with existing Redis channels:
+The alert system integrates with existing Redis Pub/Sub channels from the ML pipeline:
 
-| Channel | Purpose |
-|---------|---------|
-| `classified_critical` | Immediate priority signals |
-| `classified_high` | High priority signals |
-| `classified_medium` | Medium priority signals |
-| `classified_low` | Low priority signals |
-| `trading_recommendations` | Recommendation updates |
-| `user_alerts` | Triggered user alerts (new) |
+#### Priority-Based Signal Channels (MessagePack encoded)
+
+| Channel | Purpose | Alert Types |
+|---------|---------|-------------|
+| `classified_critical` | Priority 1 signals | Anomaly, Signal (high strength) |
+| `classified_high` | Priority 2 signals | Signal, Prediction (high confidence) |
+| `classified_medium` | Priority 3 signals | Signal, Pattern |
+| `classified_low` | Priority 4 signals | Signal (low strength) |
+| `classified_info` | Priority 5 signals | Informational only |
+
+#### Action-Based Signal Channels (MessagePack encoded)
+
+| Channel | Purpose | Alert Types |
+|---------|---------|-------------|
+| `action_strong_buy` | Strong buy signals | Recommendation, Compound |
+| `action_buy` | Buy signals | Recommendation, Compound |
+| `action_hold` | Hold signals | Recommendation |
+| `action_sell` | Sell signals | Recommendation, Compound |
+| `action_strong_sell` | Strong sell signals | Recommendation, Compound |
+| `action_wait` | Wait signals | Recommendation |
+| `action_monitor` | Monitor signals | Pattern |
+| `action_take_profit` | Take profit signals | Target price proximity |
+| `action_stop_loss` | Stop loss signals | Price drop |
+
+#### Pattern & Anomaly Channels
+
+| Channel | Purpose | Format |
+|---------|---------|--------|
+| `pattern_updates` | Chart pattern detections | MessagePack |
+| `anomaly_alerts` | Anomaly detections | JSON |
+| `detected_signals` | Raw technical signals | MessagePack |
+| `processed_signals` | Enriched signals | MessagePack |
+
+#### Recommendation Channel (JSON encoded)
+
+| Channel | Purpose | Format |
+|---------|---------|--------|
+| `trading_recommendations` | Recommendation updates | JSON |
+
+#### New Alert System Channel
+
+| Channel | Purpose | Format |
+|---------|---------|--------|
+| `user_alerts` | Triggered user alerts | MessagePack |
+
+#### Message Formats
+
+**Classified Signal (MessagePack):**
+```python
+{
+    'id': str,                    # Classification ID (UUID)
+    'pid': str,                   # Product/Asset ID
+    'original_signal': {
+        'id': str,
+        'indicator': str,         # RSI, MACD, Bollinger, etc.
+        'signal_type': str,       # oversold, bullish_cross, breakout, etc.
+        'strength': float,        # 0.0-1.0
+        'value': dict,
+        'confidence': float,
+        'price': float,
+        'volume': float
+    },
+    'category': str,              # strong_reversal, breakout, momentum, etc.
+    'priority': int,              # 1-5
+    'action': str,                # strong_buy, buy, hold, sell, etc.
+    'confidence': float,
+    'risk_score': float,
+    'reward_score': float,
+    'risk_reward_ratio': float,
+    'timestamp': float,
+    'metadata': dict
+}
+```
+
+**Pattern Update (MessagePack):**
+```python
+{
+    'pid': str,
+    'timestamp': float,
+    'patterns': [
+        {
+            'type': str,          # head_shoulders, double_bottom, triangle, etc.
+            'confidence': float,
+            'start_idx': int,
+            'end_idx': int,
+            'support': float,
+            'resistance': float,
+            'target': float,
+            'metadata': dict
+        }
+    ],
+    'count': int
+}
+```
+
+**Anomaly Alert (JSON):**
+```python
+{
+    'pid': str,
+    'score': float,               # 0.0-1.0 anomaly score
+    'types': [str],               # price_spike, volume_surge, etc.
+    'reasons': [str],
+    'timestamp': float,
+    'price': float,
+    'metadata': dict
+}
+```
+
+**Trading Recommendation (JSON):**
+```python
+{
+    'event': 'recommendations_updated',
+    'count': int,
+    'by_action': {
+        'STRONG_BUY': int,
+        'BUY': int,
+        'ACCUMULATE': int,
+        'HOLD': int,
+        'REDUCE': int,
+        'SELL': int,
+        'STRONG_SELL': int,
+        'AVOID': int
+    },
+    'urgent_count': int,
+    'timestamp': str              # ISO format
+}
+```
+
+#### Redis Data Keys (Non-Pub/Sub)
+
+| Key Pattern | Purpose | TTL |
+|-------------|---------|-----|
+| `signal:{pid}:{id}` | Individual signal | 5 min |
+| `recent_signals:{pid}` | Recent signals list | - |
+| `classified:{pid}:{id}` | Classified signal | 5 min |
+| `patterns:{pid}` | Pattern data | 5 min |
+| `recommendations:all` | All recommendations | 60 sec |
+| `recommendations:{action}` | By action type | 60 sec |
+| `recommendations:top_opportunities` | Top 10 | 60 sec |
+| `recommendations:urgent` | Urgent recs | 60 sec |
 
 ---
 
