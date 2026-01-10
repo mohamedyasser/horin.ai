@@ -23,7 +23,6 @@ class TelegramAuthController extends Controller
      */
     public function show(): Response
     {
-        return redirect()->route('dashboard');
         return Inertia::render('auth/TelegramAuth', [
             'botUsername' => config('telegram.bot_username'),
         ]);
