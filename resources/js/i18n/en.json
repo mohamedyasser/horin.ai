@@ -336,6 +336,7 @@
         "sectors": "Explore stock predictions by sector including Banking, Energy, Real Estate, and more. AI-powered analysis across Middle East markets.",
         "sectorDetail": "AI-powered price predictions for {sector} sector stocks. View forecasts, top gainers, and market analysis for {sector} companies.",
         "predictions": "Browse all AI-generated stock price predictions across Middle East markets. Filter by market, sector, horizon, and confidence level.",
+        "recommendations": "Browse AI-generated trading recommendations for Middle East stocks. Find buy and sell signals with confidence scores.",
         "assetDetail": "AI price prediction for {symbol} ({name}). View current price, predicted price, confidence score, and technical indicators.",
         "search": "Search for any stock in Middle East markets. Find AI-powered price predictions by symbol or company name.",
         "about": "Learn about Horin's AI-powered stock price prediction platform for Middle East markets. Discover our methodology, accuracy, and mission.",
@@ -1123,6 +1124,7 @@
     },
     "recommendations": {
         "title": "Recommendations",
+        "subtitle": "AI-powered trading signals for Middle East stocks",
         "noData": "No recommendation available",
         "noDataDescription": "Waiting for sufficient market data to generate a recommendation.",
         "viewAnalysis": "View Analysis",

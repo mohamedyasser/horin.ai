@@ -61,6 +61,12 @@ withDefaults(defineProps<Props>(), {
                             {{ t('predictions.nav.predictions') }}
                         </LocalizedLink>
                         <LocalizedLink
+                            href="/recommendations"
+                            class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                        >
+                            {{ t('recommendations.title') }}
+                        </LocalizedLink>
+                        <LocalizedLink
                             href="/markets"
                             class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
                         >
@@ -130,6 +136,13 @@ withDefaults(defineProps<Props>(), {
                         @click="mobileMenuOpen = false"
                     >
                         {{ t('predictions.nav.predictions') }}
+                    </LocalizedLink>
+                    <LocalizedLink
+                        href="/recommendations"
+                        class="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        @click="mobileMenuOpen = false"
+                    >
+                        {{ t('recommendations.title') }}
                     </LocalizedLink>
                     <LocalizedLink
                         href="/markets"

@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\TelegramWebhookController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\PredictionController;
+use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SectorController;
 use App\Http\Controllers\SitemapController;
@@ -79,6 +80,9 @@ Route::prefix('{locale}')
 
         // Predictions
         Route::get('predictions', [PredictionController::class, 'index'])->name('predictions');
+
+        // Recommendations
+        Route::get('recommendations', [RecommendationController::class, 'index'])->name('recommendations');
 
         // Search
         Route::get('search', [SearchController::class, 'index'])->name('search');
