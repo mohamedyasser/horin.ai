@@ -21,8 +21,8 @@ return new class extends Migration
         DB::statement('CREATE INDEX idx_alerts_expires ON alerts(expires_at) WHERE expires_at IS NOT NULL AND status = \'active\'');
         DB::statement('CREATE INDEX idx_alerts_snoozed ON alerts(snoozed_until) WHERE snoozed_until IS NOT NULL');
 
-        // JSON path index for target_price lookups
-        DB::statement('CREATE INDEX idx_alerts_target_price ON alerts USING gin ((parameters->\'target_price\'))');
+        // B-tree index for target_price lookups (extracts text value from JSON)
+        DB::statement('CREATE INDEX idx_alerts_target_price ON alerts ((parameters->>\'target_price\'))');
 
         // Alert history indexes
         Schema::table('alert_history', function (Blueprint $table) {
