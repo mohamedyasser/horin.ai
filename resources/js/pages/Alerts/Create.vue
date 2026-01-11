@@ -52,7 +52,6 @@ interface Props {
     userAssets: Array<{ asset: AssetInfo }>;
     alertTypes: Record<AlertType, AlertTypeOption>;
     markets?: FilterOption[];
-    countries?: FilterOption[];
     sectors?: FilterOption[];
 }
 
@@ -157,7 +156,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
             <!-- Header -->
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="icon" @click="router.visit('/alerts')">
-                    <ArrowLeft class="size-4" />
+                    <ArrowLeft class="size-4 rtl:rotate-180" />
                 </Button>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('alerts.create') }}</h1>
@@ -232,7 +231,6 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 v-model="selectedAsset"
                                 :selected-asset="selectedAssetObject"
                                 :markets="markets"
-                                :countries="countries"
                                 :sectors="sectors"
                                 @update:selected-asset="selectedAssetObject = $event"
                             />

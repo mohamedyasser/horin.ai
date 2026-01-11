@@ -143,7 +143,7 @@ const snoozePresets = [
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <Button variant="ghost" size="icon" @click="router.visit('/alerts')">
-                        <ArrowLeft class="size-4" />
+                        <ArrowLeft class="size-4 rtl:rotate-180" />
                     </Button>
                     <div class="flex items-center gap-3">
                         <div class="flex size-12 items-center justify-center rounded-full bg-primary/10">

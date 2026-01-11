@@ -12,7 +12,6 @@ use App\Models\Alert;
 use App\Models\AlertBacktestResult;
 use App\Models\AlertTemplate;
 use App\Models\Asset;
-use App\Models\Country;
 use App\Models\Market;
 use App\Models\Sector;
 use App\Services\AlertCacheService;
@@ -83,11 +82,6 @@ class AlertController extends Controller
                 'id' => $m->id,
                 'name' => $m->name,
                 'name_ar' => $m->name_ar,
-            ]),
-            'countries' => Country::select('id', 'name_en', 'name_ar')->get()->map(fn ($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'name_ar' => $c->name_ar,
             ]),
             'sectors' => Sector::select('id', 'name_en', 'name_ar')->get()->map(fn ($s) => [
                 'id' => $s->id,
@@ -294,7 +288,7 @@ class AlertController extends Controller
     public function searchAssets(Request $request): JsonResponse
     {
         $query = Asset::query()
-            ->select('id', 'symbol', 'name_en', 'name_ar', 'market_id', 'country_id', 'sector_id');
+            ->select('id', 'symbol', 'name_en', 'name_ar', 'market_id', 'sector_id');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -307,10 +301,6 @@ class AlertController extends Controller
 
         if ($request->filled('market_id')) {
             $query->where('market_id', $request->market_id);
-        }
-
-        if ($request->filled('country_id')) {
-            $query->where('country_id', $request->country_id);
         }
 
         if ($request->filled('sector_id')) {

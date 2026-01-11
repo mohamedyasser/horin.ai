@@ -25,16 +25,6 @@ Route::get('/', function () {
     return redirect('/ar');
 });
 
-// TEMPORARY: Test login route for development
-Route::get('/test-login', function () {
-    $user = \App\Models\User::first();
-    if ($user) {
-        auth()->login($user);
-        return redirect('/dashboard');
-    }
-    return 'No users found in database';
-});
-
 // Dashboard (authenticated - uses user's language preference)
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

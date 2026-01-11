@@ -3,7 +3,6 @@ import { ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDebounceFn } from '@vueuse/core';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -25,7 +24,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, Search, X } from 'lucide-vue-next';
+import { Check, ChevronsUpDown, X } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 
 interface Asset {
@@ -45,7 +44,6 @@ interface Props {
     modelValue?: string;
     selectedAsset?: Asset | null;
     markets?: FilterOption[];
-    countries?: FilterOption[];
     sectors?: FilterOption[];
 }
 
@@ -53,7 +51,6 @@ const props = withDefaults(defineProps<Props>(), {
     modelValue: '',
     selectedAsset: null,
     markets: () => [],
-    countries: () => [],
     sectors: () => [],
 });
 
@@ -66,9 +63,8 @@ const { t, locale } = useI18n();
 
 const open = ref(false);
 const searchQuery = ref('');
-const selectedMarket = ref('');
-const selectedCountry = ref('');
-const selectedSector = ref('');
+const selectedMarket = ref<string | undefined>(undefined);
+const selectedSector = ref<string | undefined>(undefined);
 const assets = ref<Asset[]>([]);
 const loading = ref(false);
 const currentAsset = ref<Asset | null>(props.selectedAsset);
@@ -91,8 +87,12 @@ const displayValue = computed(() => {
     return '';
 });
 
+const hasFilters = computed(() => {
+    return searchQuery.value || selectedMarket.value || selectedSector.value;
+});
+
 const searchAssets = useDebounceFn(async () => {
-    if (!searchQuery.value && !selectedMarket.value && !selectedCountry.value && !selectedSector.value) {
+    if (!hasFilters.value) {
         assets.value = [];
         return;
     }
@@ -102,7 +102,6 @@ const searchAssets = useDebounceFn(async () => {
         const params = new URLSearchParams();
         if (searchQuery.value) params.append('search', searchQuery.value);
         if (selectedMarket.value) params.append('market_id', selectedMarket.value);
-        if (selectedCountry.value) params.append('country_id', selectedCountry.value);
         if (selectedSector.value) params.append('sector_id', selectedSector.value);
 
         const response = await fetch(`/alerts/search-assets?${params.toString()}`);
@@ -116,7 +115,8 @@ const searchAssets = useDebounceFn(async () => {
     }
 }, 300);
 
-watch([searchQuery, selectedMarket, selectedCountry, selectedSector], () => {
+// Watch for filter changes and trigger search
+watch([searchQuery, selectedMarket, selectedSector], () => {
     searchAssets();
 });
 
@@ -134,29 +134,37 @@ const clearSelection = () => {
 };
 
 const clearFilters = () => {
-    selectedMarket.value = '';
-    selectedCountry.value = '';
-    selectedSector.value = '';
+    selectedMarket.value = undefined;
+    selectedSector.value = undefined;
     searchQuery.value = '';
+    assets.value = [];
 };
 
 const getLocalizedName = (item: FilterOption) => {
     return locale.value === 'ar' ? item.name_ar : item.name;
+};
+
+const handleMarketChange = (value: string) => {
+    selectedMarket.value = value === 'all' ? undefined : value;
+};
+
+const handleSectorChange = (value: string) => {
+    selectedSector.value = value === 'all' ? undefined : value;
 };
 </script>
 
 <template>
     <div class="space-y-3">
         <!-- Filters Row -->
-        <div class="grid gap-3 sm:grid-cols-3">
+        <div class="grid gap-3 sm:grid-cols-2">
             <div class="space-y-1.5">
                 <Label class="text-xs text-muted-foreground">{{ t('alerts.filters.market') }}</Label>
-                <Select v-model="selectedMarket">
+                <Select :model-value="selectedMarket || 'all'" @update:model-value="handleMarketChange">
                     <SelectTrigger class="h-9">
                         <SelectValue :placeholder="t('alerts.filters.all_markets')" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">{{ t('alerts.filters.all_markets') }}</SelectItem>
+                        <SelectItem value="all">{{ t('alerts.filters.all_markets') }}</SelectItem>
                         <SelectItem v-for="market in markets" :key="market.id" :value="market.id">
                             {{ getLocalizedName(market) }}
                         </SelectItem>
@@ -164,27 +172,13 @@ const getLocalizedName = (item: FilterOption) => {
                 </Select>
             </div>
             <div class="space-y-1.5">
-                <Label class="text-xs text-muted-foreground">{{ t('alerts.filters.country') }}</Label>
-                <Select v-model="selectedCountry">
-                    <SelectTrigger class="h-9">
-                        <SelectValue :placeholder="t('alerts.filters.all_countries')" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="">{{ t('alerts.filters.all_countries') }}</SelectItem>
-                        <SelectItem v-for="country in countries" :key="country.id" :value="country.id">
-                            {{ getLocalizedName(country) }}
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div class="space-y-1.5">
                 <Label class="text-xs text-muted-foreground">{{ t('alerts.filters.sector') }}</Label>
-                <Select v-model="selectedSector">
+                <Select :model-value="selectedSector || 'all'" @update:model-value="handleSectorChange">
                     <SelectTrigger class="h-9">
                         <SelectValue :placeholder="t('alerts.filters.all_sectors')" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">{{ t('alerts.filters.all_sectors') }}</SelectItem>
+                        <SelectItem value="all">{{ t('alerts.filters.all_sectors') }}</SelectItem>
                         <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
                             {{ getLocalizedName(sector) }}
                         </SelectItem>
@@ -198,7 +192,7 @@ const getLocalizedName = (item: FilterOption) => {
             <div class="flex items-center justify-between">
                 <Label>{{ t('alerts.fields.asset') }}</Label>
                 <Button
-                    v-if="selectedMarket || selectedCountry || selectedSector"
+                    v-if="selectedMarket || selectedSector"
                     variant="ghost"
                     size="sm"
                     class="h-auto px-2 py-1 text-xs"
@@ -239,7 +233,7 @@ const getLocalizedName = (item: FilterOption) => {
                         />
                         <CommandList>
                             <CommandEmpty v-if="!loading">
-                                {{ searchQuery || selectedMarket || selectedCountry || selectedSector
+                                {{ hasFilters
                                     ? t('alerts.no_assets_found')
                                     : t('alerts.search_to_find_assets') }}
                             </CommandEmpty>
@@ -255,7 +249,7 @@ const getLocalizedName = (item: FilterOption) => {
                                 >
                                     <Check
                                         :class="cn(
-                                            'mr-2 h-4 w-4',
+                                            'me-2 size-4',
                                             currentAsset?.id === asset.id ? 'opacity-100' : 'opacity-0'
                                         )"
                                     />
