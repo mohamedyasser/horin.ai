@@ -4,20 +4,45 @@
 
 **Goal:** Implement a full-featured Telegram bot for the Kira Alert System that sends rich, formatted notifications and handles user interactions.
 
-**Architecture:** The implementation builds on existing alert infrastructure. A new `TelegramBotService` sends formatted messages using the WeStacks TeleBot library. A `TelegramMessageBuilder` formats notifications per the design spec. The webhook controller handles commands and inline button callbacks.
+**Architecture:** The implementation uses the **westacks/telebot-laravel** adapter which provides:
+- `TeleBot` Facade for easy bot access
+- Artisan commands for generating handlers (`make:telebot:*`)
+- Built-in webhook and polling commands
+- Notification channel integration
+- Telegram logger driver
 
-**Tech Stack:** Laravel 12, WeStacks TeleBot, Redis (queue), PHP 8.4
+The implementation builds on existing alert infrastructure. A `TelegramBotService` wraps the Facade for testability. A `TelegramMessageBuilder` formats notifications per the design spec. Class-based handlers process commands and callbacks using the TeleBot handler pipeline.
+
+**Tech Stack:** Laravel 12, westacks/telebot + westacks/telebot-laravel, Redis (queue), PHP 8.4
+
+**Package Documentation:**
+- [TeleBot Docs](https://westacks.github.io/telebot/)
+- [TeleBot Laravel Adapter](https://github.com/westacks/telebot-laravel)
 
 ---
 
 ## Prerequisites
 
+**Step 0: Install Laravel Adapter**
+
+The project has `westacks/telebot` installed, but needs the Laravel adapter for Facade, artisan commands, and notification channel:
+
+```bash
+composer require westacks/telebot-laravel
+php artisan telebot:install
+```
+
+This will:
+- Publish `config/telebot.php` configuration
+- Set up the TeleBot Facade
+- Register artisan commands
+
 **Existing Files Referenced:**
 - `app/Jobs/Alerts/SendAlertNotification.php` - Has placeholder `sendTelegram()`
 - `app/Jobs/Alerts/GenerateDigest.php` - Has TODO for TelegramBotService
 - `app/Jobs/Alerts/ProcessEscalation.php` - Needs Telegram integration
-- `app/Http/Controllers/Auth/TelegramWebhookController.php` - Basic webhook
-- `config/telegram.php` - Bot configuration
+- `app/Http/Controllers/Auth/TelegramWebhookController.php` - Basic webhook (will be replaced with handler classes)
+- `config/telegram.php` - Existing bot config (will migrate to `config/telebot.php`)
 - `docs/plans/2026-01-10-kira-alert-notification-examples.md` - Message formats
 
 **Environment Variables Required:**
@@ -29,19 +54,69 @@ TELEGRAM_WEBHOOK_SECRET=random_secure_string
 
 ---
 
-## Task 1: Create TelegramBotService
+## Task 1: Configure TeleBot Laravel and Create TelegramBotService
 
 **Files:**
+- Modify: `config/telebot.php` (created by `telebot:install`)
 - Create: `app/Services/TelegramBotService.php`
 
-**Step 1: Create the service file**
+**Step 1: Configure telebot.php**
+
+After running `php artisan telebot:install`, update `config/telebot.php`:
+
+```php
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Default Bot
+    |--------------------------------------------------------------------------
+    |
+    | The default bot that will be used when no bot is specified.
+    |
+    */
+    'default' => 'kira',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bots
+    |--------------------------------------------------------------------------
+    |
+    | Configure your Telegram bots here.
+    |
+    */
+    'bots' => [
+        'kira' => [
+            'token' => env('TELEGRAM_BOT_TOKEN'),
+            'name' => env('TELEGRAM_BOT_USERNAME'),
+
+            // Handler kernel for processing updates
+            'kernel' => \App\Telegram\KiraKernel::class,
+
+            // Webhook configuration
+            'webhook' => [
+                'url' => env('APP_URL') . '/telegram/webhook',
+                'certificate' => null,
+                'ip_address' => null,
+                'max_connections' => 40,
+                'allowed_updates' => ['message', 'callback_query'],
+                'drop_pending_updates' => false,
+                'secret_token' => env('TELEGRAM_WEBHOOK_SECRET'),
+            ],
+        ],
+    ],
+];
+```
+
+**Step 2: Create the TelegramBotService wrapper**
 
 Run:
 ```bash
 php artisan make:class Services/TelegramBotService --no-interaction
 ```
 
-**Step 2: Implement TelegramBotService**
+Implement with TeleBot Facade:
 
 ```php
 <?php
@@ -49,23 +124,11 @@ php artisan make:class Services/TelegramBotService --no-interaction
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
-use WeStacks\TeleBot\TeleBot;
+use WeStacks\TeleBot\Laravel\TeleBot;
+use WeStacks\TeleBot\Objects\Message;
 
 class TelegramBotService
 {
-    private TeleBot $bot;
-
-    public function __construct()
-    {
-        $token = config('telegram.bot_token');
-
-        if (! $token) {
-            throw new \RuntimeException('Telegram bot token not configured');
-        }
-
-        $this->bot = new TeleBot($token);
-    }
-
     /**
      * Send a text message to a chat.
      */
@@ -73,7 +136,7 @@ class TelegramBotService
         int|string $chatId,
         string $text,
         array $options = []
-    ): ?array {
+    ): ?Message {
         try {
             $params = array_merge([
                 'chat_id' => $chatId,
@@ -82,11 +145,11 @@ class TelegramBotService
                 'disable_web_page_preview' => true,
             ], $options);
 
-            $result = $this->bot->sendMessage($params);
+            $result = TeleBot::sendMessage($params);
 
             Log::debug('Telegram message sent', [
                 'chat_id' => $chatId,
-                'message_id' => $result['message_id'] ?? null,
+                'message_id' => $result->message_id ?? null,
             ]);
 
             return $result;
@@ -109,10 +172,28 @@ class TelegramBotService
         string $text,
         array $keyboard,
         array $options = []
-    ): ?array {
-        $options['reply_markup'] = json_encode([
+    ): ?Message {
+        $options['reply_markup'] = [
             'inline_keyboard' => $keyboard,
-        ]);
+        ];
+
+        return $this->sendMessage($chatId, $text, $options);
+    }
+
+    /**
+     * Send a message with reply keyboard (e.g., phone request).
+     */
+    public function sendMessageWithReplyKeyboard(
+        int|string $chatId,
+        string $text,
+        array $keyboard,
+        array $options = []
+    ): ?Message {
+        $options['reply_markup'] = array_merge([
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => true,
+        ], $options['reply_markup'] ?? []);
 
         return $this->sendMessage($chatId, $text, $options);
     }
@@ -125,7 +206,7 @@ class TelegramBotService
         int $messageId,
         string $text,
         array $options = []
-    ): ?array {
+    ): ?Message {
         try {
             $params = array_merge([
                 'chat_id' => $chatId,
@@ -134,7 +215,7 @@ class TelegramBotService
                 'parse_mode' => 'Markdown',
             ], $options);
 
-            return $this->bot->editMessageText($params);
+            return TeleBot::editMessageText($params);
         } catch (\Exception $e) {
             Log::error('Failed to edit Telegram message', [
                 'chat_id' => $chatId,
@@ -147,6 +228,35 @@ class TelegramBotService
     }
 
     /**
+     * Edit message reply markup (keyboard).
+     */
+    public function editMessageKeyboard(
+        int|string $chatId,
+        int $messageId,
+        array $keyboard
+    ): bool {
+        try {
+            TeleBot::editMessageReplyMarkup([
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'reply_markup' => [
+                    'inline_keyboard' => $keyboard,
+                ],
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Failed to edit message keyboard', [
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
      * Answer a callback query (button press).
      */
     public function answerCallback(
@@ -155,7 +265,7 @@ class TelegramBotService
         bool $showAlert = false
     ): bool {
         try {
-            $this->bot->answerCallbackQuery([
+            TeleBot::answerCallbackQuery([
                 'callback_query_id' => $callbackQueryId,
                 'text' => $text,
                 'show_alert' => $showAlert,
@@ -173,30 +283,40 @@ class TelegramBotService
     }
 
     /**
-     * Get the underlying TeleBot instance.
+     * Remove reply keyboard after use.
      */
-    public function getBot(): TeleBot
+    public function removeKeyboard(int|string $chatId, string $text): ?Message
     {
-        return $this->bot;
+        return $this->sendMessage($chatId, $text, [
+            'reply_markup' => [
+                'remove_keyboard' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Get bot info.
+     */
+    public function getMe(): array
+    {
+        return (array) TeleBot::getMe();
     }
 }
 ```
 
-**Step 3: Register in AppServiceProvider**
+**Step 3: Register as singleton in AppServiceProvider**
 
 Add to `app/Providers/AppServiceProvider.php` in the `register()` method:
 
 ```php
-$this->app->singleton(\App\Services\TelegramBotService::class, function ($app) {
-    return new \App\Services\TelegramBotService();
-});
+$this->app->singleton(\App\Services\TelegramBotService::class);
 ```
 
 **Step 4: Commit**
 
 ```bash
-git add app/Services/TelegramBotService.php app/Providers/AppServiceProvider.php
-git commit -m "feat: add TelegramBotService for sending bot messages"
+git add config/telebot.php app/Services/TelegramBotService.php app/Providers/AppServiceProvider.php
+git commit -m "feat: configure TeleBot Laravel and add TelegramBotService"
 ```
 
 ---
@@ -1160,125 +1280,317 @@ git commit -m "feat: integrate TelegramBotService in GenerateDigest"
 
 ---
 
-## Task 6: Enhance TelegramWebhookController with Commands
+## Task 6: Create TeleBot Kernel and Handler Classes
+
+**Overview:** Use TeleBot's handler pipeline pattern instead of a monolithic controller. This provides:
+- Separation of concerns (one handler per command/callback type)
+- Automatic command registration via `php artisan telebot:commands --setup`
+- Built-in state management via `RequestInputHandler`
+- Testable handler classes
 
 **Files:**
+- Create: `app/Telegram/KiraKernel.php`
+- Create: `app/Telegram/Commands/StartCommand.php`
+- Create: `app/Telegram/Commands/HelpCommand.php`
+- Create: `app/Telegram/Commands/AlertsCommand.php`
+- Create: `app/Telegram/Commands/SettingsCommand.php`
+- Create: `app/Telegram/Commands/LanguageCommand.php`
+- Create: `app/Telegram/Handlers/SnoozeCallbackHandler.php`
+- Create: `app/Telegram/Handlers/AcknowledgeCallbackHandler.php`
+- Create: `app/Telegram/Handlers/LanguageCallbackHandler.php`
+- Create: `app/Telegram/Handlers/ContactHandler.php`
 - Modify: `app/Http/Controllers/Auth/TelegramWebhookController.php`
 
-**Step 1: Add new command handlers**
+**Step 1: Create the Kernel**
 
-Replace the entire class with:
+Run:
+```bash
+php artisan make:telebot:kernel KiraKernel --no-interaction
+```
+
+Update `app/Telegram/KiraKernel.php`:
 
 ```php
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Telegram;
 
-use App\Http\Controllers\Controller;
-use App\Models\Alert;
-use App\Models\AlertHistory;
+use App\Telegram\Commands\AlertsCommand;
+use App\Telegram\Commands\HelpCommand;
+use App\Telegram\Commands\LanguageCommand;
+use App\Telegram\Commands\SettingsCommand;
+use App\Telegram\Commands\StartCommand;
+use App\Telegram\Handlers\AcknowledgeCallbackHandler;
+use App\Telegram\Handlers\ContactHandler;
+use App\Telegram\Handlers\LanguageCallbackHandler;
+use App\Telegram\Handlers\SnoozeCallbackHandler;
+use WeStacks\TeleBot\Foundation\Kernel;
+
+class KiraKernel extends Kernel
+{
+    /**
+     * Registered update handlers.
+     * Order matters - handlers are processed in sequence.
+     */
+    protected array $handlers = [
+        // Commands (processed first)
+        StartCommand::class,
+        HelpCommand::class,
+        AlertsCommand::class,
+        SettingsCommand::class,
+        LanguageCommand::class,
+
+        // Callback handlers
+        SnoozeCallbackHandler::class,
+        AcknowledgeCallbackHandler::class,
+        LanguageCallbackHandler::class,
+
+        // Contact handler for phone verification
+        ContactHandler::class,
+    ];
+}
+```
+
+**Step 2: Create StartCommand**
+
+Run:
+```bash
+php artisan make:telebot:command-handler StartCommand --no-interaction
+```
+
+Update `app/Telegram/Commands/StartCommand.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Commands;
+
 use App\Models\User;
 use App\Services\TelegramBotService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use WeStacks\TeleBot\Foundation\CommandHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
 
-class TelegramWebhookController extends Controller
+class StartCommand extends CommandHandler
 {
-    public function __construct(
-        private TelegramBotService $telegram
-    ) {}
-
-    /**
-     * Handle incoming Telegram webhook requests.
-     */
-    public function handle(Request $request): JsonResponse
+    protected static function command(): string
     {
-        $update = $request->all();
-
-        Log::debug('Telegram webhook received', ['update' => $update]);
-
-        try {
-            if (isset($update['callback_query'])) {
-                $this->handleCallbackQuery($update['callback_query']);
-            } elseif (isset($update['message']['contact'])) {
-                $this->handleContact($update['message']);
-            } elseif (isset($update['message']['text'])) {
-                $this->handleTextMessage($update['message']);
-            }
-        } catch (\Exception $e) {
-            Log::error('Webhook handler error', ['error' => $e->getMessage()]);
-        }
-
-        return response()->json(['ok' => true]);
+        return 'start';
     }
 
-    /**
-     * Handle text messages (commands).
-     */
-    protected function handleTextMessage(array $message): void
+    protected static function aliases(): array
     {
-        $text = $message['text'];
-        $from = $message['from'];
-        $chatId = $message['chat']['id'];
-
-        $command = strtolower(explode(' ', $text)[0]);
-
-        match ($command) {
-            '/start' => $this->handleStart($chatId, $from),
-            '/help' => $this->handleHelp($chatId, $from),
-            '/alerts' => $this->handleAlerts($chatId, $from),
-            '/settings' => $this->handleSettings($chatId, $from),
-            '/language', '/lang' => $this->handleLanguage($chatId, $from),
-            default => null, // Ignore unknown commands
-        };
+        return [];
     }
 
-    /**
-     * Handle /start command.
-     */
-    protected function handleStart(int $chatId, array $from): void
+    protected static function description(): string
     {
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        return 'Start the bot and verify your account';
+    }
+
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $message = $update->message;
+        $chatId = $message->chat->id;
+        $telegramId = (string) $message->from->id;
+
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if ($user && $user->hasVerifiedPhone()) {
-            $this->sendWelcomeBack($chatId, $user);
+            $this->sendWelcomeBack($bot, $chatId, $user);
         } elseif ($user && ! $user->hasVerifiedPhone()) {
-            $this->sendPhoneRequestMessage($chatId);
+            $this->sendPhoneRequest($bot, $chatId);
         } else {
-            $this->telegram->sendMessage(
-                $chatId,
-                __('auth.telegram.please_login_first')
-            );
+            $bot->sendMessage([
+                'chat_id' => $chatId,
+                'text' => __('auth.telegram.please_login_first'),
+            ]);
         }
+
+        return null; // Stop processing
     }
 
-    /**
-     * Handle /help command.
-     */
-    protected function handleHelp(int $chatId, array $from): void
+    private function sendWelcomeBack(TeleBot $bot, int $chatId, User $user): void
     {
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        $locale = $user->language ?? 'en';
+        $name = $user->name ?? 'there';
+
+        $message = $locale === 'ar'
+            ? "👋 مرحباً مجدداً، *{$name}*!\n\nأنت جاهز لتلقي تنبيهات الأسهم.\n\n📋 /alerts - عرض التنبيهات\n⚙️ /settings - الإعدادات\n❓ /help - المساعدة"
+            : "👋 Welcome back, *{$name}*!\n\nYou're all set to receive stock alerts.\n\n📋 /alerts - View alerts\n⚙️ /settings - Settings\n❓ /help - Help";
+
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $message,
+            'parse_mode' => 'Markdown',
+        ]);
+    }
+
+    private function sendPhoneRequest(TeleBot $bot, int $chatId): void
+    {
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => __('auth.telegram.verify_phone_message'),
+            'reply_markup' => [
+                'keyboard' => [[
+                    [
+                        'text' => __('auth.telegram.share_phone_button'),
+                        'request_contact' => true,
+                    ],
+                ]],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
+            ],
+        ]);
+    }
+}
+```
+
+**Step 3: Create HelpCommand**
+
+Run:
+```bash
+php artisan make:telebot:command-handler HelpCommand --no-interaction
+```
+
+Update `app/Telegram/Commands/HelpCommand.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Commands;
+
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\CommandHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class HelpCommand extends CommandHandler
+{
+    protected static function command(): string
+    {
+        return 'help';
+    }
+
+    protected static function description(): string
+    {
+        return 'Show available commands and help';
+    }
+
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $chatId = $update->message->chat->id;
+        $telegramId = (string) $update->message->from->id;
+
+        $user = User::where('telegram_id', $telegramId)->first();
         $locale = $user?->language ?? 'en';
 
         $helpText = $locale === 'ar' ? $this->getHelpTextAr() : $this->getHelpTextEn();
 
-        $this->telegram->sendMessage($chatId, $helpText);
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $helpText,
+            'parse_mode' => 'Markdown',
+        ]);
+
+        return null;
     }
 
-    /**
-     * Handle /alerts command.
-     */
-    protected function handleAlerts(int $chatId, array $from): void
+    private function getHelpTextEn(): string
     {
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        return <<<'MSG'
+❓ *Kira Bot Help*
+━━━━━━━━━━━━━━━━━━
+
+*Available Commands:*
+
+📋 /alerts - View your active alerts
+⚙️ /settings - View your notification settings
+🌐 /language - Change language
+❓ /help - Show this help message
+
+*Alert Actions:*
+When you receive an alert, you can:
+• Tap "View Stock" to see details
+• Tap "Snooze" to pause the alert
+• Tap "Acknowledge" to confirm receipt
+
+*Need more help?*
+Visit our app for full features.
+MSG;
+    }
+
+    private function getHelpTextAr(): string
+    {
+        return <<<'MSG'
+❓ *مساعدة بوت كيرا*
+━━━━━━━━━━━━━━━━━━
+
+*الأوامر المتاحة:*
+
+📋 /alerts - عرض تنبيهاتك النشطة
+⚙️ /settings - عرض إعدادات الإشعارات
+🌐 /language - تغيير اللغة
+❓ /help - عرض هذه الرسالة
+
+*إجراءات التنبيهات:*
+عند استلام تنبيه، يمكنك:
+• الضغط على "عرض السهم" لرؤية التفاصيل
+• الضغط على "تأجيل" لإيقاف التنبيه مؤقتاً
+• الضغط على "تأكيد" لتأكيد الاستلام
+
+*تحتاج مساعدة إضافية؟*
+زر التطبيق للمزيد من الميزات.
+MSG;
+    }
+}
+```
+
+**Step 4: Create AlertsCommand**
+
+Run:
+```bash
+php artisan make:telebot:command-handler AlertsCommand --no-interaction
+```
+
+Update `app/Telegram/Commands/AlertsCommand.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Commands;
+
+use App\Models\Alert;
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\CommandHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class AlertsCommand extends CommandHandler
+{
+    protected static function command(): string
+    {
+        return 'alerts';
+    }
+
+    protected static function description(): string
+    {
+        return 'View your active alerts';
+    }
+
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $chatId = $update->message->chat->id;
+        $telegramId = (string) $update->message->from->id;
+
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->telegram->sendMessage(
-                $chatId,
-                __('auth.telegram.please_login_first')
-            );
-            return;
+            $bot->sendMessage([
+                'chat_id' => $chatId,
+                'text' => __('auth.telegram.please_login_first'),
+            ]);
+            return null;
         }
 
         $locale = $user->language ?? 'en';
@@ -1290,11 +1602,11 @@ class TelegramWebhookController extends Controller
 
         if ($alerts->isEmpty()) {
             $message = $locale === 'ar'
-                ? '📭 لا توجد تنبيهات نشطة.\n\nاستخدم التطبيق لإنشاء تنبيهات جديدة.'
-                : '📭 No active alerts.\n\nUse the app to create new alerts.';
+                ? "📭 لا توجد تنبيهات نشطة.\n\nاستخدم التطبيق لإنشاء تنبيهات جديدة."
+                : "📭 No active alerts.\n\nUse the app to create new alerts.";
 
-            $this->telegram->sendMessage($chatId, $message);
-            return;
+            $bot->sendMessage(['chat_id' => $chatId, 'text' => $message]);
+            return null;
         }
 
         $lines = [$locale === 'ar' ? '📋 *تنبيهاتك النشطة:*' : '📋 *Your Active Alerts:*'];
@@ -1302,7 +1614,7 @@ class TelegramWebhookController extends Controller
 
         foreach ($alerts as $alert) {
             $symbol = $alert->asset?->symbol ?? 'N/A';
-            $type = $alert->trigger_type;
+            $type = __("alerts.types.{$alert->trigger_type}", [], $locale);
             $lines[] = "• *{$symbol}* - {$type}";
         }
 
@@ -1311,28 +1623,66 @@ class TelegramWebhookController extends Controller
             ? '📊 استخدم التطبيق لإدارة التنبيهات'
             : '📊 Use the app to manage alerts';
 
-        $this->telegram->sendMessageWithKeyboard(
-            $chatId,
-            implode("\n", $lines),
-            [[
-                ['text' => '🔗 Open App', 'url' => config('app.url') . '/alerts'],
-            ]]
-        );
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => implode("\n", $lines),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => [[
+                    ['text' => '🔗 Open App', 'url' => config('app.url') . '/alerts'],
+                ]],
+            ],
+        ]);
+
+        return null;
+    }
+}
+```
+
+**Step 5: Create SettingsCommand**
+
+Run:
+```bash
+php artisan make:telebot:command-handler SettingsCommand --no-interaction
+```
+
+Update `app/Telegram/Commands/SettingsCommand.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Commands;
+
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\CommandHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class SettingsCommand extends CommandHandler
+{
+    protected static function command(): string
+    {
+        return 'settings';
     }
 
-    /**
-     * Handle /settings command.
-     */
-    protected function handleSettings(int $chatId, array $from): void
+    protected static function description(): string
     {
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        return 'View your notification settings';
+    }
+
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $chatId = $update->message->chat->id;
+        $telegramId = (string) $update->message->from->id;
+
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->telegram->sendMessage(
-                $chatId,
-                __('auth.telegram.please_login_first')
-            );
-            return;
+            $bot->sendMessage([
+                'chat_id' => $chatId,
+                'text' => __('auth.telegram.please_login_first'),
+            ]);
+            return null;
         }
 
         $locale = $user->language ?? 'en';
@@ -1369,74 +1719,125 @@ Use the app to modify settings.
 MSG;
         }
 
-        $this->telegram->sendMessageWithKeyboard(
-            $chatId,
-            $message,
-            [[
-                ['text' => '⚙️ Open Settings', 'url' => config('app.url') . '/settings/alerts'],
-            ]]
-        );
-    }
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $message,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => [[
+                    ['text' => '⚙️ Open Settings', 'url' => config('app.url') . '/settings/alerts'],
+                ]],
+            ],
+        ]);
 
-    /**
-     * Handle /language command.
-     */
-    protected function handleLanguage(int $chatId, array $from): void
+        return null;
+    }
+}
+```
+
+**Step 6: Create LanguageCommand**
+
+Run:
+```bash
+php artisan make:telebot:command-handler LanguageCommand --no-interaction
+```
+
+Update `app/Telegram/Commands/LanguageCommand.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Commands;
+
+use WeStacks\TeleBot\Foundation\CommandHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class LanguageCommand extends CommandHandler
+{
+    protected static function command(): string
     {
-        $this->telegram->sendMessageWithKeyboard(
-            $chatId,
-            '🌐 Select your language / اختر لغتك:',
-            [[
-                ['text' => '🇬🇧 English', 'callback_data' => 'lang:en'],
-                ['text' => '🇸🇦 العربية', 'callback_data' => 'lang:ar'],
-            ]]
-        );
+        return 'language';
     }
 
-    /**
-     * Handle callback queries (button presses).
-     */
-    protected function handleCallbackQuery(array $callback): void
+    protected static function aliases(): array
     {
-        $data = $callback['data'] ?? '';
-        $from = $callback['from'];
-        $callbackId = $callback['id'];
-        $messageId = $callback['message']['message_id'] ?? null;
-        $chatId = $callback['message']['chat']['id'] ?? $from['id'];
-
-        [$action, ...$params] = explode(':', $data);
-
-        match ($action) {
-            'snooze' => $this->handleSnooze($callbackId, $chatId, $messageId, $from, $params),
-            'ack' => $this->handleAcknowledge($callbackId, $chatId, $messageId, $from, $params),
-            'lang' => $this->handleLanguageChange($callbackId, $chatId, $from, $params),
-            default => $this->telegram->answerCallback($callbackId, 'Unknown action'),
-        };
+        return ['lang'];
     }
 
+    protected static function description(): string
+    {
+        return 'Change your preferred language';
+    }
+
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $chatId = $update->message->chat->id;
+
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => '🌐 Select your language / اختر لغتك:',
+            'reply_markup' => [
+                'inline_keyboard' => [[
+                    ['text' => '🇬🇧 English', 'callback_data' => 'lang:en'],
+                    ['text' => '🇸🇦 العربية', 'callback_data' => 'lang:ar'],
+                ]],
+            ],
+        ]);
+
+        return null;
+    }
+}
+```
+
+**Step 7: Create SnoozeCallbackHandler**
+
+Run:
+```bash
+php artisan make:telebot:callback-handler SnoozeCallbackHandler --no-interaction
+```
+
+Update `app/Telegram/Handlers/SnoozeCallbackHandler.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Handlers;
+
+use App\Models\Alert;
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\CallbackHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class SnoozeCallbackHandler extends CallbackHandler
+{
     /**
-     * Handle snooze button press.
+     * Regex pattern to match callback data.
+     * Captures: alertId, minutes
      */
-    protected function handleSnooze(
-        string $callbackId,
-        int $chatId,
-        ?int $messageId,
-        array $from,
-        array $params
-    ): void {
-        $alertId = $params[0] ?? null;
-        $minutes = (int) ($params[1] ?? 60);
+    protected static function pattern(): string
+    {
+        return '/^snooze:(\d+):(\d+)$/';
+    }
 
-        if (! $alertId) {
-            $this->telegram->answerCallback($callbackId, 'Invalid alert');
-            return;
-        }
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $callback = $update->callback_query;
+        $telegramId = (string) $callback->from->id;
 
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        // Extract matched groups from pattern
+        $alertId = $this->match[1];
+        $minutes = (int) $this->match[2];
+
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->telegram->answerCallback($callbackId, 'User not found');
-            return;
+            $bot->answerCallbackQuery([
+                'callback_query_id' => $callback->id,
+                'text' => 'User not found',
+            ]);
+            return null;
         }
 
         $alert = Alert::where('id', $alertId)
@@ -1444,8 +1845,11 @@ MSG;
             ->first();
 
         if (! $alert) {
-            $this->telegram->answerCallback($callbackId, 'Alert not found');
-            return;
+            $bot->answerCallbackQuery([
+                'callback_query_id' => $callback->id,
+                'text' => 'Alert not found',
+            ]);
+            return null;
         }
 
         $alert->update([
@@ -1457,31 +1861,58 @@ MSG;
             ? "⏰ تم تأجيل التنبيه لمدة {$minutes} دقيقة"
             : "⏰ Alert snoozed for {$minutes} minutes";
 
-        $this->telegram->answerCallback($callbackId, $confirmText, true);
+        $bot->answerCallbackQuery([
+            'callback_query_id' => $callback->id,
+            'text' => $confirmText,
+            'show_alert' => true,
+        ]);
+
+        return null;
+    }
+}
+```
+
+**Step 8: Create AcknowledgeCallbackHandler**
+
+Run:
+```bash
+php artisan make:telebot:callback-handler AcknowledgeCallbackHandler --no-interaction
+```
+
+Update `app/Telegram/Handlers/AcknowledgeCallbackHandler.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Handlers;
+
+use App\Models\AlertHistory;
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\CallbackHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class AcknowledgeCallbackHandler extends CallbackHandler
+{
+    protected static function pattern(): string
+    {
+        return '/^ack:(\d+)$/';
     }
 
-    /**
-     * Handle acknowledge button press.
-     */
-    protected function handleAcknowledge(
-        string $callbackId,
-        int $chatId,
-        ?int $messageId,
-        array $from,
-        array $params
-    ): void {
-        $historyId = $params[0] ?? null;
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $callback = $update->callback_query;
+        $telegramId = (string) $callback->from->id;
+        $historyId = $this->match[1];
 
-        if (! $historyId) {
-            $this->telegram->answerCallback($callbackId, 'Invalid history');
-            return;
-        }
-
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->telegram->answerCallback($callbackId, 'User not found');
-            return;
+            $bot->answerCallbackQuery([
+                'callback_query_id' => $callback->id,
+                'text' => 'User not found',
+            ]);
+            return null;
         }
 
         $history = AlertHistory::where('id', $historyId)
@@ -1489,8 +1920,11 @@ MSG;
             ->first();
 
         if (! $history) {
-            $this->telegram->answerCallback($callbackId, 'Alert not found');
-            return;
+            $bot->answerCallbackQuery([
+                'callback_query_id' => $callback->id,
+                'text' => 'Alert not found',
+            ]);
+            return null;
         }
 
         $history->update([
@@ -1500,21 +1934,50 @@ MSG;
         $locale = $user->language ?? 'en';
         $confirmText = $locale === 'ar' ? '✅ تم التأكيد' : '✅ Acknowledged';
 
-        $this->telegram->answerCallback($callbackId, $confirmText, true);
+        $bot->answerCallbackQuery([
+            'callback_query_id' => $callback->id,
+            'text' => $confirmText,
+            'show_alert' => true,
+        ]);
+
+        return null;
+    }
+}
+```
+
+**Step 9: Create LanguageCallbackHandler**
+
+Run:
+```bash
+php artisan make:telebot:callback-handler LanguageCallbackHandler --no-interaction
+```
+
+Update `app/Telegram/Handlers/LanguageCallbackHandler.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Handlers;
+
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\CallbackHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class LanguageCallbackHandler extends CallbackHandler
+{
+    protected static function pattern(): string
+    {
+        return '/^lang:(en|ar)$/';
     }
 
-    /**
-     * Handle language change callback.
-     */
-    protected function handleLanguageChange(
-        string $callbackId,
-        int $chatId,
-        array $from,
-        array $params
-    ): void {
-        $newLang = $params[0] ?? 'en';
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    {
+        $callback = $update->callback_query;
+        $telegramId = (string) $callback->from->id;
+        $newLang = $this->match[1];
 
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if ($user) {
             $user->update(['language' => $newLang]);
@@ -1524,89 +1987,89 @@ MSG;
             ? '✅ تم تغيير اللغة إلى العربية'
             : '✅ Language changed to English';
 
-        $this->telegram->answerCallback($callbackId, $confirmText, true);
-    }
-
-    /**
-     * Send welcome back message.
-     */
-    protected function sendWelcomeBack(int $chatId, User $user): void
-    {
-        $locale = $user->language ?? 'en';
-        $name = $user->name ?? 'there';
-
-        if ($locale === 'ar') {
-            $message = "👋 مرحباً مجدداً، *{$name}*!\n\nأنت جاهز لتلقي تنبيهات الأسهم.\n\n📋 /alerts - عرض التنبيهات\n⚙️ /settings - الإعدادات\n❓ /help - المساعدة";
-        } else {
-            $message = "👋 Welcome back, *{$name}*!\n\nYou're all set to receive stock alerts.\n\n📋 /alerts - View alerts\n⚙️ /settings - Settings\n❓ /help - Help";
-        }
-
-        $this->telegram->sendMessage($chatId, $message);
-    }
-
-    /**
-     * Send phone request message.
-     */
-    protected function sendPhoneRequestMessage(int $chatId): void
-    {
-        $this->telegram->getBot()->sendMessage([
-            'chat_id' => $chatId,
-            'text' => __('auth.telegram.verify_phone_message'),
-            'reply_markup' => json_encode([
-                'keyboard' => [[
-                    [
-                        'text' => __('auth.telegram.share_phone_button'),
-                        'request_contact' => true,
-                    ],
-                ]],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
-            ]),
+        $bot->answerCallbackQuery([
+            'callback_query_id' => $callback->id,
+            'text' => $confirmText,
+            'show_alert' => true,
         ]);
+
+        return null;
+    }
+}
+```
+
+**Step 10: Create ContactHandler for phone verification**
+
+Run:
+```bash
+php artisan make:telebot:update-handler ContactHandler --no-interaction
+```
+
+Update `app/Telegram/Handlers/ContactHandler.php`:
+
+```php
+<?php
+
+namespace App\Telegram\Handlers;
+
+use App\Models\User;
+use WeStacks\TeleBot\Foundation\UpdateHandler;
+use WeStacks\TeleBot\Objects\Update;
+use WeStacks\TeleBot\TeleBot;
+
+class ContactHandler extends UpdateHandler
+{
+    /**
+     * Check if this handler should process the update.
+     */
+    public function trigger(Update $update, TeleBot $bot): bool
+    {
+        return isset($update->message->contact);
     }
 
-    /**
-     * Handle contact message for phone verification.
-     */
-    protected function handleContact(array $message): void
+    public function handle(TeleBot $bot, Update $update, callable $next): mixed
     {
-        $contact = $message['contact'];
-        $from = $message['from'];
-        $chatId = $message['chat']['id'];
+        $message = $update->message;
+        $contact = $message->contact;
+        $chatId = $message->chat->id;
+        $telegramId = (string) $message->from->id;
 
-        if ($contact['user_id'] !== $from['id']) {
-            $this->telegram->sendMessage(
-                $chatId,
-                __('auth.telegram_verification.contact_mismatch')
-            );
-            return;
+        // Verify the contact belongs to the sender
+        if ((string) $contact->user_id !== $telegramId) {
+            $bot->sendMessage([
+                'chat_id' => $chatId,
+                'text' => __('auth.telegram_verification.contact_mismatch'),
+                'reply_markup' => ['remove_keyboard' => true],
+            ]);
+            return null;
         }
 
-        $user = User::where('telegram_id', (string) $from['id'])->first();
+        $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->telegram->sendMessage(
-                $chatId,
-                __('auth.telegram_verification.user_not_found')
-            );
-            return;
+            $bot->sendMessage([
+                'chat_id' => $chatId,
+                'text' => __('auth.telegram_verification.user_not_found'),
+                'reply_markup' => ['remove_keyboard' => true],
+            ]);
+            return null;
         }
 
-        $normalizedPhone = $this->normalizePhone($contact['phone_number']);
-
-        $user->phone = $normalizedPhone;
+        // Normalize and save phone
+        $phone = $this->normalizePhone($contact->phone_number);
+        $user->phone = $phone;
         $user->markPhoneAsVerified();
 
-        $this->telegram->sendMessage(
-            $chatId,
-            __('auth.telegram_verification.success')
-        );
+        $bot->sendMessage([
+            'chat_id' => $chatId,
+            'text' => __('auth.telegram_verification.success'),
+            'reply_markup' => ['remove_keyboard' => true],
+        ]);
+
+        return null;
     }
 
-    /**
-     * Normalize phone number.
-     */
-    protected function normalizePhone(string $phone): string
+    private function normalizePhone(string $phone): string
     {
         $phone = trim($phone);
 
@@ -1616,72 +2079,82 @@ MSG;
 
         return $phone;
     }
+}
+```
 
+**Step 11: Update TelegramWebhookController to use TeleBot handler**
+
+Update `app/Http/Controllers/Auth/TelegramWebhookController.php`:
+
+```php
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use WeStacks\TeleBot\Laravel\TeleBot;
+use WeStacks\TeleBot\Objects\Update;
+
+class TelegramWebhookController extends Controller
+{
     /**
-     * Get help text in English.
+     * Handle incoming Telegram webhook requests.
+     *
+     * Routes update through TeleBot's handler pipeline.
      */
-    private function getHelpTextEn(): string
+    public function handle(Request $request): JsonResponse
     {
-        return <<<MSG
-❓ *Kira Bot Help*
-━━━━━━━━━━━━━━━━━━
+        try {
+            $update = Update::from($request->all());
 
-*Available Commands:*
+            Log::debug('Telegram webhook received', [
+                'update_id' => $update->update_id,
+                'type' => $this->getUpdateType($update),
+            ]);
 
-📋 /alerts - View your active alerts
-⚙️ /settings - View your notification settings
-🌐 /language - Change language
-❓ /help - Show this help message
+            // Process through TeleBot's kernel handlers
+            TeleBot::handle($update);
 
-*Alert Actions:*
-When you receive an alert, you can:
-• Tap "View Stock" to see details
-• Tap "Snooze" to pause the alert
-• Tap "Acknowledge" to confirm receipt
+        } catch (\Exception $e) {
+            Log::error('Telegram webhook error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
 
-*Need more help?*
-Visit: https://kira.app/help
-MSG;
+        return response()->json(['ok' => true]);
     }
 
-    /**
-     * Get help text in Arabic.
-     */
-    private function getHelpTextAr(): string
+    private function getUpdateType(Update $update): string
     {
-        return <<<MSG
-❓ *مساعدة بوت كيرا*
-━━━━━━━━━━━━━━━━━━
+        if ($update->message) {
+            return 'message';
+        }
+        if ($update->callback_query) {
+            return 'callback_query';
+        }
 
-*الأوامر المتاحة:*
-
-📋 /alerts - عرض تنبيهاتك النشطة
-⚙️ /settings - عرض إعدادات الإشعارات
-🌐 /language - تغيير اللغة
-❓ /help - عرض هذه الرسالة
-
-*إجراءات التنبيهات:*
-عند استلام تنبيه، يمكنك:
-• الضغط على "عرض السهم" لرؤية التفاصيل
-• الضغط على "تأجيل" لإيقاف التنبيه مؤقتاً
-• الضغط على "تأكيد" لتأكيد الاستلام
-
-*تحتاج مساعدة إضافية؟*
-زر: https://kira.app/help
-MSG;
+        return 'unknown';
     }
 }
 ```
 
-**Step 2: Update constructor injection in route**
-
-Since we're using constructor injection, the service will be auto-resolved.
-
-**Step 3: Commit**
+**Step 12: Commit all handler files**
 
 ```bash
-git add app/Http/Controllers/Auth/TelegramWebhookController.php
-git commit -m "feat: enhance TelegramWebhookController with commands and callbacks"
+git add app/Telegram/ app/Http/Controllers/Auth/TelegramWebhookController.php
+git commit -m "feat: add TeleBot Kernel and handler classes for commands and callbacks"
+```
+
+**Step 13: Register bot commands with Telegram**
+
+Run this after deployment to make commands visible in Telegram's command menu:
+
+```bash
+php artisan telebot:commands --setup
 ```
 
 ---
@@ -1777,129 +2250,24 @@ git commit -m "feat: add Telegram alert translations for EN and AR"
 
 ---
 
-## Task 8: Create SetTelegramWebhook Command
+## Task 8: Setup Webhook Using Built-in Command
 
-**Files:**
-- Create: `app/Console/Commands/SetTelegramWebhook.php`
+**Overview:** The `westacks/telebot-laravel` package provides built-in artisan commands for webhook management. No custom command needed!
 
-**Step 1: Create the command**
-
-Run:
-```bash
-php artisan make:command SetTelegramWebhook --no-interaction
-```
-
-**Step 2: Implement the command**
-
-```php
-<?php
-
-namespace App\Console\Commands;
-
-use Illuminate\Console\Command;
-use WeStacks\TeleBot\TeleBot;
-
-class SetTelegramWebhook extends Command
-{
-    protected $signature = 'telegram:set-webhook
-                            {--remove : Remove the webhook instead of setting it}';
-
-    protected $description = 'Set or remove the Telegram webhook URL';
-
-    public function handle(): int
-    {
-        $token = config('telegram.bot_token');
-
-        if (! $token) {
-            $this->error('TELEGRAM_BOT_TOKEN is not configured.');
-            return self::FAILURE;
-        }
-
-        $bot = new TeleBot($token);
-
-        if ($this->option('remove')) {
-            return $this->removeWebhook($bot);
-        }
-
-        return $this->setWebhook($bot);
-    }
-
-    private function setWebhook(TeleBot $bot): int
-    {
-        $webhookUrl = config('app.url') . '/telegram/webhook';
-        $secret = config('telegram.webhook_secret');
-
-        $this->info("Setting webhook to: {$webhookUrl}");
-
-        try {
-            $params = [
-                'url' => $webhookUrl,
-                'allowed_updates' => ['message', 'callback_query'],
-                'drop_pending_updates' => true,
-            ];
-
-            if ($secret) {
-                $params['secret_token'] = $secret;
-            }
-
-            $result = $bot->setWebhook($params);
-
-            if ($result) {
-                $this->info('✅ Webhook set successfully!');
-
-                // Get webhook info
-                $info = $bot->getWebhookInfo();
-                $this->table(
-                    ['Property', 'Value'],
-                    [
-                        ['URL', $info['url'] ?? 'N/A'],
-                        ['Has Custom Cert', ($info['has_custom_certificate'] ?? false) ? 'Yes' : 'No'],
-                        ['Pending Updates', $info['pending_update_count'] ?? 0],
-                        ['Last Error', $info['last_error_message'] ?? 'None'],
-                    ]
-                );
-
-                return self::SUCCESS;
-            }
-
-            $this->error('Failed to set webhook.');
-            return self::FAILURE;
-
-        } catch (\Exception $e) {
-            $this->error('Error: ' . $e->getMessage());
-            return self::FAILURE;
-        }
-    }
-
-    private function removeWebhook(TeleBot $bot): int
-    {
-        $this->info('Removing webhook...');
-
-        try {
-            $result = $bot->deleteWebhook(['drop_pending_updates' => true]);
-
-            if ($result) {
-                $this->info('✅ Webhook removed successfully!');
-                return self::SUCCESS;
-            }
-
-            $this->error('Failed to remove webhook.');
-            return self::FAILURE;
-
-        } catch (\Exception $e) {
-            $this->error('Error: ' . $e->getMessage());
-            return self::FAILURE;
-        }
-    }
-}
-```
-
-**Step 3: Commit**
+**Available Commands:**
 
 ```bash
-git add app/Console/Commands/SetTelegramWebhook.php
-git commit -m "feat: add SetTelegramWebhook command"
+# Setup webhook (uses config from config/telebot.php)
+php artisan telebot:webhook --setup
+
+# Remove webhook
+php artisan telebot:webhook --remove
+
+# For local development without webhook (uses long polling)
+php artisan telebot:polling
 ```
+
+The webhook configuration is already in `config/telebot.php` (see Task 1), including the `secret_token` for security validation.
 
 ---
 
@@ -1908,6 +2276,7 @@ git commit -m "feat: add SetTelegramWebhook command"
 **Files:**
 - Create: `app/Http/Middleware/ValidateTelegramWebhook.php`
 - Modify: `bootstrap/app.php`
+- Modify: `routes/web.php`
 
 **Step 1: Create the middleware**
 
@@ -1931,7 +2300,7 @@ class ValidateTelegramWebhook
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $secret = config('telegram.webhook_secret');
+        $secret = config('telebot.bots.kira.webhook.secret_token');
 
         // If no secret configured, allow all requests (development mode)
         if (! $secret) {
@@ -1964,6 +2333,8 @@ $middleware->alias([
 In `routes/web.php`, update the webhook route:
 
 ```php
+use App\Http\Controllers\Auth\TelegramWebhookController;
+
 Route::post('telegram/webhook', [TelegramWebhookController::class, 'handle'])
     ->middleware('telegram.webhook')
     ->withoutMiddleware(['web', 'csrf']);
@@ -1980,6 +2351,8 @@ git commit -m "feat: add ValidateTelegramWebhook middleware for security"
 
 ## Task 10: Write Tests for TelegramBotService
 
+**Overview:** TeleBot Laravel includes testing utilities via the `TeleBot::fake()` method, which records all API calls without actually sending them.
+
 **Files:**
 - Create: `tests/Unit/Services/TelegramBotServiceTest.php`
 
@@ -1990,7 +2363,7 @@ Run:
 php artisan make:test Services/TelegramBotServiceTest --unit --no-interaction
 ```
 
-**Step 2: Implement tests**
+**Step 2: Implement tests using TeleBot::fake()**
 
 ```php
 <?php
@@ -1998,49 +2371,101 @@ php artisan make:test Services/TelegramBotServiceTest --unit --no-interaction
 namespace Tests\Unit\Services;
 
 use App\Services\TelegramBotService;
-use Mockery;
 use Tests\TestCase;
-use WeStacks\TeleBot\TeleBot;
+use WeStacks\TeleBot\Laravel\TeleBot;
+use WeStacks\TeleBot\Objects\Message;
 
 class TelegramBotServiceTest extends TestCase
 {
-    protected function tearDown(): void
+    protected TelegramBotService $service;
+
+    protected function setUp(): void
     {
-        Mockery::close();
-        parent::tearDown();
-    }
+        parent::setUp();
 
-    /** @test */
-    public function it_throws_exception_when_token_not_configured(): void
-    {
-        config(['telegram.bot_token' => null]);
+        // Enable fake mode - no actual API calls
+        TeleBot::fake();
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Telegram bot token not configured');
-
-        new TelegramBotService();
+        $this->service = app(TelegramBotService::class);
     }
 
     /** @test */
     public function it_sends_message_with_default_options(): void
     {
-        config(['telegram.bot_token' => 'test-token']);
+        $this->service->sendMessage('123456789', 'Hello, World!');
 
-        $service = new TelegramBotService();
-
-        // We can't easily mock the internal TeleBot, so we test the service is constructed
-        $this->assertInstanceOf(TelegramBotService::class, $service);
+        // Assert that sendMessage was called with correct params
+        TeleBot::assertSent('sendMessage', function ($params) {
+            return $params['chat_id'] === '123456789'
+                && $params['text'] === 'Hello, World!'
+                && $params['parse_mode'] === 'Markdown';
+        });
     }
 
     /** @test */
-    public function it_builds_keyboard_correctly(): void
+    public function it_sends_message_with_inline_keyboard(): void
     {
-        config(['telegram.bot_token' => 'test-token']);
+        $keyboard = [[
+            ['text' => 'Button 1', 'callback_data' => 'action:1'],
+            ['text' => 'Button 2', 'callback_data' => 'action:2'],
+        ]];
 
-        $service = new TelegramBotService();
+        $this->service->sendMessageWithKeyboard('123456789', 'Choose:', $keyboard);
 
-        // Test that the service exists and can access its bot
-        $this->assertInstanceOf(TeleBot::class, $service->getBot());
+        TeleBot::assertSent('sendMessage', function ($params) {
+            return $params['chat_id'] === '123456789'
+                && isset($params['reply_markup']['inline_keyboard']);
+        });
+    }
+
+    /** @test */
+    public function it_sends_message_with_reply_keyboard(): void
+    {
+        $keyboard = [[
+            ['text' => 'Share Phone', 'request_contact' => true],
+        ]];
+
+        $this->service->sendMessageWithReplyKeyboard('123456789', 'Share your phone:', $keyboard);
+
+        TeleBot::assertSent('sendMessage', function ($params) {
+            return isset($params['reply_markup']['keyboard'])
+                && $params['reply_markup']['resize_keyboard'] === true;
+        });
+    }
+
+    /** @test */
+    public function it_edits_existing_message(): void
+    {
+        $this->service->editMessage('123456789', 999, 'Updated text');
+
+        TeleBot::assertSent('editMessageText', function ($params) {
+            return $params['chat_id'] === '123456789'
+                && $params['message_id'] === 999
+                && $params['text'] === 'Updated text';
+        });
+    }
+
+    /** @test */
+    public function it_answers_callback_query(): void
+    {
+        $this->service->answerCallback('callback_123', 'Action completed!', true);
+
+        TeleBot::assertSent('answerCallbackQuery', function ($params) {
+            return $params['callback_query_id'] === 'callback_123'
+                && $params['text'] === 'Action completed!'
+                && $params['show_alert'] === true;
+        });
+    }
+
+    /** @test */
+    public function it_removes_reply_keyboard(): void
+    {
+        $this->service->removeKeyboard('123456789', 'Keyboard removed');
+
+        TeleBot::assertSent('sendMessage', function ($params) {
+            return isset($params['reply_markup']['remove_keyboard'])
+                && $params['reply_markup']['remove_keyboard'] === true;
+        });
     }
 }
 ```
@@ -2049,7 +2474,7 @@ class TelegramBotServiceTest extends TestCase
 
 Run:
 ```bash
-php artisan test tests/Unit/Services/TelegramBotServiceTest.php --filter=it_throws_exception
+php artisan test tests/Unit/Services/TelegramBotServiceTest.php
 ```
 
 Expected: PASS
@@ -2058,7 +2483,7 @@ Expected: PASS
 
 ```bash
 git add tests/Unit/Services/TelegramBotServiceTest.php
-git commit -m "test: add TelegramBotService unit tests"
+git commit -m "test: add TelegramBotService unit tests with TeleBot::fake()"
 ```
 
 ---
@@ -2268,7 +2693,7 @@ Run:
 php artisan make:test TelegramWebhookTest --no-interaction
 ```
 
-**Step 2: Implement tests**
+**Step 2: Implement tests using TeleBot::fake()**
 
 ```php
 <?php
@@ -2277,10 +2702,9 @@ namespace Tests\Feature;
 
 use App\Models\Alert;
 use App\Models\User;
-use App\Services\TelegramBotService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery;
 use Tests\TestCase;
+use WeStacks\TeleBot\Laravel\TeleBot;
 
 class TelegramWebhookTest extends TestCase
 {
@@ -2290,19 +2714,8 @@ class TelegramWebhookTest extends TestCase
     {
         parent::setUp();
 
-        // Mock TelegramBotService to avoid actual API calls
-        $mock = Mockery::mock(TelegramBotService::class);
-        $mock->shouldReceive('sendMessage')->andReturn(['message_id' => 1]);
-        $mock->shouldReceive('sendMessageWithKeyboard')->andReturn(['message_id' => 1]);
-        $mock->shouldReceive('answerCallback')->andReturn(true);
-
-        $this->app->instance(TelegramBotService::class, $mock);
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
+        // Use TeleBot fake to capture all API calls
+        TeleBot::fake();
     }
 
     /** @test */
@@ -2484,23 +2897,36 @@ git commit -m "feat: complete Telegram bot implementation for Kira Alert System"
 
 ## Summary
 
+**Package Installed:**
+- `westacks/telebot-laravel` - Laravel adapter for TeleBot with Facade, artisan commands, and notification channel
+
 **Files Created:**
-- `app/Services/TelegramBotService.php` - Core bot messaging service
+- `config/telebot.php` - TeleBot configuration
+- `app/Services/TelegramBotService.php` - Wrapper service using TeleBot Facade
 - `app/Services/TelegramMessageBuilder.php` - Rich message formatting
 - `app/Jobs/Alerts/SendTelegramMessage.php` - Async Telegram delivery job
+- `app/Telegram/KiraKernel.php` - TeleBot handler kernel
+- `app/Telegram/Commands/StartCommand.php` - /start command handler
+- `app/Telegram/Commands/HelpCommand.php` - /help command handler
+- `app/Telegram/Commands/AlertsCommand.php` - /alerts command handler
+- `app/Telegram/Commands/SettingsCommand.php` - /settings command handler
+- `app/Telegram/Commands/LanguageCommand.php` - /language command handler
+- `app/Telegram/Handlers/SnoozeCallbackHandler.php` - Snooze callback handler
+- `app/Telegram/Handlers/AcknowledgeCallbackHandler.php` - Acknowledge callback handler
+- `app/Telegram/Handlers/LanguageCallbackHandler.php` - Language change callback handler
+- `app/Telegram/Handlers/ContactHandler.php` - Phone verification handler
 - `app/Http/Middleware/ValidateTelegramWebhook.php` - Webhook security
-- `app/Console/Commands/SetTelegramWebhook.php` - Webhook setup command
-- `lang/en/alerts.php` - English alert translations
-- `lang/ar/alerts.php` - Arabic alert translations
+- `lang/en/alerts.php` - English alert translations (telegram section)
+- `lang/ar/alerts.php` - Arabic alert translations (telegram section)
 - `tests/Unit/Services/TelegramBotServiceTest.php`
 - `tests/Unit/Services/TelegramMessageBuilderTest.php`
 - `tests/Feature/TelegramWebhookTest.php`
 
 **Files Modified:**
-- `app/Providers/AppServiceProvider.php` - Register TelegramBotService
+- `app/Providers/AppServiceProvider.php` - Register TelegramBotService singleton
 - `app/Jobs/Alerts/SendAlertNotification.php` - Use SendTelegramMessage job
 - `app/Jobs/Alerts/GenerateDigest.php` - Use TelegramBotService
-- `app/Http/Controllers/Auth/TelegramWebhookController.php` - Full command handling
+- `app/Http/Controllers/Auth/TelegramWebhookController.php` - Routes through TeleBot kernel
 - `bootstrap/app.php` - Register webhook middleware
 - `routes/web.php` - Add webhook middleware
 
@@ -2511,20 +2937,29 @@ TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_BOT_USERNAME=your_bot_username
 TELEGRAM_WEBHOOK_SECRET=random_secure_string
 
+# Install Laravel adapter
+composer require westacks/telebot-laravel
+php artisan telebot:install
+
 # Set webhook
-php artisan telegram:set-webhook
+php artisan telebot:webhook --setup
+
+# Register bot commands with Telegram
+php artisan telebot:commands --setup
 ```
 
 ---
 
 ## Deployment Checklist
 
-1. [ ] Set environment variables (TELEGRAM_BOT_TOKEN, etc.)
-2. [ ] Run migrations (if any pending)
-3. [ ] Run `php artisan telegram:set-webhook` to register webhook with Telegram
-4. [ ] Verify webhook is working with `php artisan telegram:set-webhook` (shows webhook info)
-5. [ ] Test bot by sending `/start` command
-6. [ ] Monitor logs for any errors
+1. [ ] Install `westacks/telebot-laravel` package
+2. [ ] Set environment variables (TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME, TELEGRAM_WEBHOOK_SECRET)
+3. [ ] Run `php artisan telebot:install` to publish config
+4. [ ] Run migrations (if any pending)
+5. [ ] Run `php artisan telebot:webhook --setup` to register webhook with Telegram
+6. [ ] Run `php artisan telebot:commands --setup` to register commands with Telegram's menu
+7. [ ] Test bot by sending `/start` command
+8. [ ] Monitor logs for any errors
 
 ---
 
