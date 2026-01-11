@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid } from 'lucide-vue-next';
+import { LayoutGrid, Bell } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
@@ -27,6 +27,11 @@ const mainNavItems = computed<NavItem[]>(() => [
         title: t('dashboard.sidebar.dashboard'),
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: t('alerts.title'),
+        href: '/alerts',
+        icon: Bell,
     },
 ]);
 </script>

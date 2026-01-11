@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import type { AlertType, AlertTriggerType, AlertDirection, AlertPriority, AlertScope, AlertParameters } from '@/types/alerts';
 import type { BreadcrumbItemType } from '@/types';
@@ -59,30 +59,34 @@ const props = defineProps<Props>();
 
 const { alertTypeLabels, triggerTypeLabels, getDefaultParameters } = useAlerts();
 
-// Form state
-const selectedType = ref<AlertType>('price');
-const selectedTriggerType = ref<AlertTriggerType>('target_price');
-const selectedAsset = ref<string>(props.asset?.id || '');
+// Form state using Inertia useForm for validation handling
+const form = useForm({
+    asset_id: props.asset?.id || null as string | null,
+    type: 'price' as AlertType,
+    trigger_type: 'target_price' as AlertTriggerType,
+    scope: 'single_asset' as AlertScope,
+    direction: 'above' as AlertDirection,
+    condition_logic: 'single',
+    parameters: {} as AlertParameters,
+    priority: 'medium' as AlertPriority,
+    is_recurring: false,
+    cooldown_minutes: 60,
+    market_hours_only: true,
+    max_triggers: null as number | null,
+});
+
 const selectedAssetObject = ref<AssetInfo | null>(props.asset || null);
-const parameters = ref<AlertParameters>({});
-const direction = ref<AlertDirection>('above');
-const priority = ref<AlertPriority>('medium');
-const scope = ref<AlertScope>('single_asset');
-const isRecurring = ref(false);
-const cooldownMinutes = ref(60);
-const marketHoursOnly = ref(true);
-const maxTriggers = ref<number | undefined>(undefined);
 
 // Initialize parameters when trigger type changes
-watch(selectedTriggerType, (newType) => {
-    parameters.value = getDefaultParameters(newType);
+watch(() => form.trigger_type, (newType) => {
+    form.parameters = getDefaultParameters(newType);
 });
 
 // Initialize on mount
-parameters.value = getDefaultParameters(selectedTriggerType.value);
+form.parameters = getDefaultParameters(form.trigger_type);
 
 const availableTriggers = computed(() => {
-    const typeOption = props.alertTypes[selectedType.value];
+    const typeOption = props.alertTypes[form.type];
     return typeOption?.triggers || {};
 });
 
@@ -90,21 +94,21 @@ const selectedAssetInfo = computed(() => {
     if (selectedAssetObject.value) {
         return selectedAssetObject.value;
     }
-    if (props.asset && props.asset.id === selectedAsset.value) {
+    if (props.asset && props.asset.id === form.asset_id) {
         return props.asset;
     }
-    return props.userAssets.find(w => w.asset.id === selectedAsset.value)?.asset;
+    return props.userAssets.find(w => w.asset.id === form.asset_id)?.asset;
 });
 
 const currentPrice = computed(() => selectedAssetInfo.value?.last_price || 0);
 
 const handleTypeChange = (type: AlertType) => {
-    selectedType.value = type;
+    form.type = type;
     // Auto-select first trigger type for this alert type
     const triggers = props.alertTypes[type]?.triggers || {};
     const firstTrigger = Object.keys(triggers)[0] as AlertTriggerType;
     if (firstTrigger) {
-        selectedTriggerType.value = firstTrigger;
+        form.trigger_type = firstTrigger;
     }
 };
 
@@ -121,21 +125,7 @@ const getTypeIcon = (type: AlertType) => {
 };
 
 const handleSubmit = () => {
-    const data = {
-        asset_id: selectedAsset.value || null,
-        type: selectedType.value,
-        trigger_type: selectedTriggerType.value,
-        scope: scope.value,
-        direction: direction.value,
-        parameters: parameters.value,
-        priority: priority.value,
-        is_recurring: isRecurring.value,
-        cooldown_minutes: cooldownMinutes.value,
-        market_hours_only: marketHoursOnly.value,
-        max_triggers: maxTriggers.value || null,
-    };
-
-    router.post('/alerts', data);
+    form.post('/alerts');
 };
 
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -180,7 +170,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     :key="type"
                                     type="button"
                                     class="flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors hover:border-primary/50"
-                                    :class="{ 'border-primary bg-primary/5': selectedType === type, 'border-border': selectedType !== type }"
+                                    :class="{ 'border-primary bg-primary/5': form.type === type, 'border-border': form.type !== type }"
                                     @click="handleTypeChange(type)"
                                 >
                                     <component :is="getTypeIcon(type)" class="size-6" />
@@ -201,7 +191,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                         <CardContent class="space-y-4">
                             <div class="grid gap-2">
                                 <Label>{{ t('alerts.fields.trigger_type') }}</Label>
-                                <Select v-model="selectedTriggerType">
+                                <Select v-model="form.trigger_type">
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -215,6 +205,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
+                                <p v-if="form.errors.trigger_type" class="text-sm text-destructive">{{ form.errors.trigger_type }}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -228,23 +219,24 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                         <CardContent class="space-y-4">
                             <!-- Asset Selection with Search and Filters -->
                             <AssetSelector
-                                v-model="selectedAsset"
+                                v-model="form.asset_id"
                                 :selected-asset="selectedAssetObject"
                                 :markets="markets"
                                 :sectors="sectors"
                                 @update:selected-asset="selectedAssetObject = $event"
                             />
+                            <p v-if="form.errors.asset_id" class="text-sm text-destructive">{{ form.errors.asset_id }}</p>
                             <p v-if="currentPrice > 0" class="text-sm text-muted-foreground">
                                 {{ t('alerts.current_price') }}: {{ currentPrice }} {{ t('common.currency') }}
                             </p>
 
                             <!-- Price Alert Parameters -->
-                            <template v-if="selectedTriggerType === 'target_price'">
+                            <template v-if="form.trigger_type === 'target_price'">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.target_price') }}</Label>
                                         <Input
-                                            v-model.number="parameters.target_price"
+                                            v-model.number="form.parameters.target_price"
                                             type="number"
                                             step="0.01"
                                             :placeholder="currentPrice.toString()"
@@ -252,7 +244,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     </div>
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.direction') }}</Label>
-                                        <Select v-model="direction">
+                                        <Select v-model="form.direction">
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
@@ -267,12 +259,12 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             </template>
 
                             <!-- Zone Alert Parameters -->
-                            <template v-else-if="selectedTriggerType === 'zone'">
+                            <template v-else-if="form.trigger_type === 'zone'">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.zone_low') }}</Label>
                                         <Input
-                                            v-model.number="parameters.zone_low"
+                                            v-model.number="form.parameters.zone_low"
                                             type="number"
                                             step="0.01"
                                         />
@@ -280,7 +272,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.zone_high') }}</Label>
                                         <Input
-                                            v-model.number="parameters.zone_high"
+                                            v-model.number="form.parameters.zone_high"
                                             type="number"
                                             step="0.01"
                                         />
@@ -289,19 +281,19 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             </template>
 
                             <!-- Daily Change Parameters -->
-                            <template v-else-if="selectedTriggerType === 'daily_change'">
+                            <template v-else-if="form.trigger_type === 'daily_change'">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.threshold_percent') }}</Label>
                                         <Input
-                                            v-model.number="parameters.threshold_percent"
+                                            v-model.number="form.parameters.threshold_percent"
                                             type="number"
                                             step="0.1"
                                         />
                                     </div>
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.direction') }}</Label>
-                                        <Select v-model="direction">
+                                        <Select v-model="form.direction">
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
@@ -316,11 +308,11 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             </template>
 
                             <!-- Prediction Parameters -->
-                            <template v-else-if="selectedTriggerType === 'prediction'">
+                            <template v-else-if="form.trigger_type === 'prediction'">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.horizon') }}</Label>
-                                        <Select v-model="parameters.horizon">
+                                        <Select v-model="form.parameters.horizon">
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
@@ -335,7 +327,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     <div class="grid gap-2">
                                         <Label>{{ t('alerts.fields.min_confidence') }}</Label>
                                         <Input
-                                            v-model.number="parameters.min_confidence"
+                                            v-model.number="form.parameters.min_confidence"
                                             type="number"
                                             step="0.05"
                                             min="0"
@@ -346,11 +338,11 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             </template>
 
                             <!-- Signal Parameters -->
-                            <template v-else-if="selectedTriggerType === 'signal'">
+                            <template v-else-if="form.trigger_type === 'signal'">
                                 <div class="grid gap-2">
                                     <Label>{{ t('alerts.fields.min_strength') }}</Label>
                                     <Input
-                                        v-model.number="parameters.min_strength"
+                                        v-model.number="form.parameters.min_strength"
                                         type="number"
                                         step="0.05"
                                         min="0"
@@ -360,11 +352,11 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             </template>
 
                             <!-- Anomaly Parameters -->
-                            <template v-else-if="selectedTriggerType === 'anomaly'">
+                            <template v-else-if="form.trigger_type === 'anomaly'">
                                 <div class="grid gap-2">
                                     <Label>{{ t('alerts.fields.min_confidence') }}</Label>
                                     <Input
-                                        v-model.number="parameters.min_confidence"
+                                        v-model.number="form.parameters.min_confidence"
                                         type="number"
                                         step="0.05"
                                         min="0"
@@ -385,7 +377,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="grid gap-2">
                                     <Label>{{ t('alerts.fields.priority') }}</Label>
-                                    <Select v-model="priority">
+                                    <Select v-model="form.priority">
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
@@ -399,7 +391,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 <div class="grid gap-2">
                                     <Label>{{ t('alerts.fields.cooldown') }}</Label>
                                     <Input
-                                        v-model.number="cooldownMinutes"
+                                        v-model.number="form.cooldown_minutes"
                                         type="number"
                                         min="0"
                                     />
@@ -412,7 +404,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     <Label>{{ t('alerts.fields.recurring') }}</Label>
                                     <p class="text-sm text-muted-foreground">{{ t('alerts.fields.recurring_hint') }}</p>
                                 </div>
-                                <Switch v-model:checked="isRecurring" />
+                                <Switch v-model:checked="form.is_recurring" />
                             </div>
 
                             <div class="flex items-center justify-between rounded-lg border p-4">
@@ -420,7 +412,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     <Label>{{ t('alerts.fields.market_hours_only') }}</Label>
                                     <p class="text-sm text-muted-foreground">{{ t('alerts.fields.market_hours_hint') }}</p>
                                 </div>
-                                <Switch v-model:checked="marketHoursOnly" />
+                                <Switch v-model:checked="form.market_hours_only" />
                             </div>
                         </CardContent>
                     </Card>
@@ -437,13 +429,13 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 <div class="flex justify-between text-sm">
                                     <span class="text-muted-foreground">{{ t('alerts.fields.type') }}</span>
                                     <span class="font-medium">
-                                        {{ locale === 'ar' ? alertTypeLabels[selectedType].ar : alertTypeLabels[selectedType].en }}
+                                        {{ locale === 'ar' ? alertTypeLabels[form.type].ar : alertTypeLabels[form.type].en }}
                                     </span>
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-muted-foreground">{{ t('alerts.fields.trigger') }}</span>
                                     <span class="font-medium">
-                                        {{ locale === 'ar' ? triggerTypeLabels[selectedTriggerType]?.ar : triggerTypeLabels[selectedTriggerType]?.en }}
+                                        {{ locale === 'ar' ? triggerTypeLabels[form.trigger_type]?.ar : triggerTypeLabels[form.trigger_type]?.en }}
                                     </span>
                                 </div>
                                 <div v-if="selectedAssetInfo" class="flex justify-between text-sm">
@@ -452,21 +444,30 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 </div>
                                 <div class="flex justify-between text-sm">
                                     <span class="text-muted-foreground">{{ t('alerts.fields.priority') }}</span>
-                                    <span class="font-medium">{{ t(`alerts.priority.${priority}`) }}</span>
+                                    <span class="font-medium">{{ t(`alerts.priority.${form.priority}`) }}</span>
                                 </div>
                             </div>
 
-                            <Alert v-if="!selectedAsset && scope === 'single_asset'" variant="destructive">
+                            <Alert v-if="!form.asset_id && form.scope === 'single_asset'" variant="destructive">
                                 <AlertDescription>{{ t('alerts.validation.asset_required') }}</AlertDescription>
+                            </Alert>
+
+                            <!-- Server Validation Errors -->
+                            <Alert v-if="form.hasErrors" variant="destructive">
+                                <AlertDescription>
+                                    <ul class="list-inside list-disc space-y-1">
+                                        <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+                                    </ul>
+                                </AlertDescription>
                             </Alert>
 
                             <Button
                                 class="w-full"
-                                :disabled="!selectedAsset && scope === 'single_asset'"
+                                :disabled="(!form.asset_id && form.scope === 'single_asset') || form.processing"
                                 @click="handleSubmit"
                             >
                                 <Save class="me-2 size-4" />
-                                {{ t('alerts.create_alert') }}
+                                {{ form.processing ? t('common.saving') : t('alerts.create_alert') }}
                             </Button>
                         </CardContent>
                     </Card>
