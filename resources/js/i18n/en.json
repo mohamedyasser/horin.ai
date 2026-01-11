@@ -24,7 +24,12 @@
         "sidebarDescription": "Displays the mobile sidebar.",
         "openMenu": "Open menu",
         "navigationMenu": "Navigation Menu",
-        "more": "More"
+        "more": "More",
+        "edit": "Edit",
+        "update": "Update",
+        "create": "Create",
+        "min_abbr": "m",
+        "currency": "EGP"
     },
     "auth": {
         "login": {
@@ -226,7 +231,8 @@
             "twoFactor": "Two-Factor Auth",
             "tradingProfile": "Trading Profile",
             "marketPreferences": "Market Preferences",
-            "appearance": "Appearance"
+            "appearance": "Appearance",
+            "alerts": "Alerts"
         },
         "profile": {
             "title": "Profile settings",
@@ -327,7 +333,8 @@
             "saved": "Saved",
             "minimumRequired": "At least one selection is required",
             "done": "Done"
-        }
+        },
+        "alerts_updated": "Alert preferences updated successfully"
     },
     "meta": {
         "home": "AI-powered stock price predictions for Middle East markets including Egypt, Saudi Arabia, UAE, Kuwait, Qatar, and Bahrain. Updated daily forecasts with confidence scores.",
@@ -1175,5 +1182,149 @@
         "topBuySignals": "Top Buy Signals",
         "topSellSignals": "Top Sell Signals",
         "recentRecommendations": "Recent Recommendations"
+    },
+    "alerts": {
+        "title": "Alerts",
+        "subtitle": "Manage your price alerts and notifications",
+        "create": "Create Alert",
+        "create_first": "Create your first alert",
+        "confirmDelete": "Are you sure you want to delete this alert?",
+        "multiple_assets": "Multiple Assets",
+        "snoozed": "Snoozed",
+        "created": "Alert created successfully",
+        "updated": "Alert updated successfully",
+        "deleted": "Alert deleted successfully",
+        "duplicated": "Alert duplicated successfully",
+        "snoozed_message": "Alert snoozed until {until}",
+        "unsnoozed": "Alert unsnoozed",
+        "backtest_started": "Backtest started. Results will be available shortly.",
+        "acknowledged": "Alert acknowledged",
+        "stats": {
+            "active": "Active Alerts",
+            "triggered_today": "Triggered Today",
+            "total": "Total Alerts"
+        },
+        "filters": {
+            "all": "All"
+        },
+        "status": {
+            "active": "Active",
+            "triggered": "Triggered",
+            "paused": "Paused",
+            "expired": "Expired",
+            "chained": "Chained"
+        },
+        "empty": {
+            "title": "No alerts yet",
+            "description": "Create your first alert to get notified about price movements and market signals."
+        },
+        "snooze": {
+            "1h": "Snooze for 1 hour",
+            "4h": "Snooze for 4 hours",
+            "1d": "Snooze for 1 day",
+            "until_market_close": "Snooze until market close",
+            "until_market_open": "Snooze until market open"
+        },
+        "params": {
+            "target": "Target",
+            "change": "change",
+            "zone": "Zone"
+        },
+        "scope": {
+            "single_asset": "Single Asset",
+            "watchlist": "Watchlist",
+            "market": "Market",
+            "sector": "Sector"
+        },
+        "triggered_count": "Triggered {count} times",
+        "last_triggered": "Last triggered",
+        "types": {
+            "price": "Price",
+            "prediction": "AI Prediction",
+            "signal": "Technical Signal",
+            "anomaly": "Anomaly",
+            "pattern": "Chart Pattern",
+            "recommendation": "Recommendation"
+        },
+        "triggers": {
+            "target_price": "Target Price",
+            "breakout": "Breakout",
+            "zone": "Support/Resistance Zone",
+            "gap": "Price Gap",
+            "52week": "52-Week High/Low",
+            "daily_change": "Daily % Change",
+            "entry_return": "Return to Entry",
+            "prediction": "AI Prediction",
+            "signal": "Technical Signal",
+            "anomaly": "Anomaly Detection",
+            "pattern": "Pattern Detection",
+            "recommendation": "Recommendation Change"
+        },
+        "channels": {
+            "in_app": "In-App Notifications",
+            "push": "Push Notifications",
+            "email": "Email",
+            "telegram": "Telegram"
+        },
+        "preferences": {
+            "title": "Alert Preferences",
+            "description": "Configure how you receive alert notifications",
+            "channels": {
+                "title": "Notification Channels",
+                "description": "Choose how you want to receive alerts"
+            },
+            "quiet_hours": {
+                "title": "Quiet Hours",
+                "description": "Set times when you don't want to receive notifications",
+                "start": "Start Time",
+                "end": "End Time"
+            },
+            "timezone": "Timezone",
+            "rate_limits": {
+                "title": "Rate Limits",
+                "description": "Limit the number of alerts you receive",
+                "per_hour": "Max alerts per hour",
+                "per_day": "Max alerts per day"
+            },
+            "digest": {
+                "title": "Daily Digest",
+                "description": "Receive a summary of all alerts at a specific time",
+                "enabled": "Enable daily digest",
+                "time": "Digest Time"
+            },
+            "smart_defaults": {
+                "title": "Smart Defaults",
+                "description": "Let the system suggest optimal alert settings based on your trading profile",
+                "enabled": "Enable smart defaults"
+            }
+        },
+        "history": {
+            "title": "Alert History",
+            "subtitle": "View past alert triggers and acknowledgments",
+            "trigger_value": "Trigger Value",
+            "acknowledged": "Acknowledged",
+            "acknowledge": "Acknowledge",
+            "empty": "No alert history",
+            "empty_description": "Your triggered alerts will appear here",
+            "stats": {
+                "today": "Today",
+                "this_week": "This Week",
+                "unacknowledged": "Unacknowledged"
+            }
+        },
+        "chains": {
+            "create_chain": "Create Alert Chain",
+            "edit_chain": "Edit Alert Chain",
+            "name": "Chain Name",
+            "name_placeholder": "e.g., Breakout Follow-up",
+            "when_triggers": "When this alert triggers",
+            "then_activate": "Then activate this alert",
+            "select_alert": "Select an alert",
+            "delay_minutes": "Delay (minutes)",
+            "expires_after": "Expires after (minutes)",
+            "no_expiration": "No expiration",
+            "trigger": "Trigger",
+            "activate": "Activate"
+        }
     }
 }
