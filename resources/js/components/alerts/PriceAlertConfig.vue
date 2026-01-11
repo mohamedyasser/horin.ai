@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { AlertTriggerType, AlertDirection, AlertParameters } from '@/types/alerts';
-import { useAlerts } from '@/composables/useAlerts';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 interface Props {
     triggerType: AlertTriggerType;
@@ -23,18 +21,6 @@ const emit = defineEmits<{
     'update:parameters': [value: AlertParameters];
     'update:direction': [value: AlertDirection];
 }>();
-
-const { triggerTypeLabels, getDefaultParameters } = useAlerts();
-
-const priceTriggerTypes: AlertTriggerType[] = [
-    'target_price',
-    'breakout',
-    'zone',
-    'gap',
-    '52week',
-    'daily_change',
-    'entry_return',
-];
 
 const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cross_down'];
 

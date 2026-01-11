@@ -9,6 +9,7 @@ import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { edit as editTradingProfile } from '@/routes/trading-profile';
 import { edit as editMarketPreferences } from '@/routes/market-preferences';
+import { alerts as editAlerts } from '@/routes/settings';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -36,6 +37,10 @@ const sidebarNavItems = computed<NavItem[]>(() => [
     {
         title: t('settings.nav.marketPreferences'),
         href: editMarketPreferences(),
+    },
+    {
+        title: t('settings.nav.alerts'),
+        href: editAlerts(),
     },
     {
         title: t('settings.nav.appearance'),

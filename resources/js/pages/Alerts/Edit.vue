@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import type { Alert, AlertType, AlertTriggerType, AlertDirection, AlertPriority, AlertParameters } from '@/types/alerts';
+import type { Alert, AlertType, AlertDirection, AlertPriority, AlertParameters } from '@/types/alerts';
 import type { BreadcrumbItemType } from '@/types';
 import { useAlerts } from '@/composables/useAlerts';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -36,7 +36,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { alertTypeLabels, triggerTypeLabels, statusLabels, priorityLabels } = useAlerts();
+const { alertTypeLabels, triggerTypeLabels } = useAlerts();
 
 const alert = computed(() => props.alert.data);
 

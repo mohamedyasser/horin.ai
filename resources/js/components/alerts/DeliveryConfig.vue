@@ -13,7 +13,6 @@ import {
     MessageCircle,
     Bell,
     Mail,
-    Smartphone,
     Inbox,
     Plus,
     Trash2,

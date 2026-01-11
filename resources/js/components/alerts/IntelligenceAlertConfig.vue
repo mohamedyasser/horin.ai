@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { AlertTriggerType, AlertParameters } from '@/types/alerts';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 
 const { t, locale } = useI18n();

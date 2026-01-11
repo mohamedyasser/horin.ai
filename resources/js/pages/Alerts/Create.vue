@@ -2,7 +2,6 @@
 import { computed, ref, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { Form } from '@inertiajs/vue3';
 import type { AlertType, AlertTriggerType, AlertDirection, AlertPriority, AlertScope, AlertParameters } from '@/types/alerts';
 import type { BreadcrumbItemType } from '@/types';
 import { useAlerts } from '@/composables/useAlerts';
@@ -13,8 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import AssetSelector from '@/components/AssetSelector.vue';
 import {
     TrendingUp,
     Brain,
@@ -41,11 +40,20 @@ interface AlertTypeOption {
     triggers: Record<string, string>;
 }
 
+interface FilterOption {
+    id: string;
+    name: string;
+    name_ar: string;
+}
+
 interface Props {
     asset?: AssetInfo | null;
     templates: Array<{ id: string; name: string; type: AlertType; trigger_type: string }>;
     userAssets: Array<{ asset: AssetInfo }>;
     alertTypes: Record<AlertType, AlertTypeOption>;
+    markets?: FilterOption[];
+    countries?: FilterOption[];
+    sectors?: FilterOption[];
 }
 
 const props = defineProps<Props>();
@@ -56,6 +64,7 @@ const { alertTypeLabels, triggerTypeLabels, getDefaultParameters } = useAlerts()
 const selectedType = ref<AlertType>('price');
 const selectedTriggerType = ref<AlertTriggerType>('target_price');
 const selectedAsset = ref<string>(props.asset?.id || '');
+const selectedAssetObject = ref<AssetInfo | null>(props.asset || null);
 const parameters = ref<AlertParameters>({});
 const direction = ref<AlertDirection>('above');
 const priority = ref<AlertPriority>('medium');
@@ -79,6 +88,9 @@ const availableTriggers = computed(() => {
 });
 
 const selectedAssetInfo = computed(() => {
+    if (selectedAssetObject.value) {
+        return selectedAssetObject.value;
+    }
     if (props.asset && props.asset.id === selectedAsset.value) {
         return props.asset;
     }
@@ -132,7 +144,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
     { title: t('alerts.create'), href: '/alerts/create' },
 ];
 
-const alertTypes: AlertType[] = ['price', 'prediction', 'signal', 'anomaly', 'pattern', 'recommendation'];
+const alertTypesList: AlertType[] = ['price', 'prediction', 'signal', 'anomaly', 'pattern', 'recommendation'];
 const priorities: AlertPriority[] = ['critical', 'high', 'medium', 'low'];
 const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cross_down'];
 </script>
@@ -165,7 +177,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                         <CardContent>
                             <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                                 <button
-                                    v-for="type in alertTypes"
+                                    v-for="type in alertTypesList"
                                     :key="type"
                                     type="button"
                                     class="flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors hover:border-primary/50"
@@ -215,33 +227,18 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             <CardDescription>{{ t('alerts.steps.parameters_description') }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
-                            <!-- Asset Selection -->
-                            <div class="grid gap-2">
-                                <Label>{{ t('alerts.fields.asset') }}</Label>
-                                <Select v-model="selectedAsset">
-                                    <SelectTrigger>
-                                        <SelectValue :placeholder="t('alerts.select_asset')" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-if="asset"
-                                            :value="asset.id"
-                                        >
-                                            {{ asset.symbol }} - {{ locale === 'ar' ? asset.name_ar : asset.name }}
-                                        </SelectItem>
-                                        <SelectItem
-                                            v-for="item in userAssets"
-                                            :key="item.asset.id"
-                                            :value="item.asset.id"
-                                        >
-                                            {{ item.asset.symbol }} - {{ locale === 'ar' ? item.asset.name_ar : item.asset.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <p v-if="currentPrice > 0" class="text-sm text-muted-foreground">
-                                    {{ t('alerts.current_price') }}: {{ currentPrice }} {{ t('common.currency') }}
-                                </p>
-                            </div>
+                            <!-- Asset Selection with Search and Filters -->
+                            <AssetSelector
+                                v-model="selectedAsset"
+                                :selected-asset="selectedAssetObject"
+                                :markets="markets"
+                                :countries="countries"
+                                :sectors="sectors"
+                                @update:selected-asset="selectedAssetObject = $event"
+                            />
+                            <p v-if="currentPrice > 0" class="text-sm text-muted-foreground">
+                                {{ t('alerts.current_price') }}: {{ currentPrice }} {{ t('common.currency') }}
+                            </p>
 
                             <!-- Price Alert Parameters -->
                             <template v-if="selectedTriggerType === 'target_price'">

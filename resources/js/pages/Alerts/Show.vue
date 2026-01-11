@@ -26,7 +26,6 @@ import {
     BellRing,
     Target,
     Activity,
-    TrendingDown,
     FlaskConical,
 } from 'lucide-vue-next';
 
@@ -43,7 +42,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { alertTypeLabels, triggerTypeLabels, statusLabels, priorityLabels, snoozeAlert, deleteAlert, duplicateAlert } = useAlerts();
+const { alertTypeLabels, triggerTypeLabels, snoozeAlert, deleteAlert, duplicateAlert } = useAlerts();
 
 const alert = computed(() => props.alert.data);
 const recentHistory = computed(() => alert.value.history || []);

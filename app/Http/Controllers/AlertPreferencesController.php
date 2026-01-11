@@ -16,12 +16,16 @@ class AlertPreferencesController extends Controller
      */
     public function edit(Request $request): Response
     {
-        $preferences = UserAlertPreference::firstOrCreate(
-            ['user_id' => $request->user()->id],
-            UserAlertPreference::getDefaults()
-        );
+        $preferences = UserAlertPreference::where('user_id', $request->user()->id)->first();
 
-        return Inertia::render('Settings/Alerts', [
+        if (! $preferences) {
+            $preferences = new UserAlertPreference;
+            $preferences->user_id = $request->user()->id;
+            $preferences->fill(UserAlertPreference::getDefaults());
+            $preferences->save();
+        }
+
+        return Inertia::render('settings/Alerts', [
             'preferences' => $preferences,
             'timezones' => \DateTimeZone::listIdentifiers(\DateTimeZone::AFRICA),
             'channels' => [

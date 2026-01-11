@@ -25,7 +25,7 @@ interface Props {
     stats: AlertHistoryStats;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: t('alerts.title'), href: '/alerts' },

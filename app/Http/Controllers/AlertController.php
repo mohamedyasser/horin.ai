@@ -12,6 +12,9 @@ use App\Models\Alert;
 use App\Models\AlertBacktestResult;
 use App\Models\AlertTemplate;
 use App\Models\Asset;
+use App\Models\Country;
+use App\Models\Market;
+use App\Models\Sector;
 use App\Services\AlertCacheService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -74,8 +77,23 @@ class AlertController extends Controller
                 $q->whereNull('user_id')
                     ->orWhere('user_id', $request->user()->id);
             })->get(),
-            'userAssets' => $request->user()->userWishlists()->with('asset:id,symbol,name,name_ar')->get(),
+            'userAssets' => $this->getUserAssets($request->user()),
             'alertTypes' => $this->getAlertTypeOptions(),
+            'markets' => Market::select('id', 'name_en', 'name_ar')->get()->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'name_ar' => $m->name_ar,
+            ]),
+            'countries' => Country::select('id', 'name_en', 'name_ar')->get()->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'name_ar' => $c->name_ar,
+            ]),
+            'sectors' => Sector::select('id', 'name_en', 'name_ar')->get()->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => $s->name,
+                'name_ar' => $s->name_ar,
+            ]),
         ]);
     }
 
@@ -270,6 +288,48 @@ class AlertController extends Controller
         ]);
     }
 
+    /**
+     * Search assets for alert creation.
+     */
+    public function searchAssets(Request $request): JsonResponse
+    {
+        $query = Asset::query()
+            ->select('id', 'symbol', 'name_en', 'name_ar', 'market_id', 'country_id', 'sector_id');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('symbol', 'ilike', "%{$search}%")
+                    ->orWhere('name_en', 'ilike', "%{$search}%")
+                    ->orWhere('name_ar', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('market_id')) {
+            $query->where('market_id', $request->market_id);
+        }
+
+        if ($request->filled('country_id')) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        if ($request->filled('sector_id')) {
+            $query->where('sector_id', $request->sector_id);
+        }
+
+        $assets = $query->orderBy('symbol')
+            ->limit(50)
+            ->get()
+            ->map(fn ($asset) => [
+                'id' => $asset->id,
+                'symbol' => $asset->symbol,
+                'name' => $asset->name_en,
+                'name_ar' => $asset->name_ar,
+            ]);
+
+        return response()->json(['assets' => $assets]);
+    }
+
     private function resolveSnoozeTime(SnoozeAlertRequest $request): \DateTime
     {
         $timezone = new \DateTimeZone('Africa/Cairo');
@@ -385,5 +445,17 @@ class AlertController extends Controller
         }
 
         return 'medium';
+    }
+
+    /**
+     * Get user assets from wishlists, handling missing table gracefully.
+     */
+    private function getUserAssets($user): \Illuminate\Support\Collection
+    {
+        try {
+            return $user->userWishlists()->with('asset:id,symbol,name,name_ar')->get();
+        } catch (\Illuminate\Database\QueryException) {
+            return collect();
+        }
     }
 }

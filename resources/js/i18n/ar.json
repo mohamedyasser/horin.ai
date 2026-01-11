@@ -1187,7 +1187,72 @@
         "title": "التنبيهات",
         "subtitle": "إدارة تنبيهات الأسعار والإشعارات",
         "create": "إنشاء تنبيه",
+        "create_alert": "إنشاء تنبيه",
+        "create_description": "إنشاء تنبيه جديد للحصول على إشعارات حول تحركات الأسعار",
         "create_first": "أنشئ تنبيهك الأول",
+        "select_asset": "اختر الأصل",
+        "current_price": "السعر الحالي",
+        "summary": "ملخص التنبيه",
+        "steps": {
+            "type": "نوع التنبيه",
+            "type_description": "اختر نوع التنبيه الذي تريد إنشاءه",
+            "trigger": "شرط التفعيل",
+            "trigger_description": "حدد متى يتم تفعيل التنبيه",
+            "parameters": "إعدادات التنبيه",
+            "parameters_description": "قم بتكوين معايير التنبيه",
+            "options": "خيارات متقدمة",
+            "options_description": "إعدادات إضافية للتنبيه"
+        },
+        "fields": {
+            "type": "النوع",
+            "trigger": "شرط التفعيل",
+            "trigger_type": "نوع التفعيل",
+            "asset": "الأصل",
+            "target_price": "السعر المستهدف",
+            "direction": "الاتجاه",
+            "zone_low": "أدنى المنطقة",
+            "zone_high": "أعلى المنطقة",
+            "threshold_percent": "نسبة العتبة",
+            "horizon": "الأفق الزمني",
+            "min_confidence": "الحد الأدنى للثقة",
+            "min_strength": "الحد الأدنى للقوة",
+            "priority": "الأولوية",
+            "cooldown": "فترة الانتظار (دقائق)",
+            "cooldown_hint": "الحد الأدنى للوقت بين التفعيلات",
+            "recurring": "تكرار التنبيه",
+            "recurring_hint": "إعادة تفعيل التنبيه بعد كل تفعيل",
+            "market_hours_only": "ساعات السوق فقط",
+            "market_hours_hint": "تفعيل التنبيه فقط خلال ساعات التداول"
+        },
+        "direction": {
+            "above": "أعلى من",
+            "below": "أقل من",
+            "both": "كلاهما",
+            "cross_up": "عبور صاعد",
+            "cross_down": "عبور هابط"
+        },
+        "priority": {
+            "critical": "حرج",
+            "high": "عالي",
+            "medium": "متوسط",
+            "low": "منخفض"
+        },
+        "validation": {
+            "asset_required": "يرجى اختيار أصل للتنبيه"
+        },
+        "filters": {
+            "all": "الكل",
+            "market": "السوق",
+            "country": "الدولة",
+            "sector": "القطاع",
+            "all_markets": "جميع الأسواق",
+            "all_countries": "جميع الدول",
+            "all_sectors": "جميع القطاعات",
+            "clear": "مسح الفلاتر"
+        },
+        "search_asset_placeholder": "ابحث بالرمز أو الاسم...",
+        "no_assets_found": "لم يتم العثور على أصول",
+        "search_to_find_assets": "ابحث أو اختر فلتر للعثور على الأصول",
         "confirmDelete": "هل أنت متأكد من حذف هذا التنبيه؟",
         "multiple_assets": "أصول متعددة",
         "snoozed": "مؤجل",
@@ -1203,9 +1268,6 @@
             "active": "التنبيهات النشطة",
             "triggered_today": "تم التفعيل اليوم",
             "total": "إجمالي التنبيهات"
-        },
-        "filters": {
-            "all": "الكل"
         },
         "status": {
             "active": "نشط",

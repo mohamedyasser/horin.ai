@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import type { AlertPreferences } from '@/types/alerts';
 import type { BreadcrumbItemType } from '@/types';
 import AppLayout from '@/layouts/AppLayout.vue';
+import SettingsLayout from '@/layouts/settings/Layout.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,16 +75,16 @@ const submit = () => {
 </script>
 
 <template>
-    <Head :title="t('alerts.preferences.title')" />
-
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <Head :title="t('alerts.preferences.title')" />
+
+        <SettingsLayout>
             <HeadingSmall
                 :title="t('alerts.preferences.title')"
                 :description="t('alerts.preferences.description')"
             />
 
-            <form @submit.prevent="submit" class="space-y-6">
+            <form @submit.prevent="submit" class="mt-6 space-y-6">
                 <!-- Notification Channels -->
                 <Card>
                     <CardHeader>
@@ -263,6 +264,6 @@ const submit = () => {
                     </Button>
                 </div>
             </form>
-        </div>
+        </SettingsLayout>
     </AppLayout>
 </template>

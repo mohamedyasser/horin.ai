@@ -1187,7 +1187,62 @@
         "title": "Alerts",
         "subtitle": "Manage your price alerts and notifications",
         "create": "Create Alert",
+        "create_alert": "Create Alert",
+        "create_description": "Create a new alert to get notified about price movements",
         "create_first": "Create your first alert",
+        "select_asset": "Select asset",
+        "current_price": "Current price",
+        "summary": "Alert Summary",
+        "steps": {
+            "type": "Alert Type",
+            "type_description": "Choose the type of alert you want to create",
+            "trigger": "Trigger Condition",
+            "trigger_description": "Define when the alert should be triggered",
+            "parameters": "Alert Settings",
+            "parameters_description": "Configure the alert criteria",
+            "options": "Advanced Options",
+            "options_description": "Additional alert settings"
+        },
+        "fields": {
+            "type": "Type",
+            "trigger": "Trigger",
+            "trigger_type": "Trigger Type",
+            "asset": "Asset",
+            "target_price": "Target Price",
+            "direction": "Direction",
+            "zone_low": "Zone Low",
+            "zone_high": "Zone High",
+            "threshold_percent": "Threshold %",
+            "horizon": "Time Horizon",
+            "min_confidence": "Min Confidence",
+            "min_strength": "Min Strength",
+            "priority": "Priority",
+            "cooldown": "Cooldown (minutes)",
+            "cooldown_hint": "Minimum time between triggers",
+            "recurring": "Recurring Alert",
+            "recurring_hint": "Re-activate alert after each trigger",
+            "market_hours_only": "Market Hours Only",
+            "market_hours_hint": "Only trigger during trading hours"
+        },
+        "direction": {
+            "above": "Above",
+            "below": "Below",
+            "both": "Both",
+            "cross_up": "Cross Up",
+            "cross_down": "Cross Down"
+        },
+        "priority": {
+            "critical": "Critical",
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+        },
+        "validation": {
+            "asset_required": "Please select an asset for this alert"
+        },
+        "search_asset_placeholder": "Search by symbol or name...",
+        "no_assets_found": "No assets found",
+        "search_to_find_assets": "Search or select a filter to find assets",
         "confirmDelete": "Are you sure you want to delete this alert?",
         "multiple_assets": "Multiple Assets",
         "snoozed": "Snoozed",
@@ -1205,7 +1260,14 @@
             "total": "Total Alerts"
         },
         "filters": {
-            "all": "All"
+            "all": "All",
+            "market": "Market",
+            "country": "Country",
+            "sector": "Sector",
+            "all_markets": "All Markets",
+            "all_countries": "All Countries",
+            "all_sectors": "All Sectors",
+            "clear": "Clear Filters"
         },
         "status": {
             "active": "Active",

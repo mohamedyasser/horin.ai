@@ -16,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Asset search for alert creation
+    Route::get('alerts/search-assets', [AlertController::class, 'searchAssets'])->name('alerts.search-assets');
+
     // Alerts CRUD
     Route::resource('alerts', AlertController::class);
 
