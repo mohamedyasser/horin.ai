@@ -6,28 +6,21 @@ use App\Models\AlertHistory;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
-use WeStacks\TeleBot\Objects\Update;
-use WeStacks\TeleBot\TeleBot;
 
 class AcknowledgeCallbackHandler extends CallbackHandler
 {
-    protected static function match(Update $update): bool
-    {
-        $data = $update->callback_query->data ?? '';
+    protected string $match = '/^ack:(.+)$/';
 
-        return str_starts_with($data, 'ack:');
-    }
-
-    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    public function handle(): mixed
     {
-        $callbackQuery = $update->callback_query;
+        $callbackQuery = $this->update->callback_query;
         $data = $callbackQuery->data;
         $telegramId = (string) $callbackQuery->from->id;
 
         // Parse callback data: ack:{historyId}
         $parts = explode(':', $data);
         if (count($parts) !== 2) {
-            return $this->answerWithError($bot, $callbackQuery->id, 'Invalid callback data');
+            return $this->answerWithError('Invalid callback data');
         }
 
         $historyId = $parts[1];
@@ -35,7 +28,7 @@ class AcknowledgeCallbackHandler extends CallbackHandler
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            return $this->answerWithError($bot, $callbackQuery->id, 'User not found');
+            return $this->answerWithError('User not found');
         }
 
         $history = AlertHistory::where('id', $historyId)
@@ -43,7 +36,7 @@ class AcknowledgeCallbackHandler extends CallbackHandler
             ->first();
 
         if (! $history) {
-            return $this->answerWithError($bot, $callbackQuery->id, 'Alert not found');
+            return $this->answerWithError('Alert not found');
         }
 
         // Acknowledge the alert
@@ -59,8 +52,7 @@ class AcknowledgeCallbackHandler extends CallbackHandler
         $locale = $user->language ?? 'en';
         $message = $locale === 'ar' ? '✅ تم التأكيد' : '✅ Acknowledged';
 
-        $bot->answerCallbackQuery([
-            'callback_query_id' => $callbackQuery->id,
+        $this->answerCallbackQuery([
             'text' => $message,
             'show_alert' => false,
         ]);
@@ -68,10 +60,9 @@ class AcknowledgeCallbackHandler extends CallbackHandler
         return null;
     }
 
-    private function answerWithError(TeleBot $bot, string $callbackId, string $message): null
+    private function answerWithError(string $message): null
     {
-        $bot->answerCallbackQuery([
-            'callback_query_id' => $callbackId,
+        $this->answerCallbackQuery([
             'text' => $message,
             'show_alert' => true,
         ]);

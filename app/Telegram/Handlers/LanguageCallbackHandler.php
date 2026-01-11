@@ -5,40 +5,33 @@ namespace App\Telegram\Handlers;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
-use WeStacks\TeleBot\Objects\Update;
-use WeStacks\TeleBot\TeleBot;
 
 class LanguageCallbackHandler extends CallbackHandler
 {
-    protected static function match(Update $update): bool
-    {
-        $data = $update->callback_query->data ?? '';
+    protected string $match = '/^lang:(en|ar)$/';
 
-        return str_starts_with($data, 'lang:');
-    }
-
-    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    public function handle(): mixed
     {
-        $callbackQuery = $update->callback_query;
+        $callbackQuery = $this->update->callback_query;
         $data = $callbackQuery->data;
         $telegramId = (string) $callbackQuery->from->id;
 
         // Parse callback data: lang:{locale}
         $parts = explode(':', $data);
         if (count($parts) !== 2) {
-            return $this->answerWithError($bot, $callbackQuery->id, 'Invalid callback data');
+            return $this->answerWithError('Invalid callback data');
         }
 
         $newLocale = $parts[1];
 
         if (! in_array($newLocale, ['en', 'ar'])) {
-            return $this->answerWithError($bot, $callbackQuery->id, 'Invalid language');
+            return $this->answerWithError('Invalid language');
         }
 
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            return $this->answerWithError($bot, $callbackQuery->id, 'User not found');
+            return $this->answerWithError('User not found');
         }
 
         // Update language preference
@@ -55,8 +48,7 @@ class LanguageCallbackHandler extends CallbackHandler
             ? '✅ تم تغيير اللغة إلى العربية'
             : '✅ Language changed to English';
 
-        $bot->answerCallbackQuery([
-            'callback_query_id' => $callbackQuery->id,
+        $this->answerCallbackQuery([
             'text' => $message,
             'show_alert' => false,
         ]);
@@ -69,7 +61,7 @@ class LanguageCallbackHandler extends CallbackHandler
             ? '✅ تم تغيير اللغة إلى العربية بنجاح.'
             : '✅ Language successfully changed to English.';
 
-        $bot->editMessageText([
+        $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $confirmText,
@@ -78,10 +70,9 @@ class LanguageCallbackHandler extends CallbackHandler
         return null;
     }
 
-    private function answerWithError(TeleBot $bot, string $callbackId, string $message): null
+    private function answerWithError(string $message): null
     {
-        $bot->answerCallbackQuery([
-            'callback_query_id' => $callbackId,
+        $this->answerCallbackQuery([
             'text' => $message,
             'show_alert' => true,
         ]);

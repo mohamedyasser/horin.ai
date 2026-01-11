@@ -5,30 +5,28 @@ namespace App\Telegram\Commands;
 use App\Models\Alert;
 use App\Models\User;
 use WeStacks\TeleBot\Foundation\CommandHandler;
-use WeStacks\TeleBot\Objects\Update;
-use WeStacks\TeleBot\TeleBot;
 
 class AlertsCommand extends CommandHandler
 {
-    protected static function command(): string
+    protected static function aliases(): array
     {
-        return 'alerts';
+        return ['/alerts'];
     }
 
-    protected static function description(): string
+    protected static function description(?string $locale = null): string
     {
         return 'View your active alerts';
     }
 
-    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    public function handle(): mixed
     {
-        $chatId = $update->message->chat->id;
-        $telegramId = (string) $update->message->from->id;
+        $chatId = $this->update->message->chat->id;
+        $telegramId = (string) $this->update->message->from->id;
 
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $bot->sendMessage([
+            $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => 'Please login through the Horin app first.',
             ]);
@@ -49,7 +47,7 @@ class AlertsCommand extends CommandHandler
                 ? '📭 لا توجد تنبيهات نشطة.\n\nاستخدم التطبيق لإنشاء تنبيهات جديدة.'
                 : "📭 No active alerts.\n\nUse the app to create new alerts.";
 
-            $bot->sendMessage([
+            $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => [
@@ -78,7 +76,7 @@ class AlertsCommand extends CommandHandler
         $lines[] = '';
         $lines[] = $locale === 'ar' ? '📊 استخدم التطبيق لإدارة التنبيهات' : '📊 Use the app to manage alerts';
 
-        $bot->sendMessage([
+        $this->sendMessage([
             'chat_id' => $chatId,
             'text' => implode("\n", $lines),
             'parse_mode' => 'Markdown',

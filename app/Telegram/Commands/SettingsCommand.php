@@ -4,30 +4,28 @@ namespace App\Telegram\Commands;
 
 use App\Models\User;
 use WeStacks\TeleBot\Foundation\CommandHandler;
-use WeStacks\TeleBot\Objects\Update;
-use WeStacks\TeleBot\TeleBot;
 
 class SettingsCommand extends CommandHandler
 {
-    protected static function command(): string
+    protected static function aliases(): array
     {
-        return 'settings';
+        return ['/settings'];
     }
 
-    protected static function description(): string
+    protected static function description(?string $locale = null): string
     {
         return 'View your notification settings';
     }
 
-    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    public function handle(): mixed
     {
-        $chatId = $update->message->chat->id;
-        $telegramId = (string) $update->message->from->id;
+        $chatId = $this->update->message->chat->id;
+        $telegramId = (string) $this->update->message->from->id;
 
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $bot->sendMessage([
+            $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => 'Please login through the Horin app first.',
             ]);
@@ -70,7 +68,7 @@ Use the app to modify settings.
 MSG;
         }
 
-        $bot->sendMessage([
+        $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',

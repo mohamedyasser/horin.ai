@@ -4,27 +4,25 @@ namespace App\Telegram\Handlers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
-use WeStacks\TeleBot\Foundation\Handler;
-use WeStacks\TeleBot\Objects\Update;
-use WeStacks\TeleBot\TeleBot;
+use WeStacks\TeleBot\Foundation\UpdateHandler;
 
-class ContactHandler extends Handler
+class ContactHandler extends UpdateHandler
 {
-    protected static function match(Update $update): bool
+    public function trigger(): bool
     {
-        return isset($update->message->contact);
+        return isset($this->update->message?->contact);
     }
 
-    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    public function handle(): mixed
     {
-        $message = $update->message;
+        $message = $this->update->message;
         $contact = $message->contact;
         $chatId = $message->chat->id;
         $telegramId = (string) $message->from->id;
 
         // Verify the contact belongs to the sender
         if ((string) $contact->user_id !== $telegramId) {
-            $bot->sendMessage([
+            $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => 'Please share your own phone number.',
             ]);
@@ -35,7 +33,7 @@ class ContactHandler extends Handler
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $bot->sendMessage([
+            $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => 'Please login through the Horin app first.',
             ]);
@@ -69,7 +67,7 @@ class ContactHandler extends Handler
         }
 
         // Remove the reply keyboard and send confirmation
-        $bot->sendMessage([
+        $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [

@@ -11,7 +11,7 @@ use App\Telegram\Handlers\AcknowledgeCallbackHandler;
 use App\Telegram\Handlers\ContactHandler;
 use App\Telegram\Handlers\LanguageCallbackHandler;
 use App\Telegram\Handlers\SnoozeCallbackHandler;
-use WeStacks\TeleBot\Foundation\Kernel;
+use WeStacks\TeleBot\Kernel;
 
 class HorinKernel extends Kernel
 {

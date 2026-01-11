@@ -4,32 +4,30 @@ namespace App\Telegram\Commands;
 
 use App\Models\User;
 use WeStacks\TeleBot\Foundation\CommandHandler;
-use WeStacks\TeleBot\Objects\Update;
-use WeStacks\TeleBot\TeleBot;
 
 class HelpCommand extends CommandHandler
 {
-    protected static function command(): string
+    protected static function aliases(): array
     {
-        return 'help';
+        return ['/help'];
     }
 
-    protected static function description(): string
+    protected static function description(?string $locale = null): string
     {
         return 'Show available commands and help';
     }
 
-    public function handle(TeleBot $bot, Update $update, callable $next): mixed
+    public function handle(): mixed
     {
-        $chatId = $update->message->chat->id;
-        $telegramId = (string) $update->message->from->id;
+        $chatId = $this->update->message->chat->id;
+        $telegramId = (string) $this->update->message->from->id;
 
         $user = User::where('telegram_id', $telegramId)->first();
         $locale = $user?->language ?? 'en';
 
         $helpText = $locale === 'ar' ? $this->getHelpTextAr() : $this->getHelpTextEn();
 
-        $bot->sendMessage([
+        $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $helpText,
             'parse_mode' => 'Markdown',
