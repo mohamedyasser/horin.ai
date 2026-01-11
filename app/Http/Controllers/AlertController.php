@@ -74,7 +74,7 @@ class AlertController extends Controller
                 $q->whereNull('user_id')
                     ->orWhere('user_id', $request->user()->id);
             })->get(),
-            'userAssets' => $request->user()->watchlist()->with('asset:id,symbol,name,name_ar')->get(),
+            'userAssets' => $request->user()->userWishlists()->with('asset:id,symbol,name,name_ar')->get(),
             'alertTypes' => $this->getAlertTypeOptions(),
         ]);
     }
