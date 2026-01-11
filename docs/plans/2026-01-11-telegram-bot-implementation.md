@@ -2963,8 +2963,599 @@ php artisan telebot:commands --setup
 
 ---
 
+## Complete User Flows
+
+This section documents all user interactions with the Kira Telegram bot, from initial setup through daily usage.
+
+### Flow 1: New User Registration & Onboarding
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     NEW USER ONBOARDING                          │
+└─────────────────────────────────────────────────────────────────┘
+
+1. User visits Kira web app → Clicks "Login with Telegram"
+   │
+   ▼
+2. Telegram Login Widget opens → User authorizes Kira app
+   │
+   ▼
+3. System creates user account with:
+   - telegram_id (from widget)
+   - telegram_username (from widget)
+   - telegram_photo_url (from widget)
+   │
+   ▼
+4. User redirected to onboarding wizard → Prompted to verify phone
+   │
+   ▼
+5. User clicks "Verify via Telegram Bot"
+   │
+   ▼
+6. User opens @KiraStocksBot in Telegram → Sends /start
+   │
+   ▼
+7. Bot detects user has telegram_id but no verified phone
+   │
+   ▼
+8. Bot sends phone request message with ReplyKeyboard:
+   ┌────────────────────────────────────────────────────┐
+   │ 📱 To complete your registration, please share    │
+   │ your phone number. This ensures secure delivery   │
+   │ of your stock alerts.                             │
+   │                                                    │
+   │ ┌──────────────────────────────────────────────┐  │
+   │ │    📞 Share Phone Number                     │  │
+   │ └──────────────────────────────────────────────┘  │
+   └────────────────────────────────────────────────────┘
+   │
+   ▼
+9. User taps "Share Phone Number" → Telegram shares contact
+   │
+   ▼
+10. ContactHandler processes contact:
+    - Validates contact.user_id matches message.from.id
+    - Normalizes phone number (adds + prefix)
+    - Updates user.phone
+    - Marks phone as verified (phone_verified_at)
+    │
+    ▼
+11. Bot sends confirmation:
+    ┌────────────────────────────────────────────────────┐
+    │ ✅ Phone verified successfully!                    │
+    │                                                    │
+    │ You're all set to receive stock alerts.           │
+    │                                                    │
+    │ Use /help to see available commands.              │
+    └────────────────────────────────────────────────────┘
+    │
+    ▼
+12. User returns to web app → Completes remaining onboarding steps
+```
+
+### Flow 2: Returning User - Bot Interaction
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     RETURNING USER                               │
+└─────────────────────────────────────────────────────────────────┘
+
+User opens @KiraStocksBot → Sends /start
+   │
+   ▼
+Bot recognizes user (has telegram_id + verified phone)
+   │
+   ▼
+Bot sends welcome back message:
+┌────────────────────────────────────────────────────────────────┐
+│ 👋 Welcome back, *Ahmed*!                                      │
+│                                                                │
+│ You're all set to receive stock alerts.                       │
+│                                                                │
+│ 📋 /alerts - View alerts                                       │
+│ ⚙️ /settings - Settings                                        │
+│ ❓ /help - Help                                                │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### Flow 3: Receiving Alert Notifications
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 ALERT NOTIFICATION FLOW                          │
+└─────────────────────────────────────────────────────────────────┘
+
+1. ML Pipeline detects alert condition (e.g., target price reached)
+   │
+   ▼
+2. Redis Pub/Sub publishes to classified_* channel
+   │
+   ▼
+3. AlertsListen command receives message → Creates AlertHistory
+   │
+   ▼
+4. SendAlertNotification job triggered
+   │
+   ├── Checks rate limits (10/hour, 50/day)
+   ├── Checks quiet hours (bypass for critical)
+   ├── Checks user's default_channels (includes 'telegram')
+   │
+   ▼
+5. SendTelegramMessage job dispatched
+   │
+   ▼
+6. TelegramMessageBuilder builds rich message based on alert type
+   │
+   ▼
+7. TelegramBotService sends message via TeleBot Facade
+   │
+   ▼
+8. User receives notification in Telegram:
+
+   ┌────────────────────────────────────────────────────────────────┐
+   │ 🎯 *Target Price Reached*                                     │
+   │ ━━━━━━━━━━━━━━━━━━                                            │
+   │                                                                │
+   │ *COMI* - Commercial International Bank                        │
+   │                                                                │
+   │ 📈 Current Price: *52.50 EGP*                                 │
+   │ 🎯 Target: 52.00 EGP                                          │
+   │ 📊 Change: 4.2% today                                         │
+   │                                                                │
+   │ Your alert triggered at 52.00 EGP.                            │
+   │                                                                │
+   │ 🕐 10:34 AM · Jan 11, 2026                                    │
+   │                                                                │
+   │ ━━━━━━━━━━━━━━━━━━                                            │
+   │                                                                │
+   │ ┌────────────────────────────────────────────────────────┐    │
+   │ │              📊 View Stock                             │    │
+   │ └────────────────────────────────────────────────────────┘    │
+   │ ┌───────────────────┐ ┌───────────────────┐                   │
+   │ │   ⏰ Snooze 1h    │ │   ⏰ Snooze 4h    │                   │
+   │ └───────────────────┘ └───────────────────┘                   │
+   │ ┌───────────────────┐ ┌───────────────────┐                   │
+   │ │  ✅ Acknowledge   │ │    ⚙️ Manage     │                   │
+   │ └───────────────────┘ └───────────────────┘                   │
+   └────────────────────────────────────────────────────────────────┘
+```
+
+### Flow 4: Alert Action Buttons
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     ALERT ACTIONS                                │
+└─────────────────────────────────────────────────────────────────┘
+
+[View Stock Button]
+   User taps "📊 View Stock"
+   │
+   ▼
+   Opens Kira web app at /assets/{symbol} in browser
+   Shows full stock details, charts, analysis
+
+[Snooze Button]
+   User taps "⏰ Snooze 1h" or "⏰ Snooze 4h"
+   │
+   ▼
+   SnoozeCallbackHandler receives callback_data: "snooze:{alertId}:{minutes}"
+   │
+   ├── Validates user owns the alert
+   ├── Updates alert.snoozed_until = now + minutes
+   │
+   ▼
+   Bot shows toast notification:
+   ┌────────────────────────────────┐
+   │ ⏰ Alert snoozed for 60 min   │
+   └────────────────────────────────┘
+
+   During snooze period:
+   - Alert remains active but notifications paused
+   - User can still receive other alerts
+   - After snooze expires, alert resumes normally
+
+[Acknowledge Button]
+   User taps "✅ Acknowledge"
+   │
+   ▼
+   AcknowledgeCallbackHandler receives callback_data: "ack:{historyId}"
+   │
+   ├── Validates user owns the alert history
+   ├── Updates alert_history.acknowledged_at = now
+   │
+   ▼
+   Bot shows toast notification:
+   ┌────────────────────────────────┐
+   │ ✅ Acknowledged                │
+   └────────────────────────────────┘
+
+   Effects of acknowledgment:
+   - Stops escalation chain for this alert trigger
+   - Records engagement metrics
+   - Alert remains active for future triggers
+
+[Manage Button]
+   User taps "⚙️ Manage"
+   │
+   ▼
+   Opens Kira web app at /alerts/{alertId}
+   User can edit, disable, or delete the alert
+```
+
+### Flow 5: Bot Commands
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     BOT COMMANDS                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+/start
+   │
+   ├─ New user without telegram_id → "Please login through the app first"
+   ├─ User with telegram_id but no verified phone → Phone request keyboard
+   └─ Verified user → Welcome back message with command list
+
+/help
+   │
+   ▼
+   Displays help message in user's language:
+   ┌────────────────────────────────────────────────────────────────┐
+   │ ❓ *Kira Bot Help*                                            │
+   │ ━━━━━━━━━━━━━━━━━━                                            │
+   │                                                                │
+   │ *Available Commands:*                                         │
+   │                                                                │
+   │ 📋 /alerts - View your active alerts                          │
+   │ ⚙️ /settings - View your notification settings                │
+   │ 🌐 /language - Change language                                │
+   │ ❓ /help - Show this help message                             │
+   │                                                                │
+   │ *Alert Actions:*                                              │
+   │ When you receive an alert, you can:                           │
+   │ • Tap "View Stock" to see details                             │
+   │ • Tap "Snooze" to pause the alert                             │
+   │ • Tap "Acknowledge" to confirm receipt                        │
+   │                                                                │
+   │ *Need more help?*                                             │
+   │ Visit our app for full features.                              │
+   └────────────────────────────────────────────────────────────────┘
+
+/alerts
+   │
+   ├─ No active alerts → "📭 No active alerts. Use the app to create new alerts."
+   │
+   └─ Has alerts → List of active alerts:
+      ┌────────────────────────────────────────────────────────────────┐
+      │ 📋 *Your Active Alerts:*                                      │
+      │ ━━━━━━━━━━━━━━━━━━                                            │
+      │ • *COMI* - Target Price                                       │
+      │ • *HRHO* - Breakout Alert                                     │
+      │ • *EFIH* - AI Prediction                                      │
+      │                                                                │
+      │ 📊 Use the app to manage alerts                               │
+      │                                                                │
+      │ ┌────────────────────────────────────────────────────────┐    │
+      │ │                🔗 Open App                             │    │
+      │ └────────────────────────────────────────────────────────┘    │
+      └────────────────────────────────────────────────────────────────┘
+
+/settings
+   │
+   ▼
+   Displays current settings:
+   ┌────────────────────────────────────────────────────────────────┐
+   │ ⚙️ *Your Settings*                                            │
+   │ ━━━━━━━━━━━━━━━━━━                                            │
+   │                                                                │
+   │ 🌐 Language: English                                          │
+   │ 🌙 Quiet Hours: 23:00 - 07:00                                 │
+   │ 📊 Max alerts/hour: 10                                        │
+   │ 📊 Max alerts/day: 50                                         │
+   │                                                                │
+   │ Use the app to modify settings.                               │
+   │                                                                │
+   │ ┌────────────────────────────────────────────────────────┐    │
+   │ │              ⚙️ Open Settings                          │    │
+   │ └────────────────────────────────────────────────────────┘    │
+   └────────────────────────────────────────────────────────────────┘
+
+/language (or /lang)
+   │
+   ▼
+   Displays language selection:
+   ┌────────────────────────────────────────────────────────────────┐
+   │ 🌐 Select your language / اختر لغتك:                          │
+   │                                                                │
+   │ ┌───────────────────┐ ┌───────────────────┐                   │
+   │ │  🇬🇧 English      │ │  🇸🇦 العربية       │                   │
+   │ └───────────────────┘ └───────────────────┘                   │
+   └────────────────────────────────────────────────────────────────┘
+   │
+   User taps language button
+   │
+   ▼
+   LanguageCallbackHandler receives callback_data: "lang:ar" or "lang:en"
+   │
+   ├── Updates user.language
+   │
+   ▼
+   Bot shows toast notification:
+   ┌─────────────────────────────────────┐
+   │ ✅ تم تغيير اللغة إلى العربية        │
+   └─────────────────────────────────────┘
+```
+
+### Flow 6: Escalation Handling
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     ESCALATION FLOW                              │
+└─────────────────────────────────────────────────────────────────┘
+
+1. Critical/High alert sent to user via Telegram
+   │
+   ▼
+2. ProcessEscalation job scheduled (runs every 5 min)
+   │
+   ▼
+3. Job checks for unacknowledged critical alerts
+   │
+   ├── Alert acknowledged? → No escalation needed
+   │
+   └── Alert NOT acknowledged after threshold?
+       │
+       ▼
+4. Escalation Level 1 (after 15 min):
+   ┌────────────────────────────────────────────────────────────────┐
+   │ 🚨 *REMINDER: Unacknowledged Alert*                           │
+   │ ━━━━━━━━━━━━━━━━━━                                            │
+   │                                                                │
+   │ ⚠️ You have an unacknowledged critical alert for *COMI*.     │
+   │                                                                │
+   │ Original alert: Target Price Reached (52.50 EGP)              │
+   │ Sent: 15 minutes ago                                          │
+   │                                                                │
+   │ Please acknowledge or take action.                            │
+   │                                                                │
+   │ ┌────────────────────────────────────────────────────────┐    │
+   │ │              ✅ Acknowledge Now                        │    │
+   │ └────────────────────────────────────────────────────────┘    │
+   └────────────────────────────────────────────────────────────────┘
+   │
+   ▼
+5. Still not acknowledged after 30 min? → Escalation Level 2
+   (Higher urgency message)
+   │
+   ▼
+6. Still not acknowledged after 60 min? → Escalation Level 3
+   (May trigger alternative channels: SMS, email, push)
+```
+
+### Flow 7: Digest Notifications
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     DIGEST FLOW                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+1. User configures digest preference in app:
+   - Daily digest at 8:00 AM
+   - Or Weekly digest on Sundays
+   │
+   ▼
+2. GenerateDigest job runs at scheduled time
+   │
+   ▼
+3. Job collects all alerts from period grouped by asset
+   │
+   ▼
+4. Telegram digest sent:
+   ┌────────────────────────────────────────────────────────────────┐
+   │ 📊 *Daily Alert Digest*                                       │
+   │ ━━━━━━━━━━━━━━━━━━                                            │
+   │ Jan 11, 2026                                                  │
+   │                                                                │
+   │ *Summary:* 8 alerts across 5 stocks                           │
+   │                                                                │
+   │ 📈 *COMI* (3 alerts)                                          │
+   │ • Target Price: 52.50 EGP ✅                                  │
+   │ • Breakout Confirmed                                          │
+   │ • AI Prediction: Bullish                                      │
+   │                                                                │
+   │ 📉 *HRHO* (2 alerts)                                          │
+   │ • Daily Change: -5.2%                                         │
+   │ • RSI Oversold Signal                                         │
+   │                                                                │
+   │ 📈 *EFIH* (1 alert)                                           │
+   │ • Pattern: Double Bottom                                       │
+   │                                                                │
+   │ ... and 2 more                                                │
+   │                                                                │
+   │ ┌────────────────────────────────────────────────────────┐    │
+   │ │              📊 View Full Report                       │    │
+   │ └────────────────────────────────────────────────────────┘    │
+   └────────────────────────────────────────────────────────────────┘
+```
+
+### Flow 8: Quiet Hours Behavior
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     QUIET HOURS                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+User sets quiet hours: 23:00 - 07:00 (Cairo timezone)
+
+During quiet hours:
+┌──────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│  LOW/MEDIUM priority alerts:                                     │
+│  ├── Queued until quiet hours end                               │
+│  └── Delivered at 07:01 AM                                      │
+│                                                                  │
+│  HIGH priority alerts:                                           │
+│  ├── May be held briefly                                        │
+│  └── Delivered within configured delay                          │
+│                                                                  │
+│  CRITICAL priority alerts:                                       │
+│  ├── Bypass quiet hours                                         │
+│  └── Delivered immediately                                       │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Flow 9: Alert Types & Their Telegram Presentations
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     ALERT TYPE MESSAGES                          │
+└─────────────────────────────────────────────────────────────────┘
+
+PRICE-BASED ALERTS:
+
+┌─ target_price ─────────────────────────────────────────────────┐
+│ 🎯 *Target Price Reached*                                      │
+│ Price crossed your configured threshold                        │
+│ Shows: current price, target, % change, direction emoji        │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ breakout ─────────────────────────────────────────────────────┐
+│ 🚀 *Breakout Confirmed*                                        │
+│ Price broke through resistance/support with volume             │
+│ Shows: current price, breakout level, volume ratio             │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ zone ─────────────────────────────────────────────────────────┐
+│ 📍 *Zone Alert*                                                │
+│ Price entered/exited a configured zone                         │
+│ Shows: zone boundaries, direction                              │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ gap ──────────────────────────────────────────────────────────┐
+│ 🕳 *Gap Detected*                                              │
+│ Significant price gap from previous close                      │
+│ Shows: gap %, direction (up/down)                              │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ 52week ───────────────────────────────────────────────────────┐
+│ 🏆/⚠️ *52-Week High/Low*                                       │
+│ Stock reached new 52-week extreme                              │
+│ Shows: current price, type (high/low)                          │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ daily_change ─────────────────────────────────────────────────┐
+│ 📈/📉 *Big Move Alert*                                         │
+│ Significant daily price change threshold crossed               │
+│ Shows: % change, direction                                     │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ entry_return ─────────────────────────────────────────────────┐
+│ 🔄 *Back to Entry Price*                                       │
+│ Price returned to user's recorded entry point                  │
+│ Shows: current price, entry price, break-even note             │
+└────────────────────────────────────────────────────────────────┘
+
+INTELLIGENCE-BASED ALERTS:
+
+┌─ prediction ───────────────────────────────────────────────────┐
+│ 🔮 *AI Prediction Alert*                                       │
+│ Kira AI made a directional prediction                          │
+│ Shows: direction, horizon, confidence %                        │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ signal ───────────────────────────────────────────────────────┐
+│ 📊 *Technical Signal Detected*                                 │
+│ Technical indicator generated a signal                         │
+│ Shows: indicator name, signal type, strength %, value          │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ anomaly ──────────────────────────────────────────────────────┐
+│ ⚠️/🚨 *Market Anomaly Detected*                                │
+│ Unusual market behavior detected by ML                         │
+│ Shows: anomaly type, severity, confidence, reasons list        │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ pattern ──────────────────────────────────────────────────────┐
+│ 📐 *Chart Pattern Confirmed*                                   │
+│ Technical chart pattern identified                             │
+│ Shows: pattern type, status, confidence, target, bias          │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ recommendation ───────────────────────────────────────────────┐
+│ ⭐ *Recommendation Updated*                                    │
+│ Analyst rating changed for the stock                           │
+│ Shows: new rating, previous rating, score, upgrade/downgrade   │
+└────────────────────────────────────────────────────────────────┘
+
+┌─ compound_intelligence ────────────────────────────────────────┐
+│ ⭐ *Multiple Signals Aligned!*                                 │
+│ Multiple conditions met simultaneously (high conviction)       │
+│ Shows: conditions checklist, combined confidence               │
+└────────────────────────────────────────────────────────────────┘
+```
+
+### Flow 10: Error Handling & Edge Cases
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     ERROR HANDLING                               │
+└─────────────────────────────────────────────────────────────────┘
+
+[User Blocks Bot]
+   TeleBot API returns error 403 or "bot was blocked"
+   │
+   ▼
+   SendTelegramMessage job:
+   ├── Marks notification as failed
+   ├── Clears user.telegram_id (removes Telegram channel)
+   └── User can re-link via web app anytime
+
+[Rate Limited by Telegram]
+   TeleBot API returns error 429 with retry_after
+   │
+   ▼
+   SendTelegramMessage job:
+   ├── Extracts retry_after from error message
+   └── Releases job back to queue with delay
+
+[Invalid Chat ID]
+   TeleBot API returns "chat not found"
+   │
+   ▼
+   Same handling as blocked bot
+
+[Network/Server Error]
+   Connection timeout or 5xx error
+   │
+   ▼
+   Job retries with exponential backoff:
+   ├── Attempt 1: immediate
+   ├── Attempt 2: +10 seconds
+   ├── Attempt 3: +60 seconds
+   └── Attempt 4: +300 seconds (final)
+
+[User Not Found in Database]
+   Webhook receives message from unknown telegram_id
+   │
+   ▼
+   Bot responds: "Please login through the Kira app first"
+```
+
+### RTL (Arabic) Support
+
+All messages support Arabic (RTL) display:
+- Message text uses Arabic translations from `lang/ar/alerts.php`
+- Asset names use `name_ar` field when available
+- Dates formatted using Arabic locale
+- Button labels translated (عرض السهم، تأجيل، تأكيد، إدارة)
+- Currency shown as "ج.م" (Egyptian Pound)
+
+---
+
 ## Related Documents
 
 - [Kira Alert System Design](./2026-01-10-kira-alert-system-design.md)
 - [Kira Alert Notification Examples](./2026-01-10-kira-alert-notification-examples.md)
 - [Kira Alert System Test Scenarios](./2026-01-11-kira-alert-system-test-scenarios.md)
+- [Registration & Onboarding Implementation](./2025-12-16-registration-onboarding-implementation.md)
+- [Settings & Trading Market Preferences Design](./2025-12-16-settings-trading-market-preferences-design.md)
