@@ -1,0 +1,54 @@
+#-----------------------------------------------------------------------------
+# Kira Alerts Redis Listener - Systemd Service
+#-----------------------------------------------------------------------------
+#
+# This service runs the alerts:listen command as a long-running process
+# that subscribes to ML pipeline Redis channels and dispatches alert jobs.
+#
+# Installation:
+#   1. Copy this file to /etc/systemd/system/alerts-listener.service
+#   2. Update the paths and user as needed for your environment
+#   3. Run: sudo systemctl daemon-reload
+#   4. Enable: sudo systemctl enable alerts-listener
+#   5. Start: sudo systemctl start alerts-listener
+#
+# Monitoring:
+#   sudo systemctl status alerts-listener
+#   sudo journalctl -u alerts-listener -f
+#   php artisan alerts:health-check
+#
+#-----------------------------------------------------------------------------
+
+[Unit]
+Description=Kira Alerts Redis Listener
+Documentation=https://github.com/your-org/kira
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/app
+
+# Main command
+ExecStart=/usr/bin/php artisan alerts:listen
+
+# Restart configuration
+Restart=always
+RestartSec=5
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+# Logging
+StandardOutput=append:/var/www/app/storage/logs/alerts-listener.log
+StandardError=append:/var/www/app/storage/logs/alerts-listener.log
+
+# Environment (optional - uncomment if needed)
+# Environment=APP_ENV=production
+
+[Install]
+WantedBy=multi-user.target

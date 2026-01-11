@@ -181,6 +181,26 @@ return [
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Pub/Sub Connection for Alert Listener
+        |--------------------------------------------------------------------------
+        |
+        | This connection is used by the alerts:listen command to subscribe to
+        | ML pipeline Redis channels. It uses an infinite read timeout since
+        | pub/sub connections are long-lived blocking operations.
+        |
+        */
+        'pubsub' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+            'read_timeout' => -1, // Infinite timeout for pub/sub
+        ],
+
     ],
 
 ];

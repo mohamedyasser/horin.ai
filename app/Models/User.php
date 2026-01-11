@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -139,6 +140,72 @@ class User extends Authenticatable
     public function wishlistAssets()
     {
         return $this->belongsToMany(Asset::class, 'user_wishlists');
+    }
+
+    /**
+     * Get the alerts for the user.
+     */
+    public function alerts(): HasMany
+    {
+        return $this->hasMany(Alert::class);
+    }
+
+    /**
+     * Get the active alerts for the user.
+     */
+    public function activeAlerts(): HasMany
+    {
+        return $this->hasMany(Alert::class)->where('status', 'active');
+    }
+
+    /**
+     * Get the alert preferences for the user.
+     */
+    public function alertPreferences(): HasOne
+    {
+        return $this->hasOne(UserAlertPreference::class);
+    }
+
+    /**
+     * Get the alert notifications for the user.
+     */
+    public function alertNotifications(): HasMany
+    {
+        return $this->hasMany(AlertNotification::class);
+    }
+
+    /**
+     * Get the alert history for the user.
+     */
+    public function alertHistory(): HasMany
+    {
+        return $this->hasMany(AlertHistory::class);
+    }
+
+    /**
+     * Get the alert templates created by the user.
+     */
+    public function alertTemplates(): HasMany
+    {
+        return $this->hasMany(AlertTemplate::class);
+    }
+
+    /**
+     * Get the alert chains for the user.
+     */
+    public function alertChains(): HasMany
+    {
+        return $this->hasMany(AlertChain::class);
+    }
+
+    /**
+     * Get or create alert preferences for the user.
+     */
+    public function getAlertPreferences(): UserAlertPreference
+    {
+        return $this->alertPreferences ?? UserAlertPreference::create([
+            'user_id' => $this->id,
+        ]);
     }
 
     public function hasVerifiedPhone(): bool

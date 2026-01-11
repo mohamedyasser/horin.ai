@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\UpdateAlertPreferencesRequest;
+use App\Models\UserAlertPreference;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class AlertPreferencesController extends Controller
+{
+    /**
+     * Show the preferences form.
+     */
+    public function edit(Request $request): Response
+    {
+        $preferences = UserAlertPreference::firstOrCreate(
+            ['user_id' => $request->user()->id],
+            UserAlertPreference::getDefaults()
+        );
+
+        return Inertia::render('Settings/Alerts', [
+            'preferences' => $preferences,
+            'timezones' => \DateTimeZone::listIdentifiers(\DateTimeZone::AFRICA),
+            'channels' => [
+                ['id' => 'telegram', 'name' => 'Telegram', 'available' => (bool) $request->user()->telegram_id],
+                ['id' => 'push', 'name' => 'Push Notifications', 'available' => (bool) $request->user()->push_token],
+                ['id' => 'email', 'name' => 'Email', 'available' => true],
+                ['id' => 'in_app', 'name' => 'In-App', 'available' => true],
+            ],
+        ]);
+    }
+
+    /**
+     * Update preferences.
+     */
+    public function update(UpdateAlertPreferencesRequest $request): RedirectResponse
+    {
+        UserAlertPreference::updateOrCreate(
+            ['user_id' => $request->user()->id],
+            $request->validated()
+        );
+
+        return back()->with('success', __('settings.alerts_updated'));
+    }
+}

@@ -25,12 +25,10 @@ Route::get('/', function () {
     return redirect('/ar');
 });
 
-// Dashboard redirect - named 'dashboard' for Fortify/Laravel compatibility
+// Dashboard (authenticated - uses user's language preference)
 Route::get('/dashboard', function () {
-    $locale = app()->getLocale() ?: 'ar';
-
-    return redirect("/{$locale}/dashboard");
-})->middleware(['auth'])->name('dashboard');
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified', 'onboarding.complete'])->name('dashboard');
 
 // Telegram Auth Routes (guest only)
 Route::middleware('guest')->group(function () {
@@ -114,11 +112,8 @@ Route::prefix('{locale}')
         Route::get('contact', function () {
             return Inertia::render('Contact');
         })->name('contact');
-
-        // Dashboard (authenticated)
-        Route::get('dashboard', function () {
-            return Inertia::render('Dashboard');
-        })->middleware(['auth', 'verified', 'onboarding.complete'])->name('dashboard.localized');
     });
 
 require __DIR__.'/settings.php';
+require __DIR__.'/alerts.php';
+require __DIR__.'/admin.php';
