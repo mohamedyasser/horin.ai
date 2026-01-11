@@ -3,6 +3,7 @@
 use App\Jobs\Alerts\GenerateDigest;
 use App\Jobs\Alerts\ProcessEscalation;
 use App\Jobs\Alerts\ProcessPriceAlerts;
+use App\Jobs\Alerts\ProcessScheduledAlerts;
 use App\Jobs\CleanupAlertHistory;
 use App\Jobs\CleanupBacktestResults;
 use App\Jobs\CleanupNotifications;
@@ -55,21 +56,20 @@ Schedule::call(function () {
 */
 
 // Market open (10:00 AM Cairo): process gap alerts
-// TODO: Create ProcessScheduledAlerts job for market open/close events
-// Schedule::job(new ProcessScheduledAlerts('market_open'))
-//     ->dailyAt('10:00')
-//     ->timezone('Africa/Cairo')
-//     ->weekdays()
-//     ->when(fn () => !in_array(now('Africa/Cairo')->dayOfWeek, [5, 6])) // Skip Fri-Sat
-//     ->name('market-open-alerts');
+Schedule::job(new ProcessScheduledAlerts('market_open'))
+    ->dailyAt('10:00')
+    ->timezone('Africa/Cairo')
+    ->weekdays()
+    ->when(fn () => ! in_array(now('Africa/Cairo')->dayOfWeek, [5, 6])) // Skip Fri-Sat
+    ->name('market-open-alerts');
 
 // Market close (14:30 PM Cairo): process end-of-day alerts
-// Schedule::job(new ProcessScheduledAlerts('market_close'))
-//     ->dailyAt('14:30')
-//     ->timezone('Africa/Cairo')
-//     ->weekdays()
-//     ->when(fn () => !in_array(now('Africa/Cairo')->dayOfWeek, [5, 6])) // Skip Fri-Sat
-//     ->name('market-close-alerts');
+Schedule::job(new ProcessScheduledAlerts('market_close'))
+    ->dailyAt('14:30')
+    ->timezone('Africa/Cairo')
+    ->weekdays()
+    ->when(fn () => ! in_array(now('Africa/Cairo')->dayOfWeek, [5, 6])) // Skip Fri-Sat
+    ->name('market-close-alerts');
 
 /*
 |--------------------------------------------------------------------------
