@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "65b4a400edba9563c0cbaf7fabac02b9",
+    "content-hash": "6bf1892bd01e11fa360c4d0c0e2e1ed7",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -10099,6 +10099,66 @@
                 }
             ],
             "time": "2025-09-03T14:09:20+00:00"
+        },
+        {
+            "name": "westacks/telebot-laravel",
+            "version": "4.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/westacks/telebot-laravel.git",
+                "reference": "39a8efae589f8758b08cb4af28aa2fab38d78edd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/westacks/telebot-laravel/zipball/39a8efae589f8758b08cb4af28aa2fab38d78edd",
+                "reference": "39a8efae589f8758b08cb4af28aa2fab38d78edd",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^9.0 || ^10.0 || ^11.0 || ^12.0",
+                "php": "^8.2",
+                "westacks/telebot": "^4.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "nette/php-generator": "^4.1",
+                "orchestra/testbench": "^7.0 || ^8.0 || ^9.0 || ^10.0",
+                "pestphp/pest": "^3.0",
+                "rector/rector": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "TeleBot": "WeStacks\\TeleBot\\Laravel\\TeleBot"
+                    },
+                    "providers": [
+                        "WeStacks\\TeleBot\\Laravel\\Providers\\TeleBotServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "WeStacks\\TeleBot\\Laravel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PunyFlash",
+                    "email": "puny.flash@gmail.com",
+                    "homepage": "https://github.com/PunyFlash"
+                }
+            ],
+            "description": "Telebot adapter for Laravel",
+            "support": {
+                "issues": "https://github.com/westacks/telebot-laravel/issues",
+                "source": "https://github.com/westacks/telebot-laravel/tree/4.3.0"
+            },
+            "time": "2026-01-07T04:09:01+00:00"
         }
     ],
     "packages-dev": [
