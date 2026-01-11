@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'phone.verified' => \App\Http\Middleware\EnsurePhoneIsVerified::class,
             'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
             'auth.metrics' => \App\Http\Middleware\AuthenticateMetrics::class,
+            'telegram.webhook' => \App\Http\Middleware\ValidateTelegramWebhook::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

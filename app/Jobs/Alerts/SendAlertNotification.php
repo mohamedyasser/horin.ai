@@ -199,15 +199,8 @@ class SendAlertNotification implements ShouldQueue
             return;
         }
 
-        // Queue Telegram message
-        // This would integrate with a Telegram service/bot
-        // For now, mark as sent
-        $notification->markAsSent();
-
-        Log::info('Telegram notification queued', [
-            'notification_id' => $notification->id,
-            'telegram_id' => $user->telegram_id,
-        ]);
+        // Dispatch dedicated Telegram job
+        SendTelegramMessage::dispatch($notification);
     }
 
     private function sendPush(AlertNotification $notification): void

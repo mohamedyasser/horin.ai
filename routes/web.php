@@ -38,10 +38,11 @@ Route::middleware('guest')->group(function () {
         ->name('auth.telegram.callback');
 });
 
-// Telegram Webhook (no auth, validated by Telegram)
+// Telegram Webhook (no auth, validated by secret token)
 Route::post('telegram/webhook', [TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook')
-    ->withoutMiddleware(['web']);
+    ->withoutMiddleware(['web'])
+    ->middleware(['telegram.webhook']);
 
 // Phone Verification Routes
 Route::middleware('auth')->group(function () {

@@ -167,15 +167,25 @@ class GenerateDigest implements ShouldQueue
 
     private function sendDigest(User $user, AlertNotification $notification, string $content): void
     {
-        // Primary channel: Telegram
-        if ($user->telegram_id) {
-            // TODO: Use TelegramBotService when available
-            Log::info('Telegram digest queued', [
+        if (! $user->telegram_id) {
+            Log::info('User has no Telegram ID for digest', ['user_id' => $user->id]);
+
+            return;
+        }
+
+        try {
+            $telegram = app(\App\Services\TelegramBotService::class);
+            $telegram->sendMessage($user->telegram_id, $content);
+
+            Log::info('Telegram digest sent', [
                 'user_id' => $user->id,
                 'telegram_id' => $user->telegram_id,
             ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send Telegram digest', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
         }
-
-        // Fallback: In-app notification (notification is already stored)
     }
 }
