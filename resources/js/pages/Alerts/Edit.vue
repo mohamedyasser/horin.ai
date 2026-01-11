@@ -287,12 +287,26 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                                 </div>
                             </template>
 
-                            <!-- Signal/Anomaly Parameters -->
-                            <template v-else-if="alert.trigger_type === 'signal' || alert.trigger_type === 'anomaly'">
+                            <!-- Signal Parameters -->
+                            <template v-else-if="alert.trigger_type === 'signal'">
                                 <div class="grid gap-2">
-                                    <Label>{{ alert.trigger_type === 'signal' ? t('alerts.fields.min_strength') : t('alerts.fields.min_confidence') }}</Label>
+                                    <Label>{{ t('alerts.fields.min_strength') }}</Label>
                                     <Input
-                                        v-model.number="alert.trigger_type === 'signal' ? parameters.min_strength : parameters.min_confidence"
+                                        v-model.number="parameters.min_strength"
+                                        type="number"
+                                        step="0.05"
+                                        min="0"
+                                        max="1"
+                                    />
+                                </div>
+                            </template>
+
+                            <!-- Anomaly Parameters -->
+                            <template v-else-if="alert.trigger_type === 'anomaly'">
+                                <div class="grid gap-2">
+                                    <Label>{{ t('alerts.fields.min_confidence') }}</Label>
+                                    <Input
+                                        v-model.number="parameters.min_confidence"
                                         type="number"
                                         step="0.05"
                                         min="0"
