@@ -56,6 +56,14 @@ class KeyboardButtonHandler extends UpdateHandler
         '📜 History' => 'alerts_history',
         '📜 السجل' => 'alerts_history',
 
+        // Alert type selection buttons
+        '💰 Price Alert' => 'alert_type_price',
+        '💰 تنبيه السعر' => 'alert_type_price',
+        '📈 Signal Alert' => 'alert_type_signal',
+        '📈 تنبيه إشارة' => 'alert_type_signal',
+        '🔮 Prediction Alert' => 'alert_type_prediction',
+        '🔮 تنبيه توقع' => 'alert_type_prediction',
+
         // Back button (context-aware)
         '◀️ Back' => 'back',
         '◀️ رجوع' => 'back',
@@ -152,6 +160,11 @@ class KeyboardButtonHandler extends UpdateHandler
             'alerts_list' => $this->showAlertsList($chatId, $user, $locale),
             'alerts_history' => $this->showAlertsHistory($chatId, $user, $locale),
 
+            // Alert type selection
+            'alert_type_price' => $this->selectAlertType($chatId, $user, $locale, 'price'),
+            'alert_type_signal' => $this->selectAlertType($chatId, $user, $locale, 'signal'),
+            'alert_type_prediction' => $this->selectAlertType($chatId, $user, $locale, 'prediction'),
+
             // Back to main menu
             'back' => $this->goBackToMainMenu($chatId, $user, $locale),
 
@@ -192,8 +205,6 @@ class KeyboardButtonHandler extends UpdateHandler
         // Clear any existing draft and start fresh
         $user->update(['telegram_alert_draft' => ['step' => 'type']]);
 
-        $builder = new AlertKeyboardBuilder;
-
         $text = $locale === 'ar'
             ? "📊 *إنشاء تنبيه*\n\nما نوع التنبيه؟"
             : "📊 *Create Alert*\n\nWhat type of alert?";
@@ -202,9 +213,7 @@ class KeyboardButtonHandler extends UpdateHandler
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $builder->buildAlertTypeSelector($locale),
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::alertTypeKeyboard($locale),
         ]);
 
         return null;
@@ -390,6 +399,59 @@ class KeyboardButtonHandler extends UpdateHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function selectAlertType(int $chatId, ?User $user, string $locale, string $type): mixed
+    {
+        if (! $user) {
+            $text = $locale === 'ar'
+                ? '❌ يرجى التسجيل أولاً باستخدام /start'
+                : '❌ Please register first using /start';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+            ]);
+
+            return null;
+        }
+
+        // Update draft with selected type
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['type'] = $type;
+        $draft['step'] = 'asset';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        // Type labels for the message
+        $typeLabels = [
+            'price' => ['en' => 'Price Alert', 'ar' => 'تنبيه السعر', 'icon' => '💰'],
+            'signal' => ['en' => 'Signal Alert', 'ar' => 'تنبيه إشارة', 'icon' => '📈'],
+            'prediction' => ['en' => 'Prediction Alert', 'ar' => 'تنبيه توقع', 'icon' => '🔮'],
+        ];
+
+        $typeLabel = $typeLabels[$type][$locale] ?? $type;
+        $typeIcon = $typeLabels[$type]['icon'] ?? '📊';
+
+        // Get user's portfolio and watchlist assets for quick selection
+        $portfolioAssets = $user->portfolio()->with('asset')->get()->pluck('asset')->filter();
+        $watchlistAssets = $user->watchlist ?? collect();
+
+        $builder = new AlertKeyboardBuilder;
+
+        $text = $locale === 'ar'
+            ? "{$typeIcon} *{$typeLabel}*\n\nاختر الأصل للتنبيه:"
+            : "{$typeIcon} *{$typeLabel}*\n\nSelect an asset for the alert:";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildAssetSelector($portfolioAssets, $watchlistAssets, $locale),
+            ],
         ]);
 
         return null;

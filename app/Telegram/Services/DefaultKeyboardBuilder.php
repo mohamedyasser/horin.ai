@@ -186,6 +186,36 @@ class DefaultKeyboardBuilder
     }
 
     /**
+     * Alert type selection keyboard - for creating alerts.
+     */
+    public static function alertTypeKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '💰 تنبيه السعر']],
+                    [['text' => '📈 تنبيه إشارة']],
+                    [['text' => '🔮 تنبيه توقع']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '💰 Price Alert']],
+                [['text' => '📈 Signal Alert']],
+                [['text' => '🔮 Prediction Alert']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
      * Language selection keyboard.
      */
     public static function languageKeyboard(): array
