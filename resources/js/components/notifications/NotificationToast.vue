@@ -1,35 +1,78 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { router } from '@inertiajs/vue3';
 import type { AlertNotification } from '@/types/alerts';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, AlertCircle, AlertTriangle, Bell, Info } from 'lucide-vue-next';
+import { X, AlertCircle, AlertTriangle, Bell, Info, ExternalLink, Check } from 'lucide-vue-next';
 
-const { locale } = useI18n();
+const { locale, t } = useI18n();
 
 interface Props {
     notification: AlertNotification;
     duration?: number;
+    playSound?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     duration: 5000,
+    playSound: true,
 });
 
 const emit = defineEmits<{
     dismiss: [];
+    acknowledge: [notificationId: string];
+    view: [alertId: string];
 }>();
 
 const isVisible = ref(true);
+const isAcknowledged = ref(false);
 
 const dismiss = () => {
     isVisible.value = false;
     setTimeout(() => emit('dismiss'), 300);
 };
 
+const acknowledge = () => {
+    isAcknowledged.value = true;
+    emit('acknowledge', props.notification.id);
+    dismiss();
+};
+
+const viewAlert = () => {
+    const alertId = props.notification.data?.alert_id;
+    if (alertId) {
+        emit('view', alertId);
+        router.visit(`/alerts/${alertId}`);
+    }
+};
+
+// Play notification sound for critical alerts
+const playNotificationSound = () => {
+    if (!props.playSound) return;
+
+    try {
+        const audio = new Audio('/sounds/notification.mp3');
+        audio.volume = props.notification.priority === 'critical' ? 0.8 : 0.5;
+        audio.play().catch(() => {
+            // Audio autoplay may be blocked, ignore
+        });
+    } catch {
+        // Audio not supported
+    }
+};
+
 onMounted(() => {
-    setTimeout(dismiss, props.duration);
+    // Critical alerts require acknowledgment and don't auto-dismiss
+    if (props.notification.priority !== 'critical') {
+        setTimeout(dismiss, props.duration);
+    }
+
+    // Play sound for high/critical priority
+    if (props.notification.priority === 'critical' || props.notification.priority === 'high') {
+        playNotificationSound();
+    }
 });
 
 const PriorityIcon = computed(() => {
@@ -83,7 +126,8 @@ const notificationBody = computed(() => {
             v-if="isVisible"
             :class="[
                 'w-full max-w-sm border-s-4 shadow-lg',
-                priorityStyles
+                priorityStyles,
+                notification.priority === 'critical' && 'animate-pulse'
             ]"
         >
             <CardContent class="p-4">
@@ -99,8 +143,31 @@ const notificationBody = computed(() => {
                         <p class="mt-1 text-sm text-muted-foreground">
                             {{ notificationBody }}
                         </p>
+
+                        <!-- Action buttons for critical alerts -->
+                        <div
+                            v-if="notification.priority === 'critical'"
+                            class="mt-3 flex gap-2"
+                        >
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                @click="viewAlert"
+                            >
+                                <ExternalLink class="size-3.5 me-1.5" />
+                                {{ t('alerts.view_alert', 'View Alert') }}
+                            </Button>
+                            <Button
+                                size="sm"
+                                @click="acknowledge"
+                            >
+                                <Check class="size-3.5 me-1.5" />
+                                {{ t('alerts.acknowledge', 'Acknowledge') }}
+                            </Button>
+                        </div>
                     </div>
                     <Button
+                        v-if="notification.priority !== 'critical'"
                         variant="ghost"
                         size="icon"
                         class="size-6 shrink-0"

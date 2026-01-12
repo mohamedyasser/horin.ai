@@ -82,7 +82,20 @@ class ProcessIntelligenceAlerts implements ShouldQueue
             return false;
         }
 
-        $result = $matcher->evaluateIntelligenceAlert($alert, $this->signalData);
+        // Use appropriate evaluation method based on alert type
+        if ($alert->type === 'price' && $this->channel === 'price_updates') {
+            // Extract price from real-time update
+            $currentPrice = $this->signalData['last'] ?? $this->signalData['price'] ?? null;
+            $previousPrice = $this->signalData['prevClose'] ?? $this->signalData['prev_close'] ?? null;
+
+            if (! $currentPrice) {
+                return false;
+            }
+
+            $result = $matcher->evaluatePriceAlertFromSignal($alert, $currentPrice, $previousPrice, $this->signalData);
+        } else {
+            $result = $matcher->evaluateIntelligenceAlert($alert, $this->signalData);
+        }
 
         if ($result->triggered) {
             $this->triggerAlert($alert, $result, $assetId);
@@ -136,13 +149,27 @@ class ProcessIntelligenceAlerts implements ShouldQueue
     private function getAlertTypeFromChannel(string $channel): string
     {
         return match (true) {
+            // Signal classification priority channels
             str_starts_with($channel, 'classified_') => 'signal',
+            // Signal classification action channels
             str_starts_with($channel, 'action_') => 'recommendation',
+            // Pattern detection
             $channel === 'pattern_updates' => 'pattern',
+            // Anomaly detection
             $channel === 'anomaly_alerts' => 'anomaly',
+            // Recommendation service
             $channel === 'trading_recommendations' => 'recommendation',
+            // Signal detection
             $channel === 'detected_signals' => 'signal',
             $channel === 'processed_signals' => 'signal',
+            // Technical analysis
+            $channel === 'technical_indicators' => 'signal',
+            // Forecasting predictions
+            $channel === 'price_predictions' => 'prediction',
+            // Signal consumers execution
+            $channel === 'execution_results' => 'signal',
+            // Real-time price updates (for price alerts)
+            $channel === 'price_updates' => 'price',
             default => 'signal',
         };
     }

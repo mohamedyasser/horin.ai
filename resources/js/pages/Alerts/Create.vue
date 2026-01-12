@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AssetSelector from '@/components/AssetSelector.vue';
+import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
+import type { DeliveryConfig as DeliveryConfigType, EscalationConfig } from '@/types/alerts';
 import {
     TrendingUp,
     Brain,
@@ -73,6 +75,15 @@ const form = useForm({
     cooldown_minutes: 60,
     market_hours_only: true,
     max_triggers: null as number | null,
+    delivery_config: {
+        channels: ['telegram', 'in_app'],
+        sound_enabled: true,
+    } as DeliveryConfigType,
+    escalation_config: {
+        enabled: false,
+        levels: [],
+        max_escalations: 0,
+    } as EscalationConfig,
 });
 
 const selectedAssetObject = ref<AssetInfo | null>(props.asset || null);
@@ -307,6 +318,53 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 </div>
                             </template>
 
+                            <!-- Gap Alert Parameters -->
+                            <template v-else-if="form.trigger_type === 'gap'">
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div class="grid gap-2">
+                                        <Label>{{ t('alerts.fields.gap_threshold') }}</Label>
+                                        <Input
+                                            v-model.number="form.parameters.gap_threshold_percent"
+                                            type="number"
+                                            step="0.5"
+                                            placeholder="3"
+                                        />
+                                        <p class="text-xs text-muted-foreground">{{ t('alerts.fields.gap_hint') }}</p>
+                                    </div>
+                                    <div class="grid gap-2">
+                                        <Label>{{ t('alerts.fields.direction') }}</Label>
+                                        <Select v-model="form.direction">
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="above">{{ t('alerts.direction.gap_up') }}</SelectItem>
+                                                <SelectItem value="below">{{ t('alerts.direction.gap_down') }}</SelectItem>
+                                                <SelectItem value="both">{{ t('alerts.direction.both') }}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- 52-Week High/Low Parameters -->
+                            <template v-else-if="form.trigger_type === '52week'">
+                                <div class="grid gap-2">
+                                    <Label>{{ t('alerts.fields.52week_type') }}</Label>
+                                    <Select v-model="form.parameters.type">
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="high">{{ t('alerts.52week.new_high') }}</SelectItem>
+                                            <SelectItem value="low">{{ t('alerts.52week.new_low') }}</SelectItem>
+                                            <SelectItem value="both">{{ t('alerts.52week.both') }}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p class="text-xs text-muted-foreground">{{ t('alerts.fields.52week_hint') }}</p>
+                                </div>
+                            </template>
+
                             <!-- Prediction Parameters -->
                             <template v-else-if="form.trigger_type === 'prediction'">
                                 <div class="grid gap-4 sm:grid-cols-2">
@@ -416,6 +474,24 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                             </div>
                         </CardContent>
                     </Card>
+
+                    <!-- Step 5: Delivery Configuration -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{{ t('alerts.steps.delivery') }}</CardTitle>
+                            <CardDescription>{{ t('alerts.steps.delivery_description') }}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DeliveryConfig
+                                :delivery-config="form.delivery_config"
+                                :escalation-config="form.escalation_config"
+                                :priority="form.priority"
+                                @update:delivery-config="form.delivery_config = $event"
+                                @update:escalation-config="form.escalation_config = $event"
+                                @update:priority="form.priority = $event"
+                            />
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <!-- Sidebar Summary -->
@@ -445,6 +521,10 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 <div class="flex justify-between text-sm">
                                     <span class="text-muted-foreground">{{ t('alerts.fields.priority') }}</span>
                                     <span class="font-medium">{{ t(`alerts.priority.${form.priority}`) }}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-muted-foreground">{{ t('alerts.fields.channels') }}</span>
+                                    <span class="font-medium">{{ form.delivery_config.channels?.length || 0 }}</span>
                                 </div>
                             </div>
 

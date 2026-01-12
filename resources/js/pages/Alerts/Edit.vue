@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import type { Alert, AlertType, AlertDirection, AlertPriority, AlertParameters } from '@/types/alerts';
+import type { Alert, AlertType, AlertDirection, AlertPriority, AlertParameters, DeliveryConfig as DeliveryConfigType, EscalationConfig } from '@/types/alerts';
 import type { BreadcrumbItemType } from '@/types';
 import { useAlerts } from '@/composables/useAlerts';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
 import {
     TrendingUp,
     Brain,
@@ -49,6 +50,15 @@ const cooldownMinutes = ref(alert.value.cooldown_minutes);
 const marketHoursOnly = ref(alert.value.market_hours_only);
 const maxTriggers = ref<number | undefined>(alert.value.max_triggers);
 const status = ref(alert.value.status);
+const deliveryConfig = ref<DeliveryConfigType>(alert.value.delivery_config || {
+    channels: ['telegram', 'in_app'],
+    sound_enabled: true,
+});
+const escalationConfig = ref<EscalationConfig>(alert.value.escalation_config || {
+    enabled: false,
+    levels: [],
+    max_escalations: 0,
+});
 
 const currentPrice = computed(() => alert.value.asset?.last_price || 0);
 
@@ -74,6 +84,8 @@ const handleSubmit = () => {
         market_hours_only: marketHoursOnly.value,
         max_triggers: maxTriggers.value || null,
         status: status.value,
+        delivery_config: deliveryConfig.value,
+        escalation_config: escalationConfig.value,
     };
 
     router.patch(`/alerts/${alert.value.id}`, data);
@@ -378,6 +390,24 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                                 </div>
                                 <Switch v-model:checked="marketHoursOnly" />
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Delivery Configuration -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{{ t('alerts.steps.delivery') }}</CardTitle>
+                            <CardDescription>{{ t('alerts.steps.delivery_description') }}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DeliveryConfig
+                                :delivery-config="deliveryConfig"
+                                :escalation-config="escalationConfig"
+                                :priority="priority"
+                                @update:delivery-config="deliveryConfig = $event"
+                                @update:escalation-config="escalationConfig = $event"
+                                @update:priority="priority = $event"
+                            />
                         </CardContent>
                     </Card>
                 </div>

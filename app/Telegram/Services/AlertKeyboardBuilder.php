@@ -25,6 +25,8 @@ class AlertKeyboardBuilder
         'target_price' => ['en' => 'Target Price', 'ar' => 'سعر مستهدف', 'icon' => '🎯'],
         'daily_change' => ['en' => 'Daily Change %', 'ar' => 'تغير يومي %', 'icon' => '📊'],
         'breakout' => ['en' => 'Breakout Level', 'ar' => 'مستوى اختراق', 'icon' => '📈'],
+        'signal' => ['en' => 'Technical Signal', 'ar' => 'إشارة فنية', 'icon' => '📉'],
+        'prediction' => ['en' => 'AI Prediction', 'ar' => 'توقع ذكي', 'icon' => '🔮'],
     ];
 
     /**
@@ -449,8 +451,6 @@ class AlertKeyboardBuilder
 
     /**
      * Build alert history list keyboard.
-     *
-     * @param  Collection  $history
      */
     public function buildHistoryList(Collection $history, int $page, int $totalPages, string $locale): array
     {
@@ -460,7 +460,7 @@ class AlertKeyboardBuilder
         foreach ($history as $item) {
             if (! $item->acknowledged_at) {
                 $keyboard[] = [[
-                    'text' => $locale === 'ar' ? '👁️ قراءة' : '👁️ Acknowledge',
+                    'text' => $locale === 'ar' ? '✓ تم الاطلاع' : '✓ Acknowledge',
                     'callback_data' => "alert:history:ack:{$item->id}",
                 ]];
             }
@@ -579,7 +579,7 @@ class AlertKeyboardBuilder
                 'triggered' => 'تم تفعيله',
                 default => $alert->status,
             }
-            : ucfirst($alert->status);
+        : ucfirst($alert->status);
 
         // Snoozed status
         $snoozedLine = '';

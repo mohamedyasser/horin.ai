@@ -28,13 +28,13 @@ class AlertsListen extends Command
      * MessagePack-encoded channels from ML pipeline
      */
     private array $messagePackChannels = [
-        // Priority channels
+        // Priority channels (from signal-classification)
         'classified_critical',
         'classified_high',
         'classified_medium',
         'classified_low',
         'classified_info',
-        // Action channels
+        // Action channels (from signal-classification)
         'action_strong_buy',
         'action_buy',
         'action_hold',
@@ -44,18 +44,28 @@ class AlertsListen extends Command
         'action_monitor',
         'action_take_profit',
         'action_stop_loss',
-        // Signal channels
+        // Signal channels (from signal-detection)
         'pattern_updates',
         'detected_signals',
         'processed_signals',
+        // Technical analysis channels (from technical-analysis)
+        'technical_indicators',
+        // Execution channels (from signal-consumers)
+        'execution_results',
+        // Anomaly channels (from anomaly - can be MessagePack)
+        'anomaly_alerts',
     ];
 
     /**
      * JSON-encoded channels
      */
     private array $jsonChannels = [
-        'anomaly_alerts',
+        // Recommendation channels (from recommendation)
         'trading_recommendations',
+        // Prediction channels (from forecasting)
+        'price_predictions',
+        // Real-time price updates (from price-collector)
+        'price_updates',
     ];
 
     public function __construct(
@@ -241,7 +251,15 @@ class AlertsListen extends Command
     private function extractPid(array $data): ?string
     {
         // Different channels use different keys for asset ID
-        return $data['pid'] ?? $data['asset_id'] ?? $data['symbol'] ?? null;
+        // - pid: signal-classification, signal-detection, pattern-detection, technical-analysis
+        // - symbol: anomaly service
+        // - asset_id: some internal formats
+        // - predictions may have nested structure
+        return $data['pid']
+            ?? $data['symbol']
+            ?? $data['asset_id']
+            ?? $data['prediction']['pid']
+            ?? null;
     }
 
     private function handleDisconnection(RedisException $e): void

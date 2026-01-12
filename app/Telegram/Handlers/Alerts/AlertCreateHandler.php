@@ -264,7 +264,8 @@ class AlertCreateHandler extends CallbackHandler
 
     private function handleTriggerSelection(User $user, ?string $triggerType, int $chatId, int $messageId, string $locale): mixed
     {
-        if (! $triggerType || ! in_array($triggerType, ['target_price', 'daily_change', 'breakout'])) {
+        $validTriggers = ['target_price', 'daily_change', 'breakout', 'signal', 'prediction'];
+        if (! $triggerType || ! in_array($triggerType, $validTriggers)) {
             return $this->answerWithError('Invalid trigger type');
         }
 
@@ -274,8 +275,70 @@ class AlertCreateHandler extends CallbackHandler
         $draft['trigger_type'] = $triggerType;
         $user->update(['telegram_alert_draft' => $draft]);
 
+        // Signal and prediction alerts have simpler flows - go directly to direction
+        if (in_array($triggerType, ['signal', 'prediction'])) {
+            // Set default parameters for signal/prediction alerts
+            $draft['parameters'] = match ($triggerType) {
+                'signal' => ['min_strength' => 0.7],
+                'prediction' => ['min_confidence' => 0.75, 'direction' => 'up'],
+                default => [],
+            };
+            $user->update(['telegram_alert_draft' => $draft]);
+
+            return $this->showSignalPredictionOptions($chatId, $messageId, $user, $locale, $triggerType);
+        }
+
         // Prompt for parameter input
         return $this->promptParameterInput($chatId, $user, $locale);
+    }
+
+    private function showSignalPredictionOptions(int $chatId, int $messageId, User $user, string $locale, string $triggerType): mixed
+    {
+        $draft = $user->telegram_alert_draft ?? [];
+        $symbol = $draft['asset_symbol'] ?? 'N/A';
+
+        if ($triggerType === 'signal') {
+            $text = $locale === 'ar'
+                ? "📉 *تنبيه إشارة فنية لـ {$symbol}*\n\nستتلقى إشعارات عند اكتشاف إشارات فنية قوية:\n\n• إشارات RSI\n• تقاطعات MACD\n• أنماط السعر\n\nاختر اتجاه الإشارة:"
+                : "📉 *Technical Signal Alert for {$symbol}*\n\nYou'll receive notifications when strong signals are detected:\n\n• RSI signals\n• MACD crossovers\n• Price patterns\n\nSelect signal direction:";
+        } else {
+            $text = $locale === 'ar'
+                ? "🔮 *تنبيه توقع ذكي لـ {$symbol}*\n\nستتلقى إشعارات بناءً على توقعات الذكاء الاصطناعي.\n\nاختر اتجاه التوقع المطلوب:"
+                : "🔮 *AI Prediction Alert for {$symbol}*\n\nYou'll receive notifications based on AI price predictions.\n\nSelect desired prediction direction:";
+        }
+
+        $keyboard = [
+            [[
+                'text' => $locale === 'ar' ? '⬆️ صعود' : '⬆️ Bullish',
+                'callback_data' => 'alert:create:direction:above',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬇️ هبوط' : '⬇️ Bearish',
+                'callback_data' => 'alert:create:direction:below',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '↕️ أي اتجاه' : '↕️ Both Directions',
+                'callback_data' => 'alert:create:direction:both',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'alert:create',
+            ]],
+        ];
+
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
     }
 
     private function promptParameterInput(int $chatId, User $user, string $locale): mixed
@@ -360,6 +423,12 @@ class AlertCreateHandler extends CallbackHandler
         } elseif ($triggerType === 'daily_change' && isset($parameters['threshold_percent'])) {
             $pct = $parameters['threshold_percent'];
             $paramDisplay = $locale === 'ar' ? "📊 نسبة التغير: {$pct}%" : "📊 Change: {$pct}%";
+        } elseif ($triggerType === 'signal') {
+            $strength = ($parameters['min_strength'] ?? 0.7) * 100;
+            $paramDisplay = $locale === 'ar' ? "📉 إشارات فنية (قوة ≥ {$strength}%)" : "📉 Technical signals (strength ≥ {$strength}%)";
+        } elseif ($triggerType === 'prediction') {
+            $confidence = ($parameters['min_confidence'] ?? 0.75) * 100;
+            $paramDisplay = $locale === 'ar' ? "🔮 توقعات AI (ثقة ≥ {$confidence}%)" : "🔮 AI predictions (confidence ≥ {$confidence}%)";
         }
 
         // Direction display
@@ -432,11 +501,20 @@ class AlertCreateHandler extends CallbackHandler
             // Show success message
             $builder = new AlertKeyboardBuilder;
             $symbol = $draft['asset_symbol'] ?? 'N/A';
+            $triggerType = $draft['trigger_type'] ?? 'target_price';
             $targetPrice = $draft['parameters']['target_price'] ?? null;
 
-            $successText = $locale === 'ar'
-                ? "✅ *تم إنشاء التنبيه!*\n\nسيتم إعلامك عندما يصل {$symbol} إلى السعر المستهدف."
-                : "✅ *Alert created!*\n\nYou'll be notified when {$symbol} reaches your target.";
+            $successText = match ($triggerType) {
+                'signal' => $locale === 'ar'
+                    ? "✅ *تم إنشاء التنبيه!*\n\nسيتم إعلامك عند اكتشاف إشارات فنية لـ {$symbol}."
+                    : "✅ *Alert created!*\n\nYou'll be notified when technical signals are detected for {$symbol}.",
+                'prediction' => $locale === 'ar'
+                    ? "✅ *تم إنشاء التنبيه!*\n\nسيتم إعلامك عند صدور توقعات AI لـ {$symbol}."
+                    : "✅ *Alert created!*\n\nYou'll be notified when AI predictions are made for {$symbol}.",
+                default => $locale === 'ar'
+                    ? "✅ *تم إنشاء التنبيه!*\n\nسيتم إعلامك عندما يصل {$symbol} إلى السعر المستهدف."
+                    : "✅ *Alert created!*\n\nYou'll be notified when {$symbol} reaches your target.",
+            };
 
             if ($targetPrice) {
                 $formattedPrice = number_format($targetPrice, 2);
