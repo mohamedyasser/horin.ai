@@ -159,8 +159,8 @@ Schedule::job(new CleanupBacktestResults(
 |--------------------------------------------------------------------------
 */
 
-// Health check every 5 minutes during market hours, alert if issues
-Schedule::command('alerts:health-check --alert')
+// Health check every 5 minutes during market hours
+Schedule::command('alerts:health-check')
     ->everyFiveMinutes()
     ->withoutOverlapping()
     ->name('alert-health-check');
