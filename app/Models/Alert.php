@@ -56,6 +56,12 @@ class Alert extends Model
 
     protected static function booted(): void
     {
+        // Ensure boolean values are properly cast for PostgreSQL
+        static::saving(function (Alert $alert) {
+            $alert->is_recurring = (bool) $alert->is_recurring;
+            $alert->market_hours_only = (bool) $alert->market_hours_only;
+        });
+
         static::created(function (Alert $alert) {
             if ($alert->asset_id) {
                 app(AlertCacheService::class)->invalidateAsset($alert->asset_id);
