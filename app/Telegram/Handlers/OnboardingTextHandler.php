@@ -371,6 +371,21 @@ class OnboardingTextHandler extends UpdateHandler
             'market_id' => $market->id,
         ]);
 
+        // Count total markets available for this country
+        $totalMarketsCount = Market::where('country_id', $user->country_id)->count();
+
+        // If only one market exists and user just selected it, auto-advance to sectors
+        if ($totalMarketsCount === 1 && count($currentMarkets) === 1) {
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $builder->getStepMessage('4', $locale),
+                'parse_mode' => 'Markdown',
+                'reply_markup' => $builder->buildStep4Keyboard($locale, $user->sectors()->pluck('sectors.id')->toArray()),
+            ]);
+
+            return true;
+        }
+
         // Refresh the keyboard
         $this->sendMessage([
             'chat_id' => $chatId,
@@ -408,6 +423,27 @@ class OnboardingTextHandler extends UpdateHandler
             'user_id' => $user->id,
             'sector_id' => $sector->id,
         ]);
+
+        // Count total sectors available
+        $totalSectorsCount = Sector::count();
+
+        // If only one sector exists and user just selected it, auto-complete onboarding
+        if ($totalSectorsCount === 1 && count($currentSectors) === 1) {
+            $user->markOnboardingAsComplete();
+
+            Log::info('Onboarding: Completed via Telegram (auto)', [
+                'user_id' => $user->id,
+            ]);
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $builder->getCompletionMessage($locale),
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
+            ]);
+
+            return true;
+        }
 
         // Refresh the keyboard
         $this->sendMessage([
@@ -539,16 +575,37 @@ class OnboardingTextHandler extends UpdateHandler
 
     private function findCountryByText(string $text, string $locale): ?Country
     {
+        $originalText = $text;
+
         // Remove flag emoji and checkmark (use 'u' flag for Unicode)
         $text = preg_replace('/^[\x{2713}\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
         $text = preg_replace('/^[\x{1F1E0}-\x{1F1FF}]{2}\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
-        if ($locale === 'ar') {
-            return Country::where('name_ar', $text)->first();
+        Log::debug('findCountryByText: After cleanup', [
+            'original' => $originalText,
+            'cleaned' => $text,
+            'locale' => $locale,
+        ]);
+
+        // Try flexible match
+        $countries = Country::all();
+
+        foreach ($countries as $country) {
+            $nameEn = trim($country->name_en ?? '');
+            $nameAr = trim($country->name_ar ?? '');
+
+            if ($text === $nameEn || $text === $nameAr) {
+                return $country;
+            }
+
+            // Also try case-insensitive match
+            if (mb_strtolower($text) === mb_strtolower($nameEn) || mb_strtolower($text) === mb_strtolower($nameAr)) {
+                return $country;
+            }
         }
 
-        return Country::where('name_en', $text)->first();
+        return null;
     }
 
     private function findMarketByText(string $text, string $countryId, string $locale): ?Market
