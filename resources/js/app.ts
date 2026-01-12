@@ -6,6 +6,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
+import { initializeTelegramMiniApp } from './composables/useTelegramMiniApp';
 import i18n from './i18n';
 import { configureEcho } from '@laravel/echo-vue';
 
@@ -36,10 +37,19 @@ createInertiaApp({
         document.documentElement.lang = locale;
         document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
 
-        createApp({ render: () => h(App, props) })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(i18n)
-            .mount(el);
+            .use(i18n);
+
+        app.mount(el);
+
+        // Initialize Telegram Mini App and auto-authenticate if needed
+        const isAuthenticated = !!props.initialPage.props.auth?.user;
+        initializeTelegramMiniApp(isAuthenticated).then((result) => {
+            if (result?.redirect_url) {
+                window.location.href = result.redirect_url;
+            }
+        });
     },
     progress: {
         color: '#4B5563',

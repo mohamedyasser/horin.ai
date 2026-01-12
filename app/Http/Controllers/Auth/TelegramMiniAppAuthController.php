@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use WeStacks\TeleBot\TeleBot;
+
+class TelegramMiniAppAuthController extends Controller
+{
+    /**
+     * Authenticate a user via Telegram Mini App.
+     *
+     * The request is validated by the ValidateTelegramMiniApp middleware
+     * which extracts user data from the init data.
+     */
+    public function authenticate(Request $request): JsonResponse
+    {
+        $telegramUser = $request->attributes->get('telegram_mini_app_user');
+
+        if (! $telegramUser || ! isset($telegramUser['id'])) {
+            return response()->json([
+                'error' => 'Invalid user data',
+            ], 400);
+        }
+
+        $firstName = $telegramUser['first_name'] ?? '';
+        $lastName = $telegramUser['last_name'] ?? '';
+        $name = trim("{$firstName} {$lastName}");
+
+        $user = User::updateOrCreate(
+            ['telegram_id' => (string) $telegramUser['id']],
+            [
+                'name' => $name ?: 'Telegram User',
+                'telegram_username' => $telegramUser['username'] ?? null,
+                'telegram_photo_url' => $telegramUser['photo_url'] ?? null,
+            ]
+        );
+
+        Auth::login($user, remember: true);
+
+        Log::info('User authenticated via Mini App', [
+            'user_id' => $user->id,
+            'telegram_id' => $telegramUser['id'],
+        ]);
+
+        $requiresPhoneVerification = ! $user->hasVerifiedPhone();
+
+        // If phone verification is required, send the verification request
+        if ($requiresPhoneVerification && $user->telegram_id) {
+            $this->sendPhoneVerificationRequest($user);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'telegram_username' => $user->telegram_username,
+                'telegram_photo_url' => $user->telegram_photo_url,
+            ],
+            'requires_phone_verification' => $requiresPhoneVerification,
+            'requires_onboarding' => ! $user->hasCompletedOnboarding(),
+            'redirect_url' => $this->getRedirectUrl($user),
+        ]);
+    }
+
+    /**
+     * Determine the redirect URL based on user status.
+     */
+    private function getRedirectUrl(User $user): string
+    {
+        if (! $user->hasVerifiedPhone()) {
+            return route('verification.phone');
+        }
+
+        if (! $user->hasCompletedOnboarding()) {
+            return route('onboarding');
+        }
+
+        return route('dashboard');
+    }
+
+    /**
+     * Send phone verification request via Telegram bot.
+     */
+    private function sendPhoneVerificationRequest(User $user): void
+    {
+        try {
+            $bot = new TeleBot(config('telegram.bot_token'));
+
+            $bot->sendMessage([
+                'chat_id' => $user->telegram_id,
+                'text' => __('auth.telegram.verify_phone_message'),
+                'reply_markup' => [
+                    'keyboard' => [[
+                        [
+                            'text' => __('auth.telegram.share_phone_button'),
+                            'request_contact' => true,
+                        ],
+                    ]],
+                    'resize_keyboard' => true,
+                    'one_time_keyboard' => true,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send phone verification request', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+}

@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'canRegister' => true,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'locale' => app()->getLocale(),
+            'isTelegramMiniApp' => $this->isTelegramMiniApp($request),
             'seo' => [
                 'canonical' => $seo->getCanonicalUrl(),
                 'alternates' => $seo->getAlternateUrls(),
@@ -60,5 +61,24 @@ class HandleInertiaRequests extends Middleware
                 'schemas' => $seo->getAllSchemas(),
             ],
         ];
+    }
+
+    /**
+     * Detect if the request is from a Telegram Mini App.
+     */
+    private function isTelegramMiniApp(Request $request): bool
+    {
+        // Check for custom header that frontend can set
+        if ($request->hasHeader('X-Telegram-Mini-App')) {
+            return true;
+        }
+
+        // Check user agent for Telegram WebView
+        $userAgent = $request->userAgent() ?? '';
+        if (str_contains($userAgent, 'TelegramBot') || str_contains($userAgent, 'Telegram')) {
+            return true;
+        }
+
+        return false;
     }
 }

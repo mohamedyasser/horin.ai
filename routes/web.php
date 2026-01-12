@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\Auth\TelegramAuthController;
+use App\Http\Controllers\Auth\TelegramMiniAppAuthController;
 use App\Http\Controllers\Auth\TelegramWebhookController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarketController;
@@ -43,6 +44,12 @@ Route::post('telegram/webhook', [TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook')
     ->withoutMiddleware(['web'])
     ->middleware(['telegram.webhook']);
+
+// Telegram Mini App Auth (validated by init data)
+Route::post('auth/telegram/mini-app', [TelegramMiniAppAuthController::class, 'authenticate'])
+    ->name('auth.telegram.mini-app')
+    ->withoutMiddleware(['web'])
+    ->middleware(['telegram.mini-app']);
 
 // Phone Verification Routes
 Route::middleware('auth')->group(function () {

@@ -34,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'onboarding.complete' => \App\Http\Middleware\EnsureOnboardingComplete::class,
             'auth.metrics' => \App\Http\Middleware\AuthenticateMetrics::class,
             'telegram.webhook' => \App\Http\Middleware\ValidateTelegramWebhook::class,
+            'telegram.mini-app' => \App\Http\Middleware\ValidateTelegramMiniApp::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
