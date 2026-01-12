@@ -56,7 +56,7 @@ class OnboardingKeyboardBuilder
     /**
      * Popular countries by code for quick selection.
      */
-    private const POPULAR_COUNTRY_CODES = ['EG', 'SA', 'AE', 'KW', 'QA', 'BH'];
+    private const POPULAR_COUNTRY_CODES = ['EG', 'SA'];
 
     /**
      * Build Step 1a keyboard: Experience selection only.
@@ -219,10 +219,6 @@ class OnboardingKeyboardBuilder
         $flags = [
             'EG' => '🇪🇬',
             'SA' => '🇸🇦',
-            'AE' => '🇦🇪',
-            'KW' => '🇰🇼',
-            'QA' => '🇶🇦',
-            'BH' => '🇧🇭',
         ];
 
         // Countries in rows of 3

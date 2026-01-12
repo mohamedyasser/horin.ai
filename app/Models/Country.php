@@ -22,7 +22,15 @@ class Country extends Model
         'currency_en',
         'currency_ar',
         'currency_code',
+        'status',
     ];
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('active', function ($query) {
+            $query->where('status', true);
+        });
+    }
 
     /**
      * Indicates if the model's ID is auto-incrementing.

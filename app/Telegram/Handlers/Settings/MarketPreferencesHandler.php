@@ -168,10 +168,6 @@ class MarketPreferencesHandler extends CallbackHandler
         $flags = [
             'EG' => '🇪🇬',
             'SA' => '🇸🇦',
-            'AE' => '🇦🇪',
-            'KW' => '🇰🇼',
-            'QA' => '🇶🇦',
-            'BH' => '🇧🇭',
         ];
 
         $keyboard = [];
