@@ -3,6 +3,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CommandHandler;
 
 class StartCommand extends CommandHandler
@@ -19,24 +20,53 @@ class StartCommand extends CommandHandler
 
     public function handle(): mixed
     {
-        $message = $this->update->message;
-        $chatId = $message->chat->id;
-        $telegramId = (string) $message->from->id;
+        Log::debug('StartCommand handle() called');
 
-        $user = User::where('telegram_id', $telegramId)->first();
+        try {
+            $message = $this->update->message;
+            $chatId = $message->chat->id;
+            $telegramId = (string) $message->from->id;
 
-        if ($user && $user->hasVerifiedPhone()) {
-            $this->sendWelcomeBack($chatId, $user);
-        } elseif ($user && ! $user->hasVerifiedPhone()) {
-            $this->sendPhoneRequest($chatId);
-        } else {
-            $this->sendMessage([
+            Log::debug('StartCommand processing', [
                 'chat_id' => $chatId,
-                'text' => __('auth.telegram.please_login_first'),
+                'telegram_id' => $telegramId,
             ]);
-        }
 
-        return null;
+            $user = User::where('telegram_id', $telegramId)->first();
+
+            Log::debug('StartCommand user lookup', [
+                'user_found' => $user !== null,
+                'user_id' => $user?->id,
+            ]);
+
+            if ($user && $user->hasVerifiedPhone()) {
+                Log::debug('StartCommand: sending welcome back');
+                $this->sendWelcomeBack($chatId, $user);
+            } elseif ($user && ! $user->hasVerifiedPhone()) {
+                Log::debug('StartCommand: sending phone request');
+                $this->sendPhoneRequest($chatId);
+            } else {
+                Log::debug('StartCommand: sending please login first');
+                $result = $this->sendMessage([
+                    'chat_id' => $chatId,
+                    'text' => 'Please login through the Horin app first.',
+                ]);
+                Log::debug('StartCommand: sendMessage result', [
+                    'result' => $result,
+                ]);
+            }
+
+            Log::debug('StartCommand completed successfully');
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('StartCommand error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return null;
+        }
     }
 
     private function sendWelcomeBack(int $chatId, User $user): void

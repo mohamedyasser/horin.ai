@@ -25,11 +25,28 @@ class TelegramWebhookController extends Controller
             Log::debug('Telegram webhook received', [
                 'update_id' => $data['update_id'] ?? null,
                 'type' => $this->getUpdateType($data),
+                'raw_content' => $request->getContent(),
             ]);
 
             // Create Update object and process through TeleBot kernel
             $update = Update::from($request->getContent());
-            TeleBot::bot()->handle($update);
+
+            Log::debug('Telegram update parsed', [
+                'update_id' => $update->update_id ?? null,
+                'has_message' => isset($update->message),
+                'message_text' => $update->message->text ?? null,
+            ]);
+
+            $bot = TeleBot::bot();
+
+            Log::debug('TeleBot instance', [
+                'bot_class' => get_class($bot),
+                'bot_name' => config('telebot.default'),
+            ]);
+
+            $bot->handle($update);
+
+            Log::debug('Telegram update processed successfully');
 
             return response()->json(['ok' => true]);
 
