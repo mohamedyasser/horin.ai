@@ -138,17 +138,36 @@ class OnboardingTextHandler extends UpdateHandler
             return $this->handleComplete($chatId, $user, $locale, $builder);
         }
 
-        // If step is 'complete', mark onboarding and show main menu
-        if ($currentStep === 'complete') {
-            if (! $user->hasCompletedOnboarding()) {
-                $user->markOnboardingAsComplete();
+        // Check if text looks like a checkbox toggle (starts with ✅ or ⬜)
+        // This allows multi-selection for markets/sectors even after first selection
+        $isCheckboxToggle = preg_match('/^[\x{2705}\x{2B1C}]/u', $text);
+
+        if ($isCheckboxToggle && ! $user->hasCompletedOnboarding()) {
+            // Try sector toggle first (if user has country and markets)
+            if ($user->country_id && $user->markets()->count() > 0) {
+                $sectorResult = $this->handleSectorToggle($chatId, $user, $text, $builder);
+                if ($sectorResult === true) {
+                    return true;
+                }
             }
 
+            // Try market toggle (if user has country)
+            if ($user->country_id) {
+                $marketResult = $this->handleMarketToggle($chatId, $user, $text, $builder);
+                if ($marketResult === true) {
+                    return true;
+                }
+            }
+        }
+
+        // If step is 'complete' and user hasn't explicitly completed, show sectors keyboard
+        if ($currentStep === 'complete' && ! $user->hasCompletedOnboarding()) {
+            // User has all data but hasn't clicked Complete - show sectors step
             $this->sendMessage([
                 'chat_id' => $chatId,
-                'text' => $builder->getCompletionMessage($locale),
+                'text' => $builder->getStepMessage('4', $locale),
                 'parse_mode' => 'Markdown',
-                'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
+                'reply_markup' => $builder->buildStep4Keyboard($locale, $user->sectors()->pluck('sectors.id')->toArray()),
             ]);
 
             return true;
@@ -466,27 +485,6 @@ class OnboardingTextHandler extends UpdateHandler
             'user_id' => $user->id,
             'sector_id' => $sector->id,
         ]);
-
-        // Count total sectors available
-        $totalSectorsCount = Sector::count();
-
-        // If only one sector exists and user just selected it, auto-complete onboarding
-        if ($totalSectorsCount === 1 && count($currentSectors) === 1) {
-            $user->markOnboardingAsComplete();
-
-            Log::info('Onboarding: Completed via Telegram (auto)', [
-                'user_id' => $user->id,
-            ]);
-
-            $this->sendMessage([
-                'chat_id' => $chatId,
-                'text' => $builder->getCompletionMessage($locale),
-                'parse_mode' => 'Markdown',
-                'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
-            ]);
-
-            return true;
-        }
 
         // Refresh the keyboard
         $this->sendMessage([
