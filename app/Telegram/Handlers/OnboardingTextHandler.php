@@ -138,6 +138,22 @@ class OnboardingTextHandler extends UpdateHandler
             return $this->handleComplete($chatId, $user, $locale, $builder);
         }
 
+        // If step is 'complete', mark onboarding and show main menu
+        if ($currentStep === 'complete') {
+            if (! $user->hasCompletedOnboarding()) {
+                $user->markOnboardingAsComplete();
+            }
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $builder->getCompletionMessage($locale),
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
+            ]);
+
+            return true;
+        }
+
         // Handle step-specific selections
         $result = match ($currentStep) {
             '1a' => $this->handleExperience($chatId, $user, $text, $builder),
@@ -163,6 +179,22 @@ class OnboardingTextHandler extends UpdateHandler
      */
     private function showCurrentStepAgain(int $chatId, User $user, string $currentStep, OnboardingKeyboardBuilder $builder, string $locale): mixed
     {
+        // If somehow we reach here with 'complete', show main menu
+        if ($currentStep === 'complete') {
+            if (! $user->hasCompletedOnboarding()) {
+                $user->markOnboardingAsComplete();
+            }
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $builder->getCompletionMessage($locale),
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
+            ]);
+
+            return true;
+        }
+
         $errorText = $locale === 'ar'
             ? 'يرجى اختيار أحد الخيارات من القائمة أدناه:'
             : 'Please choose from the options below:';
@@ -175,7 +207,7 @@ class OnboardingTextHandler extends UpdateHandler
             '3a' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
             '3b' => $builder->buildStep3MarketsKeyboard($locale, $user->country_id, $user->markets()->pluck('markets.id')->toArray()),
             '4' => $builder->buildStep4Keyboard($locale, $user->sectors()->pluck('sectors.id')->toArray()),
-            default => [],
+            default => DefaultKeyboardBuilder::forUser($user, $locale),
         };
 
         $this->sendMessage([
@@ -401,8 +433,19 @@ class OnboardingTextHandler extends UpdateHandler
     {
         $locale = $user->language ?? 'en';
 
+        Log::debug('handleSectorToggle: Attempting to find sector', [
+            'text' => $text,
+            'text_hex' => bin2hex($text),
+            'locale' => $locale,
+        ]);
+
         // Find sector by name in button text
         $sector = $this->findSectorByText($text, $locale);
+
+        Log::debug('handleSectorToggle: Sector search result', [
+            'sector_found' => $sector?->id,
+            'sector_name' => $sector?->name_en,
+        ]);
 
         if (! $sector) {
             return null;
@@ -659,12 +702,14 @@ class OnboardingTextHandler extends UpdateHandler
     {
         $originalText = $text;
 
-        // Remove checkbox emoji (use 'u' flag for Unicode)
-        $text = preg_replace('/^[\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
+        // Remove checkbox/check emoji variants (use 'u' flag for Unicode)
+        // ✅ U+2705, ⬜ U+2B1C, ☐ U+2610, ☑ U+2611, □ U+25A1, ✓ U+2713
+        $text = preg_replace('/^[\x{2705}\x{2B1C}\x{2610}\x{2611}\x{25A1}\x{2713}]\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
         Log::debug('findSectorByText: After cleanup', [
             'original' => $originalText,
+            'original_hex' => bin2hex($originalText),
             'cleaned' => $text,
             'locale' => $locale,
         ]);
@@ -672,19 +717,41 @@ class OnboardingTextHandler extends UpdateHandler
         // Try exact match first, then try flexible match
         $sectors = Sector::all();
 
+        Log::debug('findSectorByText: Available sectors', [
+            'sectors' => $sectors->map(fn ($s) => [
+                'id' => $s->id,
+                'name_en' => $s->name_en,
+                'name_ar' => $s->name_ar,
+            ])->toArray(),
+        ]);
+
         foreach ($sectors as $sector) {
             $nameEn = trim($sector->name_en ?? '');
             $nameAr = trim($sector->name_ar ?? '');
 
             if ($text === $nameEn || $text === $nameAr) {
+                Log::debug('findSectorByText: Exact match found', ['sector_id' => $sector->id]);
+
                 return $sector;
             }
 
             // Also try case-insensitive match
             if (mb_strtolower($text) === mb_strtolower($nameEn) || mb_strtolower($text) === mb_strtolower($nameAr)) {
+                Log::debug('findSectorByText: Case-insensitive match found', ['sector_id' => $sector->id]);
+
+                return $sector;
+            }
+
+            // Try contains match as last resort
+            if (mb_stripos($nameEn, $text) !== false || mb_stripos($nameAr, $text) !== false ||
+                mb_stripos($text, $nameEn) !== false || mb_stripos($text, $nameAr) !== false) {
+                Log::debug('findSectorByText: Contains match found', ['sector_id' => $sector->id]);
+
                 return $sector;
             }
         }
+
+        Log::debug('findSectorByText: No match found');
 
         return null;
     }
