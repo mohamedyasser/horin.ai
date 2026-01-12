@@ -15,6 +15,7 @@
         "loading": "جاري التحميل...",
         "pageIndicator": "صفحة {current} من {total}",
         "save": "حفظ",
+        "save_changes": "حفظ التغييرات",
         "saved": "تم الحفظ.",
         "delete": "حذف",
         "cancel": "إلغاء",
@@ -28,6 +29,8 @@
         "edit": "تعديل",
         "update": "تحديث",
         "create": "إنشاء",
+        "view": "عرض",
+        "actions": "الإجراءات",
         "min_abbr": "د",
         "currency": "ج.م"
     },
