@@ -43,20 +43,6 @@ class TelegramBotServiceTest extends TestCase
         });
     }
 
-    public function test_it_sends_message_with_reply_keyboard(): void
-    {
-        $keyboard = [[
-            ['text' => 'Share Phone', 'request_contact' => true],
-        ]];
-
-        $this->service->sendMessageWithReplyKeyboard('123456789', 'Share your phone:', $keyboard);
-
-        TeleBot::assertSent('sendMessage', function ($params) {
-            return isset($params['reply_markup']['keyboard'])
-                && $params['reply_markup']['resize_keyboard'] === true;
-        });
-    }
-
     public function test_it_edits_existing_message(): void
     {
         $this->service->editMessage('123456789', 999, 'Updated text');

@@ -66,16 +66,22 @@ class Step3Handler extends CallbackHandler
             $user->update(['telegram_awaiting_input' => 'country_search']);
 
             $text = $locale === 'ar'
-                ? '🔍 أدخل اسم الدولة للبحث:'
-                : '🔍 Type the country name to search:';
+                ? "🔍 أدخل اسم الدولة للبحث:\n\nاكتب اسم الدولة في الرسالة التالية."
+                : "🔍 Type the country name to search:\n\nEnter the country name in your next message.";
 
-            // Send a new message asking for input (keep original message)
+            $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
+
+            // Send a new message asking for input with cancel button
             $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => [
-                    'force_reply' => true,
-                    'selective' => true,
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $cancelText,
+                            'callback_data' => 'ob:step3:back',
+                        ],
+                    ]],
                 ],
             ]);
 

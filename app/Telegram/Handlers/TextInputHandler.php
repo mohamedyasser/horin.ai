@@ -87,6 +87,14 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ الاسم قصير جدا. يجب أن يكون حرفين على الأقل.'
                     : '❌ Name is too short. Must be at least 2 characters.',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ رجوع للإعدادات' : '⬅️ Back to Settings',
+                            'callback_data' => 'set:profile',
+                        ],
+                    ]],
+                ],
             ]);
 
             return null;
@@ -98,6 +106,14 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ الاسم طويل جدا. يجب ألا يتجاوز 100 حرف.'
                     : '❌ Name is too long. Must be 100 characters or less.',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ رجوع للإعدادات' : '⬅️ Back to Settings',
+                            'callback_data' => 'set:profile',
+                        ],
+                    ]],
+                ],
             ]);
 
             return null;
@@ -139,6 +155,18 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال حرفين على الأقل للبحث.'
                     : '❌ Please enter at least 2 characters to search.',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '🔍 بحث مرة أخرى' : '🔍 Search Again',
+                            'callback_data' => 'ob:country:search',
+                        ],
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                            'callback_data' => 'ob:step3:back',
+                        ],
+                    ]],
+                ],
             ]);
 
             return null;
@@ -220,6 +248,18 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال حرفين على الأقل للبحث.'
                     : '❌ Please enter at least 2 characters to search.',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '🔍 بحث مرة أخرى' : '🔍 Search Again',
+                            'callback_data' => 'alert:create:asset:search',
+                        ],
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                            'callback_data' => 'alert:create:type:price',
+                        ],
+                    ]],
+                ],
             ]);
 
             return null;
@@ -284,6 +324,14 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال سعر صحيح (رقم موجب).'
                     : '❌ Please enter a valid price (positive number).',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel',
+                            'callback_data' => 'alert:create:cancel',
+                        ],
+                    ]],
+                ],
             ]);
 
             // Re-set awaiting input
@@ -339,6 +387,14 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال نسبة صحيحة (1-100).'
                     : '❌ Please enter a valid percentage (1-100).',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel',
+                            'callback_data' => 'alert:create:cancel',
+                        ],
+                    ]],
+                ],
             ]);
 
             // Re-set awaiting input

@@ -134,23 +134,21 @@ class OnboardingCommand extends CommandHandler
         $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
 
         $text = $locale === 'ar'
-            ? "👋 مرحبا! شارك رقم هاتفك للتسجيل."
-            : "👋 Hi! Share your phone number to register.";
+            ? "👋 مرحبا! اضغط الزر أدناه للتسجيل."
+            : "👋 Hi! Tap the button below to register.";
 
-        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
+        $buttonText = $locale === 'ar' ? '📱 التسجيل الآن' : '📱 Register Now';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'keyboard' => [[
+                'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'request_contact' => true,
+                        'web_app' => ['url' => config('app.url').'/auth/telegram/register'],
                     ],
                 ]],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
             ],
         ]);
     }

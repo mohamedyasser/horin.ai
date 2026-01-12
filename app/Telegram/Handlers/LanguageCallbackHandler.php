@@ -58,13 +58,32 @@ class LanguageCallbackHandler extends CallbackHandler
         $messageId = $callbackQuery->message->message_id;
 
         $confirmText = $newLocale === 'ar'
-            ? '✅ تم تغيير اللغة إلى العربية بنجاح.'
-            : '✅ Language successfully changed to English.';
+            ? "✅ تم تغيير اللغة إلى العربية بنجاح.\n\nاضغط الزر أدناه للمتابعة."
+            : "✅ Language successfully changed to English.\n\nTap the button below to continue.";
+
+        $buttonText = $newLocale === 'ar' ? '📊 فتح حورين' : '📊 Open Horin';
+        $settingsText = $newLocale === 'ar' ? '⚙️ الإعدادات' : '⚙️ Settings';
 
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $confirmText,
+            'reply_markup' => [
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => $buttonText,
+                            'web_app' => ['url' => config('app.url').'/dashboard'],
+                        ],
+                    ],
+                    [
+                        [
+                            'text' => $settingsText,
+                            'callback_data' => 'settings:menu',
+                        ],
+                    ],
+                ],
+            ],
         ]);
 
         return null;

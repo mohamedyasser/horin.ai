@@ -25,7 +25,15 @@ class ContactHandler extends UpdateHandler
         if ((string) $contact->user_id !== $telegramId) {
             $this->sendMessage([
                 'chat_id' => $chatId,
-                'text' => 'Please share your own phone number.',
+                'text' => '❌ Please share your own phone number.',
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => '📱 Try Again',
+                            'web_app' => ['url' => config('app.url').'/verification/phone'],
+                        ],
+                    ]],
+                ],
             ]);
 
             return null;

@@ -72,20 +72,25 @@ class TelegramAuthController extends Controller
             return;
         }
 
+        $locale = $user->language ?? 'en';
+        $message = $locale === 'ar'
+            ? "📱 يرجى التحقق من رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه لإكمال التحقق."
+            : "📱 Please verify your phone number to continue.\n\nTap the button below to complete verification.";
+        $buttonText = $locale === 'ar' ? '✅ التحقق الآن' : '✅ Verify Now';
+
         $bot = new TeleBot(config('telegram.bot_token'));
 
         $bot->sendMessage([
             'chat_id' => $user->telegram_id,
-            'text' => __('auth.telegram.verify_phone_message'),
+            'text' => $message,
+            'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'keyboard' => [[
+                'inline_keyboard' => [[
                     [
-                        'text' => __('auth.telegram.share_phone_button'),
-                        'request_contact' => true,
+                        'text' => $buttonText,
+                        'web_app' => ['url' => config('app.url').'/verification/phone'],
                     ],
                 ]],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
             ],
         ]);
     }

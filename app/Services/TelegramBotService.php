@@ -60,24 +60,6 @@ class TelegramBotService
     }
 
     /**
-     * Send a message with reply keyboard (e.g., phone request).
-     */
-    public function sendMessageWithReplyKeyboard(
-        int|string $chatId,
-        string $text,
-        array $keyboard,
-        array $options = []
-    ): ?Message {
-        $options['reply_markup'] = array_merge([
-            'keyboard' => $keyboard,
-            'resize_keyboard' => true,
-            'one_time_keyboard' => true,
-        ], $options['reply_markup'] ?? []);
-
-        return $this->sendMessage($chatId, $text, $options);
-    }
-
-    /**
      * Edit an existing message.
      */
     public function editMessage(

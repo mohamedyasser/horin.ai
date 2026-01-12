@@ -88,15 +88,21 @@ class ProfileHandler extends CallbackHandler
         $user->update(['telegram_awaiting_input' => 'name']);
 
         $text = $locale === 'ar'
-            ? 'أدخل اسمك الجديد:'
-            : 'Enter your new name:';
+            ? "✏️ أدخل اسمك الجديد:\n\nاكتب اسمك في الرسالة التالية."
+            : "✏️ Enter your new name:\n\nType your name in your next message.";
+
+        $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'force_reply' => true,
-                'selective' => true,
+                'inline_keyboard' => [[
+                    [
+                        'text' => $cancelText,
+                        'callback_data' => 'set:profile',
+                    ],
+                ]],
             ],
         ]);
 

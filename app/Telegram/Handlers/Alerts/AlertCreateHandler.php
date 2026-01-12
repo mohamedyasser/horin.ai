@@ -213,15 +213,21 @@ class AlertCreateHandler extends CallbackHandler
         $user->update(['telegram_awaiting_input' => 'alert_asset_search']);
 
         $text = $locale === 'ar'
-            ? '🔍 أدخل رمز أو اسم الأصل:'
-            : '🔍 Enter asset symbol or name:';
+            ? "🔍 أدخل رمز أو اسم الأصل:\n\nاكتب رمز السهم أو اسمه في الرسالة التالية."
+            : "🔍 Enter asset symbol or name:\n\nType the stock symbol or name in your next message.";
+
+        $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'force_reply' => true,
-                'selective' => true,
+                'inline_keyboard' => [[
+                    [
+                        'text' => $cancelText,
+                        'callback_data' => 'alert:create:cancel',
+                    ],
+                ]],
             ],
         ]);
 
@@ -360,24 +366,30 @@ class AlertCreateHandler extends CallbackHandler
 
         $text = match ($triggerType) {
             'target_price' => $locale === 'ar'
-                ? "🎯 *تنبيه سعر مستهدف لـ {$symbol}*\n\nالسعر الحالي: {$currentPrice}\n\nأدخل السعر المستهدف:"
-                : "🎯 *Target Price Alert for {$symbol}*\n\nCurrent price: {$currentPrice}\n\nEnter your target price:",
+                ? "🎯 *تنبيه سعر مستهدف لـ {$symbol}*\n\nالسعر الحالي: {$currentPrice}\n\nأدخل السعر المستهدف في الرسالة التالية:"
+                : "🎯 *Target Price Alert for {$symbol}*\n\nCurrent price: {$currentPrice}\n\nEnter your target price in your next message:",
             'daily_change' => $locale === 'ar'
-                ? "📊 *تنبيه تغير يومي لـ {$symbol}*\n\nأدخل نسبة التغير (مثال: 5):"
-                : "📊 *Daily Change Alert for {$symbol}*\n\nEnter change percentage (e.g., 5):",
+                ? "📊 *تنبيه تغير يومي لـ {$symbol}*\n\nأدخل نسبة التغير (مثال: 5) في الرسالة التالية:"
+                : "📊 *Daily Change Alert for {$symbol}*\n\nEnter change percentage (e.g., 5) in your next message:",
             'breakout' => $locale === 'ar'
-                ? "📈 *تنبيه اختراق لـ {$symbol}*\n\nالسعر الحالي: {$currentPrice}\n\nأدخل مستوى الاختراق:"
-                : "📈 *Breakout Alert for {$symbol}*\n\nCurrent price: {$currentPrice}\n\nEnter breakout level:",
+                ? "📈 *تنبيه اختراق لـ {$symbol}*\n\nالسعر الحالي: {$currentPrice}\n\nأدخل مستوى الاختراق في الرسالة التالية:"
+                : "📈 *Breakout Alert for {$symbol}*\n\nCurrent price: {$currentPrice}\n\nEnter breakout level in your next message:",
             default => '',
         };
+
+        $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'force_reply' => true,
-                'selective' => true,
+                'inline_keyboard' => [[
+                    [
+                        'text' => $cancelText,
+                        'callback_data' => 'alert:create:cancel',
+                    ],
+                ]],
             ],
         ]);
 

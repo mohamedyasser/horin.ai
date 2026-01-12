@@ -97,42 +97,48 @@ class StartCommand extends CommandHandler
         $name = $from->first_name ?? 'there';
 
         $message = $locale === 'ar'
-            ? "👋 مرحباً *{$name}*!\n\nأنا بوت حورين للتنبيهات. شارك رقم هاتفك للتسجيل والبدء في تلقي تنبيهات الأسهم."
-            : "👋 Welcome *{$name}*!\n\nI'm the Horin alerts bot. Share your phone number to register and start receiving stock alerts.";
+            ? "👋 مرحباً *{$name}*!\n\nأنا بوت حورين للتنبيهات. اضغط الزر أدناه للتسجيل والبدء في تلقي تنبيهات الأسهم."
+            : "👋 Welcome *{$name}*!\n\nI'm the Horin alerts bot. Tap the button below to register and start receiving stock alerts.";
 
-        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
+        $buttonText = $locale === 'ar' ? '📱 التسجيل الآن' : '📱 Register Now';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'keyboard' => [[
+                'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'request_contact' => true,
+                        'web_app' => ['url' => config('app.url').'/auth/telegram/register'],
                     ],
                 ]],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
             ],
         ]);
     }
 
     private function sendPhoneRequest(int $chatId): void
     {
+        $locale = $this->update->message->from->language_code ?? 'en';
+        $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
+
+        $message = $locale === 'ar'
+            ? "📱 يرجى التحقق من رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه لإكمال التحقق."
+            : "📱 Please verify your phone number to continue.\n\nTap the button below to complete verification.";
+
+        $buttonText = $locale === 'ar' ? '✅ التحقق الآن' : '✅ Verify Now';
+
         $this->sendMessage([
             'chat_id' => $chatId,
-            'text' => __('auth.telegram.verify_phone_message'),
+            'text' => $message,
+            'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'keyboard' => [[
+                'inline_keyboard' => [[
                     [
-                        'text' => __('auth.telegram.share_phone_button'),
-                        'request_contact' => true,
+                        'text' => $buttonText,
+                        'web_app' => ['url' => config('app.url').'/verification/phone'],
                     ],
                 ]],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
             ],
         ]);
     }

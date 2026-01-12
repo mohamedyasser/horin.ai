@@ -175,7 +175,8 @@ class GenerateDigest implements ShouldQueue
 
         try {
             $telegram = app(\App\Services\TelegramBotService::class);
-            $telegram->sendMessage($user->telegram_id, $content);
+            $keyboard = $this->buildDigestKeyboard($user->language ?? 'en');
+            $telegram->sendMessageWithKeyboard($user->telegram_id, $content, $keyboard);
 
             Log::info('Telegram digest sent', [
                 'user_id' => $user->id,
@@ -187,5 +188,26 @@ class GenerateDigest implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function buildDigestKeyboard(string $locale): array
+    {
+        $viewAllLabel = $locale === 'ar' ? 'عرض كل التنبيهات' : 'View All Alerts';
+        $manageLabel = $locale === 'ar' ? 'إدارة التنبيهات' : 'Manage Alerts';
+
+        return [
+            [
+                [
+                    'text' => "📋 {$viewAllLabel}",
+                    'url' => config('app.url').'/alerts/history',
+                ],
+            ],
+            [
+                [
+                    'text' => "⚙️ {$manageLabel}",
+                    'url' => config('app.url').'/alerts',
+                ],
+            ],
+        ];
     }
 }
