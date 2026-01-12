@@ -78,6 +78,14 @@ class OnboardingTextHandler extends UpdateHandler
         $telegramId = (string) $this->update->message->from->id;
         $user = User::where('telegram_id', $telegramId)->first();
 
+        Log::debug('OnboardingTextHandler trigger check', [
+            'telegram_id' => $telegramId,
+            'text' => $text,
+            'user_exists' => $user !== null,
+            'phone_verified' => $user?->hasVerifiedPhone(),
+            'onboarding_complete' => $user?->hasCompletedOnboarding(),
+        ]);
+
         if (! $user || ! $user->hasVerifiedPhone()) {
             return false;
         }
@@ -106,6 +114,14 @@ class OnboardingTextHandler extends UpdateHandler
 
         // Get current step
         $currentStep = $builder->getCurrentStep($user);
+
+        Log::debug('OnboardingTextHandler handle', [
+            'telegram_id' => $telegramId,
+            'text' => $text,
+            'text_hex' => bin2hex($text),
+            'current_step' => $currentStep,
+            'experience_level' => $user->experience_level,
+        ]);
 
         // Handle back button
         if ($text === '⬅️ Back' || $text === '⬅️ السابق') {
@@ -138,6 +154,12 @@ class OnboardingTextHandler extends UpdateHandler
     private function handleExperience(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
     {
         $level = $this->findMatch($text, self::EXPERIENCE_MAP);
+
+        Log::debug('OnboardingTextHandler handleExperience', [
+            'text' => $text,
+            'level_found' => $level,
+            'map_keys' => array_keys(self::EXPERIENCE_MAP),
+        ]);
 
         if (! $level) {
             return null; // Let other handlers process
