@@ -90,6 +90,11 @@ class KeyboardButtonHandler extends UpdateHandler
             return false;
         }
 
+        // Don't handle if user is in onboarding (OnboardingTextHandler handles that)
+        if ($user && $user->hasVerifiedPhone() && ! $user->hasCompletedOnboarding()) {
+            return false;
+        }
+
         return true;
     }
 

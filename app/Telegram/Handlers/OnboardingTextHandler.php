@@ -139,7 +139,7 @@ class OnboardingTextHandler extends UpdateHandler
         }
 
         // Handle step-specific selections
-        return match ($currentStep) {
+        $result = match ($currentStep) {
             '1a' => $this->handleExperience($chatId, $user, $text, $builder),
             '1b' => $this->handleRisk($chatId, $user, $text, $builder),
             '2a' => $this->handleGoal($chatId, $user, $text, $builder),
@@ -149,6 +149,42 @@ class OnboardingTextHandler extends UpdateHandler
             '4' => $this->handleSectorToggle($chatId, $user, $text, $builder),
             default => null,
         };
+
+        // If no handler matched, show current step's keyboard again
+        if ($result === null) {
+            return $this->showCurrentStepAgain($chatId, $user, $currentStep, $builder, $locale);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Re-show the current step keyboard when input wasn't recognized.
+     */
+    private function showCurrentStepAgain(int $chatId, User $user, string $currentStep, OnboardingKeyboardBuilder $builder, string $locale): mixed
+    {
+        $errorText = $locale === 'ar'
+            ? 'يرجى اختيار أحد الخيارات من القائمة أدناه:'
+            : 'Please choose from the options below:';
+
+        $keyboard = match ($currentStep) {
+            '1a' => $builder->buildStep1aKeyboard($locale, $user->experience_level),
+            '1b' => $builder->buildStep1bKeyboard($locale, $user->risk_level),
+            '2a' => $builder->buildStep2aKeyboard($locale, $user->investment_goal),
+            '2b' => $builder->buildStep2bKeyboard($locale, $user->trading_style),
+            '3a' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
+            '3b' => $builder->buildStep3MarketsKeyboard($locale, $user->country_id, $user->markets()->pluck('markets.id')->toArray()),
+            '4' => $builder->buildStep4Keyboard($locale, $user->sectors()->pluck('sectors.id')->toArray()),
+            default => [],
+        };
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $errorText,
+            'reply_markup' => $keyboard,
+        ]);
+
+        return null;
     }
 
     private function handleExperience(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
@@ -472,8 +508,18 @@ class OnboardingTextHandler extends UpdateHandler
 
     private function findMatch(string $text, array $map): ?string
     {
+        // Normalize whitespace (replace various Unicode spaces with regular space)
+        $normalizedText = preg_replace('/[\x{00A0}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', ' ', $text);
+        $normalizedText = preg_replace('/\s+/', ' ', $normalizedText);
+        $normalizedText = trim($normalizedText);
+
         foreach ($map as $pattern => $value) {
-            if (str_contains($text, $pattern) || $text === $pattern) {
+            // Normalize pattern too
+            $normalizedPattern = preg_replace('/[\x{00A0}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', ' ', $pattern);
+            $normalizedPattern = preg_replace('/\s+/', ' ', $normalizedPattern);
+            $normalizedPattern = trim($normalizedPattern);
+
+            if ($normalizedText === $normalizedPattern || str_contains($normalizedText, $normalizedPattern)) {
                 return $value;
             }
         }
