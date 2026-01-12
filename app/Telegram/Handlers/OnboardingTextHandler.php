@@ -335,11 +335,21 @@ class OnboardingTextHandler extends UpdateHandler
         $locale = $user->language ?? 'en';
 
         if (! $user->country_id) {
+            Log::debug('handleMarketToggle: No country_id', ['user_id' => $user->id]);
+
             return null;
         }
 
         // Find market by name in button text
         $market = $this->findMarketByText($text, $user->country_id, $locale);
+
+        Log::debug('handleMarketToggle: Finding market', [
+            'text' => $text,
+            'text_hex' => bin2hex($text),
+            'country_id' => $user->country_id,
+            'locale' => $locale,
+            'market_found' => $market?->id,
+        ]);
 
         if (! $market) {
             return null;
@@ -543,33 +553,82 @@ class OnboardingTextHandler extends UpdateHandler
 
     private function findMarketByText(string $text, string $countryId, string $locale): ?Market
     {
+        $originalText = $text;
+
         // Remove checkbox emoji (use 'u' flag for Unicode)
         $text = preg_replace('/^[\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
+        Log::debug('findMarketByText: After cleanup', [
+            'original' => $originalText,
+            'cleaned' => $text,
+            'country_id' => $countryId,
+            'locale' => $locale,
+        ]);
+
         $query = Market::where('country_id', $countryId);
 
-        if ($locale === 'ar') {
-            return $query->where(function ($q) use ($text) {
-                $q->where('name_ar', $text)->orWhere('name_en', $text);
-            })->first();
+        // Get all markets for debugging
+        $allMarkets = $query->get(['id', 'name_en', 'name_ar']);
+        Log::debug('findMarketByText: Available markets', [
+            'markets' => $allMarkets->map(fn ($m) => [
+                'id' => $m->id,
+                'name_en' => $m->name_en,
+                'name_ar' => $m->name_ar,
+            ])->toArray(),
+        ]);
+
+        // Try exact match first, then try flexible match
+        $markets = Market::where('country_id', $countryId)->get();
+
+        foreach ($markets as $market) {
+            $nameEn = trim($market->name_en ?? '');
+            $nameAr = trim($market->name_ar ?? '');
+
+            if ($text === $nameEn || $text === $nameAr) {
+                return $market;
+            }
+
+            // Also try case-insensitive match
+            if (mb_strtolower($text) === mb_strtolower($nameEn) || mb_strtolower($text) === mb_strtolower($nameAr)) {
+                return $market;
+            }
         }
 
-        return $query->where('name_en', $text)->first();
+        return null;
     }
 
     private function findSectorByText(string $text, string $locale): ?Sector
     {
+        $originalText = $text;
+
         // Remove checkbox emoji (use 'u' flag for Unicode)
         $text = preg_replace('/^[\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
-        if ($locale === 'ar') {
-            return Sector::where(function ($q) use ($text) {
-                $q->where('name_ar', $text)->orWhere('name_en', $text);
-            })->first();
+        Log::debug('findSectorByText: After cleanup', [
+            'original' => $originalText,
+            'cleaned' => $text,
+            'locale' => $locale,
+        ]);
+
+        // Try exact match first, then try flexible match
+        $sectors = Sector::all();
+
+        foreach ($sectors as $sector) {
+            $nameEn = trim($sector->name_en ?? '');
+            $nameAr = trim($sector->name_ar ?? '');
+
+            if ($text === $nameEn || $text === $nameAr) {
+                return $sector;
+            }
+
+            // Also try case-insensitive match
+            if (mb_strtolower($text) === mb_strtolower($nameEn) || mb_strtolower($text) === mb_strtolower($nameAr)) {
+                return $sector;
+            }
         }
 
-        return Sector::where('name_en', $text)->first();
+        return null;
     }
 }
