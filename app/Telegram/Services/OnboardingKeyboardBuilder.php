@@ -71,13 +71,14 @@ class OnboardingKeyboardBuilder
             $text = $isSelected
                 ? "✓ {$labels['icon']} {$labels[$locale]}"
                 : "{$labels['icon']} {$labels[$locale]}";
-            $keyboard[] = [[
-                'text' => $text,
-                'callback_data' => "ob:exp:{$key}",
-            ]];
+            $keyboard[] = [['text' => $text]];
         }
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
@@ -93,78 +94,53 @@ class OnboardingKeyboardBuilder
             $text = $isSelected
                 ? "✓ {$labels['icon']} {$labels[$locale]}"
                 : "{$labels['icon']} {$labels[$locale]}";
-            $keyboard[] = [[
-                'text' => $text,
-                'callback_data' => "ob:risk:{$key}",
-            ]];
+            $keyboard[] = [['text' => $text]];
         }
 
         // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step1b:back',
-        ]];
+        $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
      * Build Step 2a keyboard: Investment Goal selection only.
+     * Shows all goals without pagination for simplicity with reply keyboard.
      */
     public function buildStep2aKeyboard(string $locale, ?string $selectedGoal = null, int $goalPage = 1): array
     {
         $keyboard = [];
 
-        // Investment goals (paginated, 5 per page for single column)
-        $goals = array_keys(self::INVESTMENT_GOALS);
-        $perPage = 5;
-        $totalPages = (int) ceil(count($goals) / $perPage);
-        $offset = ($goalPage - 1) * $perPage;
-        $pageGoals = array_slice($goals, $offset, $perPage);
+        // Investment goals - show first 6 most common
+        $commonGoals = ['capital_growth', 'fixed_income', 'risk_reduction', 'short_term_speculation', 'retirement_planning', 'wealth_preservation'];
 
-        // Goals in single column
-        foreach ($pageGoals as $key) {
-            $labels = self::INVESTMENT_GOALS[$key];
-            $isSelected = $selectedGoal === $key;
-            $text = $isSelected
-                ? "✓ {$labels['icon']} {$labels[$locale]}"
-                : "{$labels['icon']} {$labels[$locale]}";
-            $keyboard[] = [[
-                'text' => $text,
-                'callback_data' => "ob:goal:{$key}",
-            ]];
-        }
-
-        // Pagination for goals if needed
-        if ($totalPages > 1) {
-            $pageLabel = $locale === 'ar' ? "صفحة {$goalPage}/{$totalPages}" : "Page {$goalPage}/{$totalPages}";
-            $navRow = [];
-            if ($goalPage > 1) {
-                $navRow[] = [
-                    'text' => '◀️',
-                    'callback_data' => 'ob:goal:page:'.($goalPage - 1),
-                ];
+        // Goals in rows of 2
+        $chunks = array_chunk($commonGoals, 2);
+        foreach ($chunks as $chunk) {
+            $row = [];
+            foreach ($chunk as $key) {
+                $labels = self::INVESTMENT_GOALS[$key];
+                $isSelected = $selectedGoal === $key;
+                $text = $isSelected
+                    ? "✓ {$labels['icon']} {$labels[$locale]}"
+                    : "{$labels['icon']} {$labels[$locale]}";
+                $row[] = ['text' => $text];
             }
-            $navRow[] = [
-                'text' => $pageLabel,
-                'callback_data' => 'ob:noop',
-            ];
-            if ($goalPage < $totalPages) {
-                $navRow[] = [
-                    'text' => '▶️',
-                    'callback_data' => 'ob:goal:page:'.($goalPage + 1),
-                ];
-            }
-            $keyboard[] = $navRow;
+            $keyboard[] = $row;
         }
 
         // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step2a:back',
-        ]];
+        $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
@@ -174,25 +150,30 @@ class OnboardingKeyboardBuilder
     {
         $keyboard = [];
 
-        // Trading style buttons in single column
-        foreach (self::TRADING_STYLES as $key => $labels) {
-            $isSelected = $selectedStyle === $key;
-            $text = $isSelected
-                ? "✓ {$labels['icon']} {$labels[$locale]}"
-                : "{$labels['icon']} {$labels[$locale]}";
-            $keyboard[] = [[
-                'text' => $text,
-                'callback_data' => "ob:style:{$key}",
-            ]];
+        // Trading style buttons in rows of 2
+        $styles = array_keys(self::TRADING_STYLES);
+        $chunks = array_chunk($styles, 2);
+        foreach ($chunks as $chunk) {
+            $row = [];
+            foreach ($chunk as $key) {
+                $labels = self::TRADING_STYLES[$key];
+                $isSelected = $selectedStyle === $key;
+                $text = $isSelected
+                    ? "✓ {$labels['icon']} {$labels[$locale]}"
+                    : "{$labels['icon']} {$labels[$locale]}";
+                $row[] = ['text' => $text];
+            }
+            $keyboard[] = $row;
         }
 
         // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step2b:back',
-        ]];
+        $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
@@ -221,8 +202,8 @@ class OnboardingKeyboardBuilder
             'SA' => '🇸🇦',
         ];
 
-        // Countries in rows of 3
-        $countryRows = $popularCountries->chunk(3);
+        // Countries in rows of 2
+        $countryRows = $popularCountries->chunk(2);
         foreach ($countryRows as $row) {
             $btns = [];
             foreach ($row as $country) {
@@ -230,27 +211,19 @@ class OnboardingKeyboardBuilder
                 $flag = $flags[$country->code] ?? '🏳️';
                 $isSelected = $selectedCountryId === $country->id;
                 $text = $isSelected ? "✓ {$flag} {$name}" : "{$flag} {$name}";
-                $btns[] = [
-                    'text' => $text,
-                    'callback_data' => "ob:country:{$country->id}",
-                ];
+                $btns[] = ['text' => $text];
             }
             $keyboard[] = $btns;
         }
 
-        // Search button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '🔍 بحث عن دولة أخرى' : '🔍 Search other country',
-            'callback_data' => 'ob:country:search',
-        ]];
-
         // Back button - goes to step 2b (style)
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step3a:back',
-        ]];
+        $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
@@ -266,90 +239,45 @@ class OnboardingKeyboardBuilder
         $markets = Market::where('country_id', $countryId)->get();
 
         if ($markets->isEmpty()) {
-            // No markets - show message and back
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '⚠️ لا توجد أسواق متاحة' : '⚠️ No markets available',
-                'callback_data' => 'ob:noop',
-            ]];
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-                'callback_data' => 'ob:step3:back',
-            ]];
+            // No markets - show back only
+            $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
 
-            return $keyboard;
+            return [
+                'keyboard' => $keyboard,
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
         }
 
-        // Paginate markets (6 per page)
-        $perPage = 6;
-        $totalPages = (int) ceil($markets->count() / $perPage);
-        $offset = ($page - 1) * $perPage;
-        $pageMarkets = $markets->slice($offset, $perPage);
-
-        // Markets in rows of 3
-        $marketRows = $pageMarkets->chunk(3);
+        // Markets in rows of 2
+        $marketRows = $markets->chunk(2);
         foreach ($marketRows as $row) {
             $btns = [];
             foreach ($row as $market) {
                 $name = $locale === 'ar' ? ($market->name_ar ?: $market->name_en) : $market->name_en;
                 $isSelected = in_array($market->id, $selectedMarketIds, true);
                 $text = $isSelected ? "✅ {$name}" : "⬜ {$name}";
-                $btns[] = [
-                    'text' => $text,
-                    'callback_data' => "ob:market:toggle:{$market->id}",
-                ];
+                $btns[] = ['text' => $text];
             }
             $keyboard[] = $btns;
         }
 
-        // Pagination if needed
-        if ($totalPages > 1) {
-            $pageLabel = $locale === 'ar' ? "صفحة {$page}/{$totalPages}" : "Page {$page}/{$totalPages}";
-            $navRow = [];
-            if ($page > 1) {
-                $navRow[] = [
-                    'text' => '◀️',
-                    'callback_data' => 'ob:market:page:'.($page - 1),
-                ];
-            }
-            $navRow[] = [
-                'text' => $pageLabel,
-                'callback_data' => 'ob:noop',
-            ];
-            if ($page < $totalPages) {
-                $navRow[] = [
-                    'text' => '▶️',
-                    'callback_data' => 'ob:market:page:'.($page + 1),
-                ];
-            }
-            $keyboard[] = $navRow;
-        }
-
         // Selected count
         $selectedCount = count($selectedMarketIds);
-        $countText = $locale === 'ar'
-            ? "📊 تم اختيار: {$selectedCount} سوق"
-            : "📊 Selected: {$selectedCount} market(s)";
 
-        // Change country / Back / Next
-        $keyboard[] = [[
-            'text' => $countText,
-            'callback_data' => 'ob:noop',
-        ]];
-
+        // Back / Next row
         $navRow = [];
-        $navRow[] = [
-            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step3b:back',
-        ];
+        $navRow[] = ['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back'];
         if ($selectedCount > 0) {
-            $navRow[] = [
-                'text' => $locale === 'ar' ? '➡️ التالي' : '➡️ Next',
-                'callback_data' => 'ob:step3:next',
-            ];
+            $navRow[] = ['text' => $locale === 'ar' ? '➡️ التالي' : '➡️ Next'];
         }
         $keyboard[] = $navRow;
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
@@ -365,89 +293,44 @@ class OnboardingKeyboardBuilder
         $sectors = Sector::all();
 
         if ($sectors->isEmpty()) {
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '⚠️ لا توجد قطاعات متاحة' : '⚠️ No sectors available',
-                'callback_data' => 'ob:noop',
-            ]];
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-                'callback_data' => 'ob:step4:back',
-            ]];
+            $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
 
-            return $keyboard;
+            return [
+                'keyboard' => $keyboard,
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
         }
 
-        // Paginate sectors (6 per page)
-        $perPage = 6;
-        $totalPages = (int) ceil($sectors->count() / $perPage);
-        $offset = ($page - 1) * $perPage;
-        $pageSectors = $sectors->slice($offset, $perPage);
-
-        // Sectors in rows of 3
-        $sectorRows = $pageSectors->chunk(3);
+        // Sectors in rows of 2
+        $sectorRows = $sectors->chunk(2);
         foreach ($sectorRows as $row) {
             $btns = [];
             foreach ($row as $sector) {
                 $name = $locale === 'ar' ? ($sector->name_ar ?: $sector->name_en) : $sector->name_en;
                 $isSelected = in_array($sector->id, $selectedSectorIds, true);
                 $text = $isSelected ? "✅ {$name}" : "⬜ {$name}";
-                $btns[] = [
-                    'text' => $text,
-                    'callback_data' => "ob:sector:toggle:{$sector->id}",
-                ];
+                $btns[] = ['text' => $text];
             }
             $keyboard[] = $btns;
         }
 
-        // Pagination if needed
-        if ($totalPages > 1) {
-            $pageLabel = $locale === 'ar' ? "صفحة {$page}/{$totalPages}" : "Page {$page}/{$totalPages}";
-            $navRow = [];
-            if ($page > 1) {
-                $navRow[] = [
-                    'text' => '◀️',
-                    'callback_data' => 'ob:sector:page:'.($page - 1),
-                ];
-            }
-            $navRow[] = [
-                'text' => $pageLabel,
-                'callback_data' => 'ob:noop',
-            ];
-            if ($page < $totalPages) {
-                $navRow[] = [
-                    'text' => '▶️',
-                    'callback_data' => 'ob:sector:page:'.($page + 1),
-                ];
-            }
-            $keyboard[] = $navRow;
-        }
-
         // Selected count
         $selectedCount = count($selectedSectorIds);
-        $countText = $locale === 'ar'
-            ? "🏭 تم اختيار: {$selectedCount} قطاع"
-            : "🏭 Selected: {$selectedCount} sector(s)";
-
-        $keyboard[] = [[
-            'text' => $countText,
-            'callback_data' => 'ob:noop',
-        ]];
 
         // Back / Complete
         $navRow = [];
-        $navRow[] = [
-            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step4:back',
-        ];
+        $navRow[] = ['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back'];
         if ($selectedCount > 0) {
-            $navRow[] = [
-                'text' => $locale === 'ar' ? '✅ إكمال' : '✅ Complete',
-                'callback_data' => 'ob:complete',
-            ];
+            $navRow[] = ['text' => $locale === 'ar' ? '✅ إكمال' : '✅ Complete'];
         }
         $keyboard[] = $navRow;
 
-        return $keyboard;
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
     }
 
     /**
@@ -514,16 +397,11 @@ MSG;
     }
 
     /**
-     * Build completion keyboard with Mini App button.
+     * Build completion keyboard - main menu keyboard.
      */
     public function buildCompletionKeyboard(string $locale): array
     {
-        return [[
-            [
-                'text' => $locale === 'ar' ? '📊 فتح لوحة التحكم' : '📊 Open Dashboard',
-                'web_app' => ['url' => route('dashboard')],
-            ],
-        ]];
+        return \App\Telegram\Services\DefaultKeyboardBuilder::mainMenuKeyboard($locale);
     }
 
     /**

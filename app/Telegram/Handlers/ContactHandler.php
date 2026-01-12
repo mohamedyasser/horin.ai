@@ -155,9 +155,7 @@ class ContactHandler extends UpdateHandler
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $keyboard,
-            ],
+            'reply_markup' => $keyboard,
         ]);
     }
 

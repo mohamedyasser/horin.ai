@@ -82,14 +82,12 @@ class OnboardingCommand extends CommandHandler
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $keyboard,
-            ],
+            'reply_markup' => $keyboard,
         ]);
     }
 
     /**
-     * Send completion message with dashboard button.
+     * Send completion message with main menu keyboard.
      */
     public function sendCompletionMessage(int $chatId, string $locale, ?OnboardingKeyboardBuilder $builder = null): void
     {
@@ -99,9 +97,7 @@ class OnboardingCommand extends CommandHandler
             'chat_id' => $chatId,
             'text' => $builder->getCompletionMessage($locale),
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $builder->buildCompletionKeyboard($locale),
-            ],
+            'reply_markup' => $builder->buildCompletionKeyboard($locale),
         ]);
     }
 
