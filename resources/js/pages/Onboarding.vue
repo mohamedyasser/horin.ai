@@ -6,12 +6,15 @@ import OnboardingStep3 from '@/components/onboarding/OnboardingStep3.vue';
 import OnboardingStep4 from '@/components/onboarding/OnboardingStep4.vue';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/routes';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { LogOut } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
+const page = usePage();
+
+const isTelegramMiniApp = computed(() => page.props.isTelegramMiniApp as boolean);
 
 interface Country {
     id: string;
@@ -135,6 +138,7 @@ const submitStep = () => {
         <div class="absolute end-4 top-4 flex items-center gap-2">
             <LanguageSwitcher />
             <Button
+                v-if="!isTelegramMiniApp"
                 as-child
                 variant="ghost"
                 size="icon"

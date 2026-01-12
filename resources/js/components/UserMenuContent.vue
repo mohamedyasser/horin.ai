@@ -9,15 +9,19 @@ import {
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
-import { Link, router } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const page = usePage();
 
 interface Props {
     user: User;
 }
+
+const isTelegramMiniApp = computed(() => page.props.isTelegramMiniApp as boolean);
 
 const handleLogout = () => {
     router.flushAll();
@@ -41,17 +45,20 @@ defineProps<Props>();
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
-    <DropdownMenuSeparator />
-    <DropdownMenuItem :as-child="true">
-        <Link
-            class="block w-full"
-            :href="logout()"
-            @click="handleLogout"
-            as="button"
-            data-test="logout-button"
-        >
-            <LogOut class="me-2 h-4 w-4" />
-            {{ t('common.logout') }}
-        </Link>
-    </DropdownMenuItem>
+    <!-- Hide logout in Telegram Mini App - user is always authenticated via Telegram -->
+    <template v-if="!isTelegramMiniApp">
+        <DropdownMenuSeparator />
+        <DropdownMenuItem :as-child="true">
+            <Link
+                class="block w-full"
+                :href="logout()"
+                @click="handleLogout"
+                as="button"
+                data-test="logout-button"
+            >
+                <LogOut class="me-2 h-4 w-4" />
+                {{ t('common.logout') }}
+            </Link>
+        </DropdownMenuItem>
+    </template>
 </template>

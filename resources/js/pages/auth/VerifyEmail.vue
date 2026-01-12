@@ -5,10 +5,14 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const page = usePage();
+
+const isTelegramMiniApp = computed(() => page.props.isTelegramMiniApp as boolean);
 
 defineProps<{
     status?: string;
@@ -40,6 +44,7 @@ defineProps<{
             </Button>
 
             <TextLink
+                v-if="!isTelegramMiniApp"
                 :href="logout()"
                 as="button"
                 class="mx-auto block text-sm"
