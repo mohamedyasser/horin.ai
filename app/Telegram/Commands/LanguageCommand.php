@@ -25,10 +25,7 @@ class LanguageCommand extends CommandHandler
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->sendMessage([
-                'chat_id' => $chatId,
-                'text' => 'Please login through the Horin app first.',
-            ]);
+            $this->sendLoginPrompt($chatId);
 
             return null;
         }
@@ -51,5 +48,29 @@ class LanguageCommand extends CommandHandler
         ]);
 
         return null;
+    }
+
+    private function sendLoginPrompt(int $chatId): void
+    {
+        $locale = $this->update->message->from->language_code ?? 'en';
+
+        $text = $locale === 'ar'
+            ? '👋 مرحباً! افتح التطبيق للبدء.'
+            : '👋 Hi! Open the app to get started.';
+
+        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => [
+                'inline_keyboard' => [[
+                    [
+                        'text' => $buttonText,
+                        'web_app' => ['url' => config('app.url')],
+                    ],
+                ]],
+            ],
+        ]);
     }
 }

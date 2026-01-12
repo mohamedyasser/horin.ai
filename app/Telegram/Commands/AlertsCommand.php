@@ -26,10 +26,7 @@ class AlertsCommand extends CommandHandler
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->sendMessage([
-                'chat_id' => $chatId,
-                'text' => 'Please login through the Horin app first.',
-            ]);
+            $this->sendLoginPrompt($chatId);
 
             return null;
         }
@@ -53,8 +50,8 @@ class AlertsCommand extends CommandHandler
                 'reply_markup' => [
                     'inline_keyboard' => [[
                         [
-                            'text' => $locale === 'ar' ? '🔗 فتح التطبيق' : '🔗 Open App',
-                            'url' => config('app.url').'/alerts',
+                            'text' => $locale === 'ar' ? '➕ إنشاء تنبيه' : '➕ Create Alert',
+                            'web_app' => ['url' => config('app.url').'/dashboard'],
                         ],
                     ]],
                 ],
@@ -83,14 +80,38 @@ class AlertsCommand extends CommandHandler
             'reply_markup' => [
                 'inline_keyboard' => [[
                     [
-                        'text' => $locale === 'ar' ? '🔗 فتح التطبيق' : '🔗 Open App',
-                        'url' => config('app.url').'/alerts',
+                        'text' => $locale === 'ar' ? '📊 إدارة التنبيهات' : '📊 Manage Alerts',
+                        'web_app' => ['url' => config('app.url').'/dashboard'],
                     ],
                 ]],
             ],
         ]);
 
         return null;
+    }
+
+    private function sendLoginPrompt(int $chatId): void
+    {
+        $locale = $this->update->message->from->language_code ?? 'en';
+
+        $text = $locale === 'ar'
+            ? '👋 مرحباً! افتح التطبيق للبدء.'
+            : '👋 Hi! Open the app to get started.';
+
+        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => [
+                'inline_keyboard' => [[
+                    [
+                        'text' => $buttonText,
+                        'web_app' => ['url' => config('app.url')],
+                    ],
+                ]],
+            ],
+        ]);
     }
 
     private function formatTriggerType(string $type, string $locale): string

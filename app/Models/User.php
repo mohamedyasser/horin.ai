@@ -49,6 +49,7 @@ class User extends Authenticatable
         'telegram_id',
         'telegram_username',
         'telegram_photo_url',
+        'telegram_awaiting_input',
         'onboarding_completed_at',
     ];
 

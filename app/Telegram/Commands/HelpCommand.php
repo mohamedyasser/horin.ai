@@ -27,10 +27,20 @@ class HelpCommand extends CommandHandler
 
         $helpText = $locale === 'ar' ? $this->getHelpTextAr() : $this->getHelpTextEn();
 
+        $buttonText = $locale === 'ar' ? '📊 فتح حورين' : '📊 Open Horin';
+
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $helpText,
             'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => [[
+                    [
+                        'text' => $buttonText,
+                        'web_app' => ['url' => config('app.url').'/dashboard'],
+                    ],
+                ]],
+            ],
         ]);
 
         return null;

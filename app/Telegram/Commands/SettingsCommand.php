@@ -25,63 +25,93 @@ class SettingsCommand extends CommandHandler
         $user = User::where('telegram_id', $telegramId)->first();
 
         if (! $user) {
-            $this->sendMessage([
-                'chat_id' => $chatId,
-                'text' => 'Please login through the Horin app first.',
-            ]);
+            $this->sendLoginPrompt($chatId);
 
             return null;
         }
 
         $locale = $user->language ?? 'en';
-        $preferences = $user->getAlertPreferences();
 
-        $langDisplay = $locale === 'ar' ? 'العربية' : 'English';
-        $quietStart = $preferences->quiet_hours_start ?? '23:00';
-        $quietEnd = $preferences->quiet_hours_end ?? '07:00';
-        $maxHour = $preferences->max_alerts_per_hour ?? 10;
-        $maxDay = $preferences->max_alerts_per_day ?? 25;
+        $this->sendSettingsMenu($chatId, $locale);
 
-        if ($locale === 'ar') {
-            $text = <<<MSG
-⚙️ *إعداداتك*
-━━━━━━━━━━━━━━━━━━
+        return null;
+    }
 
-🌐 اللغة: {$langDisplay}
-🌙 ساعات الهدوء: {$quietStart} - {$quietEnd}
-📊 الحد الأقصى/ساعة: {$maxHour}
-📊 الحد الأقصى/يوم: {$maxDay}
+    /**
+     * Send the settings main menu.
+     */
+    public function sendSettingsMenu(int $chatId, string $locale): void
+    {
+        $text = $locale === 'ar'
+            ? "⚙️ *الإعدادات*\n\nاختر فئة للتعديل:"
+            : "⚙️ *Settings*\n\nChoose a category to modify:";
 
-استخدم التطبيق لتعديل الإعدادات.
-MSG;
-        } else {
-            $text = <<<MSG
-⚙️ *Your Settings*
-━━━━━━━━━━━━━━━━━━
-
-🌐 Language: {$langDisplay}
-🌙 Quiet Hours: {$quietStart} - {$quietEnd}
-📊 Max alerts/hour: {$maxHour}
-📊 Max alerts/day: {$maxDay}
-
-Use the app to modify settings.
-MSG;
-        }
+        $keyboard = [
+            [
+                [
+                    'text' => $locale === 'ar' ? '👤 الملف الشخصي' : '👤 Profile',
+                    'callback_data' => 'set:profile',
+                ],
+                [
+                    'text' => $locale === 'ar' ? '📊 التداول' : '📊 Trading',
+                    'callback_data' => 'set:trading',
+                ],
+            ],
+            [
+                [
+                    'text' => $locale === 'ar' ? '🌍 الأسواق' : '🌍 Markets',
+                    'callback_data' => 'set:markets',
+                ],
+                [
+                    'text' => $locale === 'ar' ? '🔔 التنبيهات' : '🔔 Alerts',
+                    'callback_data' => 'set:alerts',
+                ],
+            ],
+            [
+                [
+                    'text' => $locale === 'ar' ? '🌐 اللغة' : '🌐 Language',
+                    'callback_data' => 'set:language',
+                ],
+            ],
+            [
+                [
+                    'text' => $locale === 'ar' ? '📱 فتح التطبيق' : '📱 Open App',
+                    'web_app' => ['url' => config('app.url').'/settings/profile'],
+                ],
+            ],
+        ];
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+    }
+
+    private function sendLoginPrompt(int $chatId): void
+    {
+        $locale = $this->update->message->from->language_code ?? 'en';
+
+        $text = $locale === 'ar'
+            ? '👋 مرحباً! افتح التطبيق للبدء.'
+            : '👋 Hi! Open the app to get started.';
+
+        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => [
                 'inline_keyboard' => [[
                     [
-                        'text' => $locale === 'ar' ? '⚙️ فتح الإعدادات' : '⚙️ Open Settings',
-                        'url' => config('app.url').'/settings',
+                        'text' => $buttonText,
+                        'web_app' => ['url' => config('app.url')],
                     ],
                 ]],
             ],
         ]);
-
-        return null;
     }
 }
