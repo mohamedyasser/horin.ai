@@ -160,24 +160,12 @@ class TextInputHandler extends UpdateHandler
             return null;
         }
 
-        // Build country search results keyboard
-        $keyboard = [];
-        foreach ($countries as $country) {
-            $name = $locale === 'ar' ? $country->name_ar : $country->name_en;
-            $keyboard[] = [['text' => "🏳️ {$name}"]];
-        }
-        $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $locale === 'ar'
                 ? "🔍 نتائج البحث عن: {$query}"
                 : "🔍 Search results for: {$query}",
-            'reply_markup' => [
-                'keyboard' => $keyboard,
-                'resize_keyboard' => true,
-                'one_time_keyboard' => false,
-            ],
+            'reply_markup' => $builder->buildCountrySearchResults($countries, $locale),
         ]);
 
         return null;

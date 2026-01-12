@@ -227,6 +227,29 @@ class OnboardingKeyboardBuilder
     }
 
     /**
+     * Build country search results keyboard.
+     *
+     * @param  \Illuminate\Support\Collection<Country>  $countries
+     */
+    public function buildCountrySearchResults(\Illuminate\Support\Collection $countries, string $locale): array
+    {
+        $keyboard = [];
+
+        foreach ($countries as $country) {
+            $name = $locale === 'ar' ? $country->name_ar : $country->name_en;
+            $keyboard[] = [['text' => "🏳️ {$name}"]];
+        }
+
+        $keyboard[] = [['text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back']];
+
+        return [
+            'keyboard' => $keyboard,
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
      * Build Step 3 markets keyboard after country is selected.
      *
      * @param  array<string>  $selectedMarketIds

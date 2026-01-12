@@ -70,10 +70,7 @@ class AlertHistoryHandler extends CallbackHandler
                 ? "📜 *سجل التنبيهات*\n\n📭 لا يوجد سجل تنبيهات."
                 : "📜 *Alert History*\n\n📭 No alert history.";
 
-            $keyboard = [[[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'alert:menu',
-            ]]];
+            $keyboard = $builder->buildEmptyHistoryList($locale);
         } else {
             $lines = [];
             $lines[] = $locale === 'ar'

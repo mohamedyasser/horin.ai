@@ -319,24 +319,7 @@ class AlertCreateHandler extends CallbackHandler
                 : "🔮 *AI Prediction Alert for {$symbol}*\n\nYou'll receive notifications based on AI price predictions.\n\nSelect desired prediction direction:";
         }
 
-        $keyboard = [
-            [[
-                'text' => $locale === 'ar' ? '⬆️ صعود' : '⬆️ Bullish',
-                'callback_data' => 'alert:create:direction:above',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⬇️ هبوط' : '⬇️ Bearish',
-                'callback_data' => 'alert:create:direction:below',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '↕️ أي اتجاه' : '↕️ Both Directions',
-                'callback_data' => 'alert:create:direction:both',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'alert:create',
-            ]],
-        ];
+        $keyboard = $builder->buildSignalDirectionSelector($locale);
 
         $this->editMessageText([
             'chat_id' => $chatId,

@@ -602,6 +602,44 @@ class AlertKeyboardBuilder
     }
 
     /**
+     * Build signal/prediction direction selector keyboard.
+     */
+    public function buildSignalDirectionSelector(string $locale): array
+    {
+        return [
+            [[
+                'text' => $locale === 'ar' ? '⬆️ صعود' : '⬆️ Bullish',
+                'callback_data' => 'alert:create:direction:above',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬇️ هبوط' : '⬇️ Bearish',
+                'callback_data' => 'alert:create:direction:below',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '↕️ أي اتجاه' : '↕️ Both Directions',
+                'callback_data' => 'alert:create:direction:both',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'alert:create',
+            ]],
+        ];
+    }
+
+    /**
+     * Build empty history keyboard.
+     */
+    public function buildEmptyHistoryList(string $locale): array
+    {
+        return [[
+            [
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'alert:menu',
+            ],
+        ]];
+    }
+
+    /**
      * Format alert for display in list.
      */
     public function formatAlertLine(Alert $alert, string $locale): string
