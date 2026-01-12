@@ -456,7 +456,7 @@ class AlertController extends Controller
     /**
      * Get user alerts for chaining (used in show/edit pages).
      */
-    private function getUserAlertsForChaining(int $userId): array
+    private function getUserAlertsForChaining(string $userId): array
     {
         return Alert::where('user_id', $userId)
             ->with('asset:id,symbol,name_en,name_ar')
