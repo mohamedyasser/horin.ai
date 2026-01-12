@@ -5,7 +5,6 @@ import {
     retrieveLaunchParams,
     retrieveRawInitData,
     postEvent,
-    $debug,
     miniApp,
     themeParams,
     viewport,
@@ -80,16 +79,11 @@ export function useTelegramMiniApp() {
      * Initialize the Telegram Mini App SDK.
      * Must be called before using other SDK features.
      */
-    function initializeSdk(debug = false) {
+    function initializeSdk() {
         if (isInitialized.value) return true;
         if (!isMiniApp.value) return false;
 
         try {
-            // Enable debug mode if requested
-            if (debug) {
-                $debug.set(true);
-            }
-
             // Initialize all SDK components
             init();
 
