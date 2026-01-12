@@ -51,7 +51,7 @@ class AlertsCommand extends CommandHandler
                     'inline_keyboard' => [[
                         [
                             'text' => $locale === 'ar' ? '➕ إنشاء تنبيه' : '➕ Create Alert',
-                            'web_app' => ['url' => config('app.url').'/dashboard'],
+                            'web_app' => ['url' => config('app.url').'/alerts/create'],
                         ],
                     ]],
                 ],
@@ -81,7 +81,7 @@ class AlertsCommand extends CommandHandler
                 'inline_keyboard' => [[
                     [
                         'text' => $locale === 'ar' ? '📊 إدارة التنبيهات' : '📊 Manage Alerts',
-                        'web_app' => ['url' => config('app.url').'/dashboard'],
+                        'web_app' => ['url' => config('app.url').'/alerts'],
                     ],
                 ]],
             ],
