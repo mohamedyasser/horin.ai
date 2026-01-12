@@ -78,7 +78,7 @@ class SettingsMenuHandler extends CallbackHandler
             [
                 [
                     'text' => $locale === 'ar' ? '📱 فتح التطبيق' : '📱 Open App',
-                    'web_app' => ['url' => config('app.url').'/settings/profile'],
+                    'web_app' => ['url' => route('profile.edit')],
                 ],
             ],
         ];

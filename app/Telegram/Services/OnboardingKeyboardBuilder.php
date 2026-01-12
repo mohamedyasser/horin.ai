@@ -521,7 +521,7 @@ MSG;
         return [[
             [
                 'text' => $locale === 'ar' ? '📊 فتح لوحة التحكم' : '📊 Open Dashboard',
-                'web_app' => ['url' => config('app.url').'/dashboard'],
+                'web_app' => ['url' => route('dashboard')],
             ],
         ]];
     }

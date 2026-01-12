@@ -199,13 +199,13 @@ class GenerateDigest implements ShouldQueue
             [
                 [
                     'text' => "📋 {$viewAllLabel}",
-                    'url' => config('app.url').'/alerts/history',
+                    'url' => route('alerts.history'),
                 ],
             ],
             [
                 [
                     'text' => "⚙️ {$manageLabel}",
-                    'url' => config('app.url').'/alerts',
+                    'url' => route('alerts.index'),
                 ],
             ],
         ];

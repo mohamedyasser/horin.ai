@@ -173,7 +173,7 @@ class ContactHandler extends UpdateHandler
                 'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url').'/dashboard'],
+                        'web_app' => ['url' => route('dashboard')],
                     ],
                 ]],
             ],

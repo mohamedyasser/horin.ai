@@ -672,7 +672,7 @@ MSG;
             [
                 [
                     'text' => "📊 {$viewLabel}",
-                    'url' => config('app.url')."/assets/{$assetSymbol}",
+                    'url' => route('assets.show', ['locale' => $locale, 'asset' => $assetSymbol]),
                 ],
             ],
             [
@@ -692,7 +692,7 @@ MSG;
                 ],
                 [
                     'text' => "⚙️ {$manageLabel}",
-                    'url' => config('app.url')."/alerts/{$alertId}",
+                    'url' => route('alerts.show', $alertId),
                 ],
             ],
         ];

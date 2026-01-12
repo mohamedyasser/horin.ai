@@ -73,7 +73,7 @@ class LanguageCallbackHandler extends CallbackHandler
                     [
                         [
                             'text' => $buttonText,
-                            'web_app' => ['url' => config('app.url').'/dashboard'],
+                            'web_app' => ['url' => route('dashboard')],
                         ],
                     ],
                     [
