@@ -32,6 +32,7 @@ interface Asset {
     symbol: string;
     name: string;
     name_ar: string;
+    last_price?: number | null;
 }
 
 interface FilterOption {

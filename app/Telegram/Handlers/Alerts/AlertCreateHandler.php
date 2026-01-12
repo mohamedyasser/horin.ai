@@ -185,7 +185,7 @@ class AlertCreateHandler extends CallbackHandler
             return $this->promptAssetSearch($chatId, $user, $locale);
         }
 
-        $asset = Asset::with('cachedPrice')->find($assetIdOrAction);
+        $asset = Asset::with(['cachedPrice', 'latestPrice'])->find($assetIdOrAction);
         if (! $asset) {
             return $this->answerWithError('Asset not found');
         }
@@ -196,7 +196,7 @@ class AlertCreateHandler extends CallbackHandler
         $draft['asset_id'] = $asset->id;
         $draft['asset_symbol'] = $asset->symbol;
         $draft['asset_name'] = $locale === 'ar' ? ($asset->name_ar ?: $asset->name) : $asset->name;
-        $draft['current_price'] = $asset->cachedPrice?->price;
+        $draft['current_price'] = $asset->cachedPrice?->price ?? $asset->latestPrice?->price;
         $user->update(['telegram_alert_draft' => $draft]);
 
         $this->answerCallbackQuery([

@@ -288,7 +288,8 @@ class AlertController extends Controller
     public function searchAssets(Request $request): JsonResponse
     {
         $query = Asset::query()
-            ->select('id', 'symbol', 'name_en', 'name_ar', 'market_id', 'sector_id');
+            ->select('id', 'symbol', 'name_en', 'name_ar', 'market_id', 'sector_id', 'inv_id')
+            ->with('cachedPrice:pid,price');
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -315,6 +316,7 @@ class AlertController extends Controller
                 'symbol' => $asset->symbol,
                 'name' => $asset->name_en,
                 'name_ar' => $asset->name_ar,
+                'last_price' => $asset->cachedPrice?->price,
             ]);
 
         return response()->json(['assets' => $assets]);
