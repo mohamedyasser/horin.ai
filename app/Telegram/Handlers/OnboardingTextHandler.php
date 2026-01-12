@@ -229,13 +229,11 @@ class OnboardingTextHandler extends UpdateHandler
             default => DefaultKeyboardBuilder::forUser($user, $locale),
         };
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $errorText,
             'reply_markup' => $keyboard,
         ]);
-
-        return null;
     }
 
     private function handleExperience(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
