@@ -75,6 +75,84 @@ class KeyboardButtonHandler extends UpdateHandler
         // Phone share button (if user types it instead of using contact share)
         '📱 Share Phone Number' => 'phone_share_hint',
         '📱 مشاركة رقم الهاتف' => 'phone_share_hint',
+
+        // Profile settings buttons
+        '✏️ Change Name' => 'profile_change_name',
+        '✏️ تغيير الاسم' => 'profile_change_name',
+
+        // Trading settings buttons
+        '📈 Experience Level' => 'trading_experience',
+        '📈 مستوى الخبرة' => 'trading_experience',
+        '⚠️ Risk Level' => 'trading_risk',
+        '⚠️ مستوى المخاطرة' => 'trading_risk',
+        '🎯 Investment Goal' => 'trading_goal',
+        '🎯 الهدف الاستثماري' => 'trading_goal',
+        '📊 Trading Style' => 'trading_style',
+        '📊 أسلوب التداول' => 'trading_style',
+
+        // Experience level buttons
+        '🌱 Beginner' => 'set_experience_beginner',
+        '🌱 مبتدئ' => 'set_experience_beginner',
+        '📊 Intermediate' => 'set_experience_intermediate',
+        '📊 متوسط' => 'set_experience_intermediate',
+        '🎓 Advanced' => 'set_experience_advanced',
+        '🎓 متقدم' => 'set_experience_advanced',
+
+        // Risk level buttons
+        '🛡️ Conservative' => 'set_risk_conservative',
+        '🛡️ محافظ' => 'set_risk_conservative',
+        '⚖️ Moderate' => 'set_risk_moderate',
+        '⚖️ معتدل' => 'set_risk_moderate',
+        '🔥 Aggressive' => 'set_risk_aggressive',
+        '🔥 مغامر' => 'set_risk_aggressive',
+
+        // Investment goal buttons
+        '📈 Capital Growth' => 'set_goal_capital_growth',
+        '📈 نمو رأس المال' => 'set_goal_capital_growth',
+        '💵 Fixed Income' => 'set_goal_fixed_income',
+        '💵 دخل ثابت' => 'set_goal_fixed_income',
+        '🛡️ Risk Reduction' => 'set_goal_risk_reduction',
+        '🛡️ تقليل المخاطر' => 'set_goal_risk_reduction',
+        '⚡ Short-term Speculation' => 'set_goal_short_term',
+        '⚡ مضاربة قصيرة' => 'set_goal_short_term',
+
+        // Trading style buttons
+        '📅 Day Trading' => 'set_style_day_trading',
+        '📅 تداول يومي' => 'set_style_day_trading',
+        '📊 Swing Trading' => 'set_style_swing_trading',
+        '📊 تداول متأرجح' => 'set_style_swing_trading',
+        '📈 Position Trading' => 'set_style_position_trading',
+        '📈 تداول مراكز' => 'set_style_position_trading',
+        '⚡ Scalping' => 'set_style_scalping',
+        '⚡ سكالبينج' => 'set_style_scalping',
+
+        // Markets settings buttons
+        '🌍 Country' => 'markets_country',
+        '🌍 الدولة' => 'markets_country',
+        '🏛️ Markets' => 'markets_markets',
+        '🏛️ الأسواق' => 'markets_markets',
+        '📂 Sectors' => 'markets_sectors',
+        '📂 القطاعات' => 'markets_sectors',
+
+        // Alert preferences buttons
+        '📱 Notification Channels' => 'alert_prefs_channels',
+        '📱 قنوات الإشعارات' => 'alert_prefs_channels',
+        '🔢 Alert Limits' => 'alert_prefs_limits',
+        '🔢 حدود التنبيهات' => 'alert_prefs_limits',
+
+        // Alert limits buttons
+        '➖ Less/Hour' => 'limit_hour_decrease',
+        '➖ أقل/ساعة' => 'limit_hour_decrease',
+        '➕ More/Hour' => 'limit_hour_increase',
+        '➕ أكثر/ساعة' => 'limit_hour_increase',
+        '➖ Less/Day' => 'limit_day_decrease',
+        '➖ أقل/يوم' => 'limit_day_decrease',
+        '➕ More/Day' => 'limit_day_increase',
+        '➕ أكثر/يوم' => 'limit_day_increase',
+
+        // Cancel button
+        '❌ Cancel' => 'cancel_input',
+        '❌ إلغاء' => 'cancel_input',
     ];
 
     public function trigger(): bool
@@ -174,6 +252,55 @@ class KeyboardButtonHandler extends UpdateHandler
 
             // Phone share hint (user typed text instead of using contact share)
             'phone_share_hint' => $this->showPhoneShareHint($chatId, $locale),
+
+            // Profile settings
+            'profile_change_name' => $this->promptNameChange($chatId, $user, $locale),
+
+            // Trading settings
+            'trading_experience' => $this->showExperienceSelector($chatId, $user, $locale),
+            'trading_risk' => $this->showRiskSelector($chatId, $user, $locale),
+            'trading_goal' => $this->showGoalSelector($chatId, $user, $locale),
+            'trading_style' => $this->showStyleSelector($chatId, $user, $locale),
+
+            // Experience level selection
+            'set_experience_beginner' => $this->setExperience($chatId, $user, $locale, 'beginner'),
+            'set_experience_intermediate' => $this->setExperience($chatId, $user, $locale, 'intermediate'),
+            'set_experience_advanced' => $this->setExperience($chatId, $user, $locale, 'advanced'),
+
+            // Risk level selection
+            'set_risk_conservative' => $this->setRiskLevel($chatId, $user, $locale, 'conservative'),
+            'set_risk_moderate' => $this->setRiskLevel($chatId, $user, $locale, 'moderate'),
+            'set_risk_aggressive' => $this->setRiskLevel($chatId, $user, $locale, 'aggressive'),
+
+            // Investment goal selection
+            'set_goal_capital_growth' => $this->setGoal($chatId, $user, $locale, 'capital_growth'),
+            'set_goal_fixed_income' => $this->setGoal($chatId, $user, $locale, 'fixed_income'),
+            'set_goal_risk_reduction' => $this->setGoal($chatId, $user, $locale, 'risk_reduction'),
+            'set_goal_short_term' => $this->setGoal($chatId, $user, $locale, 'short_term_speculation'),
+
+            // Trading style selection
+            'set_style_day_trading' => $this->setStyle($chatId, $user, $locale, 'day_trading'),
+            'set_style_swing_trading' => $this->setStyle($chatId, $user, $locale, 'swing_trading'),
+            'set_style_position_trading' => $this->setStyle($chatId, $user, $locale, 'position_trading'),
+            'set_style_scalping' => $this->setStyle($chatId, $user, $locale, 'scalping_trading'),
+
+            // Markets settings
+            'markets_country' => $this->showCountryInfo($chatId, $user, $locale),
+            'markets_markets' => $this->showMarketsInfo($chatId, $user, $locale),
+            'markets_sectors' => $this->showSectorsInfo($chatId, $user, $locale),
+
+            // Alert preferences
+            'alert_prefs_channels' => $this->showChannelsSelector($chatId, $user, $locale),
+            'alert_prefs_limits' => $this->showLimitsSelector($chatId, $user, $locale),
+
+            // Alert limits adjustment
+            'limit_hour_decrease' => $this->adjustLimit($chatId, $user, $locale, 'hour', -1),
+            'limit_hour_increase' => $this->adjustLimit($chatId, $user, $locale, 'hour', 1),
+            'limit_day_decrease' => $this->adjustLimit($chatId, $user, $locale, 'day', -5),
+            'limit_day_increase' => $this->adjustLimit($chatId, $user, $locale, 'day', 5),
+
+            // Cancel input
+            'cancel_input' => $this->cancelInput($chatId, $user, $locale),
 
             default => $this->handleUnknownInput($chatId, $user, $locale),
         };
@@ -539,6 +666,366 @@ class KeyboardButtonHandler extends UpdateHandler
         ]);
 
         return null;
+    }
+
+    private function promptNameChange(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $user->update(['telegram_awaiting_input' => 'name']);
+
+        $text = $locale === 'ar'
+            ? "✏️ أدخل اسمك الجديد:\n\nاكتب اسمك في الرسالة التالية."
+            : "✏️ Enter your new name:\n\nType your name in your next message.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showExperienceSelector(int $chatId, ?User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? "📈 *مستوى الخبرة*\n\nما هو مستوى خبرتك في التداول؟"
+            : "📈 *Experience Level*\n\nWhat's your trading experience?";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::experienceKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showRiskSelector(int $chatId, ?User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? "⚠️ *مستوى المخاطرة*\n\nما هو مستوى تحملك للمخاطر؟"
+            : "⚠️ *Risk Level*\n\nWhat's your risk tolerance?";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::riskKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showGoalSelector(int $chatId, ?User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? "🎯 *الهدف الاستثماري*\n\nما هو هدفك الاستثماري؟"
+            : "🎯 *Investment Goal*\n\nWhat's your investment goal?";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::goalKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showStyleSelector(int $chatId, ?User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? "📊 *أسلوب التداول*\n\nما هو أسلوب التداول المفضل لديك؟"
+            : "📊 *Trading Style*\n\nWhat's your preferred trading style?";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::styleKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function setExperience(int $chatId, ?User $user, string $locale, string $level): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $user->update(['experience_level' => $level]);
+
+        $labels = [
+            'beginner' => ['en' => 'Beginner', 'ar' => 'مبتدئ'],
+            'intermediate' => ['en' => 'Intermediate', 'ar' => 'متوسط'],
+            'advanced' => ['en' => 'Advanced', 'ar' => 'متقدم'],
+        ];
+
+        $label = $labels[$level][$locale] ?? $level;
+
+        $text = $locale === 'ar'
+            ? "✅ تم تحديث مستوى الخبرة إلى: {$label}"
+            : "✅ Experience level updated to: {$label}";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::tradingKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function setRiskLevel(int $chatId, ?User $user, string $locale, string $level): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $user->update(['risk_level' => $level]);
+
+        $labels = [
+            'conservative' => ['en' => 'Conservative', 'ar' => 'محافظ'],
+            'moderate' => ['en' => 'Moderate', 'ar' => 'معتدل'],
+            'aggressive' => ['en' => 'Aggressive', 'ar' => 'مغامر'],
+        ];
+
+        $label = $labels[$level][$locale] ?? $level;
+
+        $text = $locale === 'ar'
+            ? "✅ تم تحديث مستوى المخاطرة إلى: {$label}"
+            : "✅ Risk level updated to: {$label}";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::tradingKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function setGoal(int $chatId, ?User $user, string $locale, string $goal): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $user->update(['investment_goal' => $goal]);
+
+        $labels = [
+            'capital_growth' => ['en' => 'Capital Growth', 'ar' => 'نمو رأس المال'],
+            'fixed_income' => ['en' => 'Fixed Income', 'ar' => 'دخل ثابت'],
+            'risk_reduction' => ['en' => 'Risk Reduction', 'ar' => 'تقليل المخاطر'],
+            'short_term_speculation' => ['en' => 'Short-term Speculation', 'ar' => 'مضاربة قصيرة'],
+        ];
+
+        $label = $labels[$goal][$locale] ?? $goal;
+
+        $text = $locale === 'ar'
+            ? "✅ تم تحديث الهدف الاستثماري إلى: {$label}"
+            : "✅ Investment goal updated to: {$label}";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::tradingKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function setStyle(int $chatId, ?User $user, string $locale, string $style): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $user->update(['trading_style' => $style]);
+
+        $labels = [
+            'day_trading' => ['en' => 'Day Trading', 'ar' => 'تداول يومي'],
+            'swing_trading' => ['en' => 'Swing Trading', 'ar' => 'تداول متأرجح'],
+            'position_trading' => ['en' => 'Position Trading', 'ar' => 'تداول مراكز'],
+            'scalping_trading' => ['en' => 'Scalping', 'ar' => 'سكالبينج'],
+        ];
+
+        $label = $labels[$style][$locale] ?? $style;
+
+        $text = $locale === 'ar'
+            ? "✅ تم تحديث أسلوب التداول إلى: {$label}"
+            : "✅ Trading style updated to: {$label}";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::tradingKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showCountryInfo(int $chatId, ?User $user, string $locale): mixed
+    {
+        $countryName = 'Not set';
+        if ($user?->country) {
+            $countryName = $locale === 'ar' ? $user->country->name_ar : $user->country->name_en;
+        }
+
+        $text = $locale === 'ar'
+            ? "🌍 *الدولة*\n\nالدولة الحالية: {$countryName}\n\n⚠️ لتغيير الدولة، يرجى استخدام التطبيق."
+            : "🌍 *Country*\n\nCurrent country: {$countryName}\n\n⚠️ To change country, please use the app.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::marketsSettingsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showMarketsInfo(int $chatId, ?User $user, string $locale): mixed
+    {
+        $marketNames = 'None';
+        if ($user) {
+            $markets = $user->markets()->get();
+            if ($markets->isNotEmpty()) {
+                $marketNames = $markets->map(fn ($m) => $locale === 'ar' ? ($m->name_ar ?: $m->name_en) : $m->name_en)->join(', ');
+            }
+        }
+
+        $text = $locale === 'ar'
+            ? "🏛️ *الأسواق*\n\nالأسواق المتابعة: {$marketNames}\n\n⚠️ لتغيير الأسواق، يرجى استخدام التطبيق."
+            : "🏛️ *Markets*\n\nFollowed markets: {$marketNames}\n\n⚠️ To change markets, please use the app.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::marketsSettingsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showSectorsInfo(int $chatId, ?User $user, string $locale): mixed
+    {
+        $sectorNames = 'None';
+        if ($user) {
+            $sectors = $user->sectors()->get();
+            if ($sectors->isNotEmpty()) {
+                $sectorNames = $sectors->map(fn ($s) => $locale === 'ar' ? ($s->name_ar ?: $s->name_en) : $s->name_en)->join(', ');
+            }
+        }
+
+        $text = $locale === 'ar'
+            ? "📂 *القطاعات*\n\nالقطاعات المتابعة: {$sectorNames}\n\n⚠️ لتغيير القطاعات، يرجى استخدام التطبيق."
+            : "📂 *Sectors*\n\nFollowed sectors: {$sectorNames}\n\n⚠️ To change sectors, please use the app.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::marketsSettingsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showChannelsSelector(int $chatId, ?User $user, string $locale): mixed
+    {
+        $channels = ['telegram', 'in_app'];
+        if ($user) {
+            $prefs = $user->getAlertPreferences();
+            $channels = $prefs->channels ?? ['telegram', 'in_app'];
+        }
+
+        $text = $locale === 'ar'
+            ? "📱 *قنوات الإشعارات*\n\nاختر القنوات لتلقي التنبيهات:\n\n⚠️ لتغيير القنوات، يرجى استخدام التطبيق."
+            : "📱 *Notification Channels*\n\nSelect channels for receiving alerts:\n\n⚠️ To change channels, please use the app.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::channelsKeyboard($channels, $locale),
+        ]);
+
+        return null;
+    }
+
+    private function showLimitsSelector(int $chatId, ?User $user, string $locale): mixed
+    {
+        $maxHour = 10;
+        $maxDay = 25;
+
+        if ($user) {
+            $prefs = $user->getAlertPreferences();
+            $maxHour = $prefs->max_alerts_per_hour ?? 10;
+            $maxDay = $prefs->max_alerts_per_day ?? 25;
+        }
+
+        $text = $locale === 'ar'
+            ? "🔢 *حدود التنبيهات*\n\nحدد الحد الأقصى للتنبيهات:"
+            : "🔢 *Alert Limits*\n\nSet maximum alerts:";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::limitsKeyboard($maxHour, $maxDay, $locale),
+        ]);
+
+        return null;
+    }
+
+    private function adjustLimit(int $chatId, ?User $user, string $locale, string $type, int $delta): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $prefs = $user->getAlertPreferences();
+        $maxHour = $prefs->max_alerts_per_hour ?? 10;
+        $maxDay = $prefs->max_alerts_per_day ?? 25;
+
+        if ($type === 'hour') {
+            $maxHour = max(1, min(50, $maxHour + $delta));
+            $prefs->update(['max_alerts_per_hour' => $maxHour]);
+        } else {
+            $maxDay = max(5, min(100, $maxDay + $delta));
+            $prefs->update(['max_alerts_per_day' => $maxDay]);
+        }
+
+        $text = $locale === 'ar'
+            ? "🔢 *حدود التنبيهات*\n\n✅ تم التحديث"
+            : "🔢 *Alert Limits*\n\n✅ Updated";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::limitsKeyboard($maxHour, $maxDay, $locale),
+        ]);
+
+        return null;
+    }
+
+    private function cancelInput(int $chatId, ?User $user, string $locale): mixed
+    {
+        if ($user) {
+            $user->update(['telegram_awaiting_input' => null]);
+        }
+
+        return $this->goBackToMainMenu($chatId, $user, $locale);
     }
 
     private function handleUnknownInput(int $chatId, ?User $user, string $locale): mixed

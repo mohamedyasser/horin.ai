@@ -238,4 +238,333 @@ class DefaultKeyboardBuilder
             'remove_keyboard' => true,
         ];
     }
+
+    /**
+     * Profile settings keyboard.
+     */
+    public static function profileKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '✏️ تغيير الاسم']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '✏️ Change Name']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Trading settings keyboard.
+     */
+    public static function tradingKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '📈 مستوى الخبرة'], ['text' => '⚠️ مستوى المخاطرة']],
+                    [['text' => '🎯 الهدف الاستثماري'], ['text' => '📊 أسلوب التداول']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '📈 Experience Level'], ['text' => '⚠️ Risk Level']],
+                [['text' => '🎯 Investment Goal'], ['text' => '📊 Trading Style']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Experience level selection keyboard.
+     */
+    public static function experienceKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '🌱 مبتدئ']],
+                    [['text' => '📊 متوسط']],
+                    [['text' => '🎓 متقدم']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '🌱 Beginner']],
+                [['text' => '📊 Intermediate']],
+                [['text' => '🎓 Advanced']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Risk level selection keyboard.
+     */
+    public static function riskKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '🛡️ محافظ']],
+                    [['text' => '⚖️ معتدل']],
+                    [['text' => '🔥 مغامر']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '🛡️ Conservative']],
+                [['text' => '⚖️ Moderate']],
+                [['text' => '🔥 Aggressive']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Investment goal selection keyboard.
+     */
+    public static function goalKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '📈 نمو رأس المال']],
+                    [['text' => '💵 دخل ثابت']],
+                    [['text' => '🛡️ تقليل المخاطر']],
+                    [['text' => '⚡ مضاربة قصيرة']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '📈 Capital Growth']],
+                [['text' => '💵 Fixed Income']],
+                [['text' => '🛡️ Risk Reduction']],
+                [['text' => '⚡ Short-term Speculation']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Trading style selection keyboard.
+     */
+    public static function styleKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '📅 تداول يومي']],
+                    [['text' => '📊 تداول متأرجح']],
+                    [['text' => '📈 تداول مراكز']],
+                    [['text' => '⚡ سكالبينج']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '📅 Day Trading']],
+                [['text' => '📊 Swing Trading']],
+                [['text' => '📈 Position Trading']],
+                [['text' => '⚡ Scalping']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Markets settings keyboard.
+     */
+    public static function marketsSettingsKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '🌍 الدولة']],
+                    [['text' => '🏛️ الأسواق']],
+                    [['text' => '📂 القطاعات']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '🌍 Country']],
+                [['text' => '🏛️ Markets']],
+                [['text' => '📂 Sectors']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Alert preferences keyboard.
+     */
+    public static function alertPreferencesKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '📱 قنوات الإشعارات']],
+                    [['text' => '🔢 حدود التنبيهات']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '📱 Notification Channels']],
+                [['text' => '🔢 Alert Limits']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Notification channels keyboard.
+     */
+    public static function channelsKeyboard(array $enabledChannels, string $locale): array
+    {
+        $telegramIcon = in_array('telegram', $enabledChannels, true) ? '✅' : '❌';
+        $emailIcon = in_array('email', $enabledChannels, true) ? '✅' : '❌';
+        $pushIcon = in_array('push', $enabledChannels, true) ? '✅' : '❌';
+        $inAppIcon = in_array('in_app', $enabledChannels, true) ? '✅' : '❌';
+
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => "{$telegramIcon} تيليجرام"]],
+                    [['text' => "{$emailIcon} البريد الإلكتروني"]],
+                    [['text' => "{$pushIcon} إشعارات الدفع"]],
+                    [['text' => "{$inAppIcon} داخل التطبيق"]],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => "{$telegramIcon} Telegram"]],
+                [['text' => "{$emailIcon} Email"]],
+                [['text' => "{$pushIcon} Push Notifications"]],
+                [['text' => "{$inAppIcon} In-App"]],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Alert limits keyboard.
+     */
+    public static function limitsKeyboard(int $maxHour, int $maxDay, string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => "⏰ في الساعة: {$maxHour}"]],
+                    [['text' => '➖ أقل/ساعة'], ['text' => '➕ أكثر/ساعة']],
+                    [['text' => "📅 في اليوم: {$maxDay}"]],
+                    [['text' => '➖ أقل/يوم'], ['text' => '➕ أكثر/يوم']],
+                    [['text' => '◀️ رجوع']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => "⏰ Per Hour: {$maxHour}"]],
+                [['text' => '➖ Less/Hour'], ['text' => '➕ More/Hour']],
+                [['text' => "📅 Per Day: {$maxDay}"]],
+                [['text' => '➖ Less/Day'], ['text' => '➕ More/Day']],
+                [['text' => '◀️ Back']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Cancel keyboard - for text input prompts.
+     */
+    public static function cancelKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '❌ إلغاء']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '❌ Cancel']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
 }
