@@ -596,8 +596,22 @@ class AlertCreateHandler extends CallbackHandler
 
     private function getWatchlistAssets(User $user): \Illuminate\Support\Collection
     {
-        // Watchlist feature not yet implemented - return empty collection
-        return collect();
+        try {
+            return $user->wishlistAssets()
+                ->select('assets.id', 'symbol', 'name_en', 'name_ar')
+                ->withPivot('created_at')
+                ->with('cachedPrice:pid,price')
+                ->get()
+                ->map(fn ($asset) => (object) [
+                    'id' => $asset->id,
+                    'symbol' => $asset->symbol,
+                    'name' => $asset->name_en,
+                    'name_ar' => $asset->name_ar,
+                    'last_price' => $asset->cachedPrice?->price,
+                ]);
+        } catch (\Exception $e) {
+            return collect();
+        }
     }
 
     private function answerWithError(string $message): null

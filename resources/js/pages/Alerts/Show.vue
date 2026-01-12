@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import AlertChainManager from '@/components/alerts/AlertChainManager.vue';
 import {
     TrendingUp,
     Brain,
@@ -37,6 +38,7 @@ interface Props {
             history?: AlertHistory[];
         };
     };
+    userAlerts?: Alert[];
     backtestResult?: BacktestResult | null;
 }
 
@@ -118,6 +120,10 @@ const handleBacktest = () => {
             isRunningBacktest.value = false;
         },
     });
+};
+
+const handleRefresh = () => {
+    router.reload({ only: ['alert', 'userAlerts'] });
 };
 
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -299,6 +305,14 @@ const snoozePresets = [
                             </div>
                         </CardContent>
                     </Card>
+
+                    <!-- Alert Chains -->
+                    <AlertChainManager
+                        v-if="userAlerts && userAlerts.length > 0"
+                        :alert="alert"
+                        :user-alerts="userAlerts"
+                        @refresh="handleRefresh"
+                    />
 
                     <!-- Recent History -->
                     <Card>

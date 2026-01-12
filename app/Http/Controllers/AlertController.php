@@ -121,6 +121,7 @@ class AlertController extends Controller
 
         return Inertia::render('Alerts/Show', [
             'alert' => new AlertResource($alert->load(['asset', 'template', 'history' => fn ($q) => $q->latest()->limit(10)])),
+            'userAlerts' => $this->getUserAlertsForChaining($alert->user_id),
             'backtestResult' => AlertBacktestResult::where('alert_id', $alert->id)->latest()->first(),
         ]);
     }
@@ -134,6 +135,7 @@ class AlertController extends Controller
 
         return Inertia::render('Alerts/Edit', [
             'alert' => new AlertResource($alert->load('asset')),
+            'userAlerts' => $this->getUserAlertsForChaining($alert->user_id),
             'templates' => AlertTemplate::where(function ($q) use ($alert) {
                 $q->whereNull('user_id')
                     ->orWhere('user_id', $alert->user_id);
@@ -449,5 +451,30 @@ class AlertController extends Controller
         } catch (\Illuminate\Database\QueryException) {
             return collect();
         }
+    }
+
+    /**
+     * Get user alerts for chaining (used in show/edit pages).
+     */
+    private function getUserAlertsForChaining(int $userId): array
+    {
+        return Alert::where('user_id', $userId)
+            ->with('asset:id,symbol,name,name_ar')
+            ->select('id', 'user_id', 'asset_id', 'type', 'trigger_type', 'status', 'chain_from_id')
+            ->get()
+            ->map(fn ($alert) => [
+                'id' => $alert->id,
+                'type' => $alert->type,
+                'trigger_type' => $alert->trigger_type,
+                'status' => $alert->status,
+                'chain_from_id' => $alert->chain_from_id,
+                'asset' => $alert->asset ? [
+                    'id' => $alert->asset->id,
+                    'symbol' => $alert->asset->symbol,
+                    'name' => $alert->asset->name,
+                    'name_ar' => $alert->asset->name_ar,
+                ] : null,
+            ])
+            ->toArray();
     }
 }

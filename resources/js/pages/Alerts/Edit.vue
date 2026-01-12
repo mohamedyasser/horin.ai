@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
+import AlertChainManager from '@/components/alerts/AlertChainManager.vue';
 import {
     TrendingUp,
     Brain,
@@ -32,6 +33,7 @@ interface Props {
     alert: {
         data: Alert;
     };
+    userAlerts?: Alert[];
     templates: Array<{ id: string; name: string; type: AlertType; trigger_type: string }>;
 }
 
@@ -95,6 +97,10 @@ const handleDelete = () => {
     if (confirm(t('alerts.confirmDelete'))) {
         router.delete(`/alerts/${alert.value.id}`);
     }
+};
+
+const handleRefresh = () => {
+    router.reload({ only: ['alert', 'userAlerts'] });
 };
 
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -410,6 +416,14 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             />
                         </CardContent>
                     </Card>
+
+                    <!-- Alert Chains -->
+                    <AlertChainManager
+                        v-if="userAlerts && userAlerts.length > 0"
+                        :alert="alert"
+                        :user-alerts="userAlerts"
+                        @refresh="handleRefresh"
+                    />
                 </div>
 
                 <!-- Sidebar -->

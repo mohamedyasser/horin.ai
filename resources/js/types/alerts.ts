@@ -60,6 +60,7 @@ export interface AlertCondition {
 
 export interface DeliveryConfig {
     channels?: ('telegram' | 'push' | 'email' | 'in_app')[];
+    sound_enabled?: boolean;
 }
 
 export interface EscalationConfig {
@@ -102,6 +103,7 @@ export interface Alert {
     triggered_count: number;
     delivery_config?: DeliveryConfig;
     escalation_config?: EscalationConfig;
+    chain_from_id?: string | null;
     snoozed_until?: string;
     is_snoozed: boolean;
     last_triggered_at?: string;
