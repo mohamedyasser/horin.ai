@@ -372,16 +372,10 @@ class AlertsButtonHandler extends AbstractButtonHandler
             'asset_id' => $draft['asset_id'],
             'type' => $draft['type'] ?? 'price',
             'trigger_type' => $draft['trigger_type'],
-            'condition' => $draft['direction'] ?? 'above',
-            'is_active' => true,
+            'direction' => $draft['direction'] ?? 'both',
+            'parameters' => $draft['parameters'] ?? [],
+            'status' => 'active',
         ];
-
-        if (isset($draft['parameters']['target_price'])) {
-            $alertData['target_value'] = $draft['parameters']['target_price'];
-        }
-        if (isset($draft['parameters']['threshold_percent'])) {
-            $alertData['threshold_percent'] = $draft['parameters']['threshold_percent'];
-        }
 
         $alert = Alert::create($alertData);
 
