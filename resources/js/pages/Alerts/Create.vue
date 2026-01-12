@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AssetSelector from '@/components/AssetSelector.vue';
 import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
+import CompoundAlertBuilder from '@/components/alerts/CompoundAlertBuilder.vue';
 import type { DeliveryConfig as DeliveryConfigType, EscalationConfig } from '@/types/alerts';
 import {
     TrendingUp,
@@ -68,8 +69,13 @@ const form = useForm({
     trigger_type: 'target_price' as AlertTriggerType,
     scope: 'single_asset' as AlertScope,
     direction: 'above' as AlertDirection,
-    condition_logic: 'single',
+    condition_logic: 'single' as 'single' | 'and' | 'or',
     parameters: {} as AlertParameters,
+    compound_conditions: [] as Array<{
+        id: string;
+        type: 'price_threshold' | 'signal' | 'anomaly' | 'pattern' | 'recommendation' | 'prediction';
+        parameters: Record<string, unknown>;
+    }>,
     priority: 'medium' as AlertPriority,
     is_recurring: false,
     cooldown_minutes: 60,
@@ -421,6 +427,16 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                         max="1"
                                     />
                                 </div>
+                            </template>
+
+                            <!-- Compound Intelligence Parameters -->
+                            <template v-else-if="form.trigger_type === 'compound_intelligence'">
+                                <CompoundAlertBuilder
+                                    :conditions="form.compound_conditions"
+                                    :logic="form.condition_logic === 'single' ? 'and' : form.condition_logic"
+                                    @update:conditions="form.compound_conditions = $event; form.parameters = { conditions: $event, logic: form.condition_logic }"
+                                    @update:logic="form.condition_logic = $event; form.parameters = { conditions: form.compound_conditions, logic: $event }"
+                                />
                             </template>
                         </CardContent>
                     </Card>

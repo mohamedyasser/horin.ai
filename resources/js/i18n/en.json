@@ -1201,7 +1201,9 @@
             "parameters": "Alert Settings",
             "parameters_description": "Configure the alert criteria",
             "options": "Advanced Options",
-            "options_description": "Additional alert settings"
+            "options_description": "Additional alert settings",
+            "delivery": "Delivery Settings",
+            "delivery_description": "Configure how and where you receive notifications"
         },
         "fields": {
             "type": "Type",
@@ -1222,14 +1224,35 @@
             "recurring": "Recurring Alert",
             "recurring_hint": "Re-activate alert after each trigger",
             "market_hours_only": "Market Hours Only",
-            "market_hours_hint": "Only trigger during trading hours"
+            "market_hours_hint": "Only trigger during trading hours",
+            "delivery_channels": "Notification Channels",
+            "channels": "Channels",
+            "triggered_count": "Triggered Count",
+            "gap_threshold": "Gap Threshold %",
+            "gap_hint": "Minimum gap size to trigger alert",
+            "52week_type": "52-Week Type",
+            "52week_hint": "Trigger when price reaches a new 52-week extreme",
+            "threshold": "Threshold",
+            "min_score": "Min Score",
+            "prediction_direction": "Prediction Direction"
         },
         "direction": {
             "above": "Above",
             "below": "Below",
             "both": "Both",
             "cross_up": "Cross Up",
-            "cross_down": "Cross Down"
+            "cross_down": "Cross Down",
+            "gap_up": "Gap Up",
+            "gap_down": "Gap Down",
+            "bullish": "Bullish",
+            "bearish": "Bearish",
+            "up": "Upward",
+            "down": "Downward"
+        },
+        "52week": {
+            "new_high": "New 52-Week High",
+            "new_low": "New 52-Week Low",
+            "both": "Both High and Low"
         },
         "priority": {
             "critical": "Critical",
@@ -1374,19 +1397,42 @@
                 "unacknowledged": "Unacknowledged"
             }
         },
+        "compound": {
+            "logic": "Condition Logic",
+            "conditions": "Conditions",
+            "and_hint": "Alert triggers when ALL conditions are met",
+            "or_hint": "Alert triggers when ANY condition is met",
+            "no_conditions": "No conditions added yet",
+            "add_first": "Add First Condition",
+            "add_condition": "Add Condition"
+        },
         "chains": {
+            "title": "Alert Chains",
+            "description": "Link alerts together to create sequential trigger flows",
+            "triggered_by": "Triggered By",
+            "current_alert": "Current Alert",
+            "then_trigger": "Then Trigger",
+            "no_chained": "No chained alerts. Add alerts to trigger after this one.",
+            "add_chain": "Add Chained Alert",
+            "add_title": "Add Chained Alert",
+            "add_description": "Select an alert to trigger after this one completes",
+            "select_alert": "Select Alert",
+            "select_placeholder": "Choose an alert to chain...",
+            "flow_preview": "Chain Flow Preview",
+            "info": "Chained alerts automatically activate when their parent alert triggers.",
             "create_chain": "Create Alert Chain",
             "edit_chain": "Edit Alert Chain",
             "name": "Chain Name",
             "name_placeholder": "e.g., Breakout Follow-up",
             "when_triggers": "When this alert triggers",
             "then_activate": "Then activate this alert",
-            "select_alert": "Select an alert",
             "delay_minutes": "Delay (minutes)",
             "expires_after": "Expires after (minutes)",
             "no_expiration": "No expiration",
             "trigger": "Trigger",
             "activate": "Activate"
-        }
+        },
+        "view_alert": "View Alert",
+        "acknowledge": "Acknowledge"
     }
 }
