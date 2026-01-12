@@ -5,7 +5,6 @@ namespace App\Telegram\Handlers;
 use App\Models\Asset;
 use App\Models\Country;
 use App\Models\User;
-use App\Telegram\Services\AlertKeyboardBuilder;
 use App\Telegram\Services\DefaultKeyboardBuilder;
 use App\Telegram\Services\OnboardingKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
@@ -71,6 +70,7 @@ class TextInputHandler extends UpdateHandler
             'name' => $this->handleNameInput($user, $text, $chatId, $locale),
             'country_search' => $this->handleCountrySearch($user, $text, $chatId, $locale),
             'alert_asset_search' => $this->handleAlertAssetSearch($user, $text, $chatId, $locale),
+            'alert_asset_select' => $this->handleAlertAssetSelect($user, $text, $chatId, $locale),
             'alert_target_price' => $this->handleAlertTargetPrice($user, $text, $chatId, $locale),
             'alert_percentage' => $this->handleAlertPercentage($user, $text, $chatId, $locale),
             default => null,
@@ -174,7 +174,6 @@ class TextInputHandler extends UpdateHandler
     private function handleAlertAssetSearch(User $user, string $query, int $chatId, string $locale): mixed
     {
         $query = trim($query);
-        $builder = new AlertKeyboardBuilder;
 
         if (mb_strlen($query) < 1) {
             $this->sendMessage([
@@ -182,6 +181,7 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال رمز أو اسم الأصل.'
                     : '❌ Please enter an asset symbol or name.',
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
             ]);
 
             return null;
@@ -202,9 +202,7 @@ class TextInputHandler extends UpdateHandler
             $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildCancelButton('alert:create', $locale),
-                ],
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
             ]);
 
             // Keep waiting for input
@@ -213,17 +211,113 @@ class TextInputHandler extends UpdateHandler
             return null;
         }
 
-        // Show search results
-        $keyboard = $builder->buildAssetSearchResults($assets, $locale);
+        // Store search results in draft for selection
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['search_results'] = $assets->map(fn ($a) => [
+            'id' => $a->id,
+            'symbol' => $a->symbol,
+            'name' => $locale === 'ar' ? ($a->name_ar ?: $a->name_en) : $a->name_en,
+        ])->toArray();
+        $user->update([
+            'telegram_alert_draft' => $draft,
+            'telegram_awaiting_input' => 'alert_asset_select',
+        ]);
+
+        // Build asset list text
+        $assetLines = $assets->map(function ($asset, $index) use ($locale) {
+            $name = $locale === 'ar' ? ($asset->name_ar ?: $asset->name_en) : $asset->name_en;
+
+            return ($index + 1).". {$asset->symbol} - {$name}";
+        })->join("\n");
+
+        $text = $locale === 'ar'
+            ? "🔍 *نتائج البحث عن: {$query}*\n\n{$assetLines}\n\nأرسل رقم الأصل للاختيار:"
+            : "🔍 *Search results for: {$query}*\n\n{$assetLines}\n\nSend the asset number to select:";
 
         $this->sendMessage([
             'chat_id' => $chatId,
-            'text' => $locale === 'ar'
-                ? "🔍 نتائج البحث عن: {$query}"
-                : "🔍 Search results for: {$query}",
-            'reply_markup' => [
-                'inline_keyboard' => $keyboard,
-            ],
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function handleAlertAssetSelect(User $user, string $input, int $chatId, string $locale): mixed
+    {
+        $input = trim($input);
+        $draft = $user->telegram_alert_draft ?? [];
+        $searchResults = $draft['search_results'] ?? [];
+
+        if (empty($searchResults)) {
+            // No search results stored, prompt to search again
+            $user->update(['telegram_awaiting_input' => 'alert_asset_search']);
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $locale === 'ar'
+                    ? '❌ لم يتم العثور على نتائج. يرجى البحث مرة أخرى:'
+                    : '❌ No results found. Please search again:',
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        // Try to match input as a number (1-5)
+        $selectedIndex = null;
+        if (is_numeric($input)) {
+            $index = (int) $input - 1;
+            if ($index >= 0 && $index < count($searchResults)) {
+                $selectedIndex = $index;
+            }
+        }
+
+        if ($selectedIndex === null) {
+            // Invalid selection
+            $user->update(['telegram_awaiting_input' => 'alert_asset_select']);
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $locale === 'ar'
+                    ? '❌ اختيار غير صالح. يرجى إدخال رقم من القائمة:'
+                    : '❌ Invalid selection. Please enter a number from the list:',
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        // Select the asset
+        $selectedAsset = $searchResults[$selectedIndex];
+
+        $draft['asset_id'] = $selectedAsset['id'];
+        $draft['asset_symbol'] = $selectedAsset['symbol'];
+        $draft['step'] = 'trigger';
+        unset($draft['search_results']);
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        Log::info('Asset selected for alert via Telegram', [
+            'user_id' => $user->id,
+            'asset_id' => $selectedAsset['id'],
+            'asset_symbol' => $selectedAsset['symbol'],
+        ]);
+
+        $symbol = $selectedAsset['symbol'];
+        $name = $selectedAsset['name'];
+
+        $text = $locale === 'ar'
+            ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\nاختر نوع التنبيه:"
+            : "✅ *Selected: {$symbol}*\n{$name}\n\nSelect alert trigger type:";
+
+        $alertType = $draft['type'] ?? 'price';
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::alertTriggerKeyboard($alertType, $locale),
         ]);
 
         return null;
@@ -232,7 +326,6 @@ class TextInputHandler extends UpdateHandler
     private function handleAlertTargetPrice(User $user, string $input, int $chatId, string $locale): mixed
     {
         $input = trim($input);
-        $builder = new AlertKeyboardBuilder;
 
         // Parse the price value
         $price = $this->parseNumericInput($input);
@@ -243,9 +336,7 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال سعر صحيح (مثال: 150.50)'
                     : '❌ Please enter a valid price (e.g., 150.50)',
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildCancelButton('alert:create', $locale),
-                ],
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
             ]);
 
             // Keep waiting for input
@@ -273,9 +364,7 @@ class TextInputHandler extends UpdateHandler
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $builder->buildDirectionSelector($price, $locale),
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::alertDirectionKeyboard($locale),
         ]);
 
         return null;
@@ -284,7 +373,6 @@ class TextInputHandler extends UpdateHandler
     private function handleAlertPercentage(User $user, string $input, int $chatId, string $locale): mixed
     {
         $input = trim($input);
-        $builder = new AlertKeyboardBuilder;
 
         // Parse the percentage value
         $percentage = $this->parseNumericInput($input);
@@ -295,9 +383,7 @@ class TextInputHandler extends UpdateHandler
                 'text' => $locale === 'ar'
                     ? '❌ يرجى إدخال نسبة صحيحة بين 0.1 و 100 (مثال: 5)'
                     : '❌ Please enter a valid percentage between 0.1 and 100 (e.g., 5)',
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildCancelButton('alert:create', $locale),
-                ],
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
             ]);
 
             // Keep waiting for input
@@ -324,9 +410,7 @@ class TextInputHandler extends UpdateHandler
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $builder->buildPercentageDirectionSelector($percentage, $locale),
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::alertDirectionKeyboard($locale),
         ]);
 
         return null;

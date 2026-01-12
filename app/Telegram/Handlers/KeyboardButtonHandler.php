@@ -8,7 +8,6 @@ use App\Telegram\Commands\AlertsCommand;
 use App\Telegram\Commands\HelpCommand;
 use App\Telegram\Commands\OnboardingCommand;
 use App\Telegram\Commands\SettingsCommand;
-use App\Telegram\Services\AlertKeyboardBuilder;
 use App\Telegram\Services\DefaultKeyboardBuilder;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -637,7 +636,10 @@ class KeyboardButtonHandler extends UpdateHandler
         $draft = $user->telegram_alert_draft ?? [];
         $draft['type'] = $type;
         $draft['step'] = 'asset';
-        $user->update(['telegram_alert_draft' => $draft]);
+        $user->update([
+            'telegram_alert_draft' => $draft,
+            'telegram_awaiting_input' => 'alert_asset_search',
+        ]);
 
         // Type labels for the message
         $typeLabels = [
@@ -649,23 +651,15 @@ class KeyboardButtonHandler extends UpdateHandler
         $typeLabel = $typeLabels[$type][$locale] ?? $type;
         $typeIcon = $typeLabels[$type]['icon'] ?? '📊';
 
-        // Get user's portfolio and watchlist assets for quick selection
-        $portfolioAssets = $user->portfolio()->with('asset')->get()->pluck('asset')->filter();
-        $watchlistAssets = $user->watchlist ?? collect();
-
-        $builder = new AlertKeyboardBuilder;
-
         $text = $locale === 'ar'
-            ? "{$typeIcon} *{$typeLabel}*\n\nاختر الأصل للتنبيه:"
-            : "{$typeIcon} *{$typeLabel}*\n\nSelect an asset for the alert:";
+            ? "{$typeIcon} *{$typeLabel}*\n\n🔍 أدخل رمز أو اسم الأصل للبحث:"
+            : "{$typeIcon} *{$typeLabel}*\n\n🔍 Enter asset symbol or name to search:";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $builder->buildAssetSelector($portfolioAssets, $watchlistAssets, $locale),
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
         ]);
 
         return null;
