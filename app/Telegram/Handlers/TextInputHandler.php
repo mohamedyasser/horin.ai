@@ -225,11 +225,9 @@ class TextInputHandler extends UpdateHandler
             return null;
         }
 
-        // Search assets by symbol or name
-        $assets = Asset::where('symbol', 'LIKE', "%{$query}%")
-            ->orWhere('name', 'LIKE', "%{$query}%")
-            ->orWhere('name_ar', 'LIKE', "%{$query}%")
-            ->limit(5)
+        // Search assets using Scout (Meilisearch)
+        $assets = Asset::search($query)
+            ->take(5)
             ->get();
 
         $builder = new AlertKeyboardBuilder;
