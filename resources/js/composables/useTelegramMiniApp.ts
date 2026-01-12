@@ -131,6 +131,7 @@ export function useTelegramMiniApp() {
         try {
             const response = await fetch('/auth/telegram/mini-app', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Authorization': `tma ${rawData}`,
                     'Content-Type': 'application/json',
@@ -245,6 +246,8 @@ export function useTelegramMiniApp() {
     };
 }
 
+const TMA_AUTH_KEY = 'tma_auth_completed';
+
 /**
  * Initialize Mini App and auto-authenticate if needed.
  * Should be called once on app startup.
@@ -260,9 +263,29 @@ export async function initializeTelegramMiniApp(isAuthenticated: boolean): Promi
     const initialized = initializeSdk();
     if (!initialized) return null;
 
-    // If already authenticated, no need to re-authenticate
-    if (isAuthenticated) return null;
+    // If already authenticated via session, clear the flag and skip
+    if (isAuthenticated) {
+        sessionStorage.removeItem(TMA_AUTH_KEY);
+        return null;
+    }
+
+    // Prevent re-authentication loops - if we already tried authenticating this session
+    if (sessionStorage.getItem(TMA_AUTH_KEY)) {
+        return null;
+    }
+
+    // Mark that we're attempting authentication
+    sessionStorage.setItem(TMA_AUTH_KEY, 'pending');
 
     // Authenticate the user
-    return authenticate();
+    const result = await authenticate();
+
+    if (result?.success) {
+        sessionStorage.setItem(TMA_AUTH_KEY, 'success');
+    } else {
+        // Clear flag on failure so user can retry
+        sessionStorage.removeItem(TMA_AUTH_KEY);
+    }
+
+    return result;
 }

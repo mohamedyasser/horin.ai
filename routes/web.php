@@ -46,9 +46,10 @@ Route::post('telegram/webhook', [TelegramWebhookController::class, 'handle'])
     ->middleware(['telegram.webhook']);
 
 // Telegram Mini App Auth (validated by init data)
+// Keep 'web' middleware for session handling, but exclude CSRF (uses Authorization header)
 Route::post('auth/telegram/mini-app', [TelegramMiniAppAuthController::class, 'authenticate'])
     ->name('auth.telegram.mini-app')
-    ->withoutMiddleware(['web'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->middleware(['telegram.mini-app']);
 
 // Phone Verification Routes
