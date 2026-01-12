@@ -7,6 +7,7 @@ use App\Telegram\Commands\AlertsCommand;
 use App\Telegram\Commands\HelpCommand;
 use App\Telegram\Commands\OnboardingCommand;
 use App\Telegram\Commands\SettingsCommand;
+use App\Telegram\Services\AlertKeyboardBuilder;
 use App\Telegram\Services\DefaultKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\UpdateHandler;
 
@@ -135,7 +136,7 @@ class KeyboardButtonHandler extends UpdateHandler
     {
         return match ($action) {
             'alerts' => $this->triggerAlertsCommand($chatId),
-            'new_alert' => $this->triggerNewAlertCommand($chatId, $locale),
+            'new_alert' => $this->triggerNewAlertCommand($chatId, $user, $locale),
             'settings' => $this->triggerSettingsCommand($chatId),
             'help' => $this->triggerHelpCommand($chatId),
             'onboarding' => $this->triggerOnboardingCommand($chatId, $user),
@@ -173,21 +174,40 @@ class KeyboardButtonHandler extends UpdateHandler
         return $handler->handle();
     }
 
-    private function triggerNewAlertCommand(int $chatId, string $locale): mixed
+    private function triggerNewAlertCommand(int $chatId, ?User $user, string $locale): mixed
     {
-        // For new alert, we need to start the alert creation flow
+        if (! $user) {
+            $text = $locale === 'ar'
+                ? '❌ يرجى التسجيل أولاً باستخدام /start'
+                : '❌ Please register first using /start';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+            ]);
+
+            return null;
+        }
+
+        // Clear any existing draft and start fresh
+        $user->update(['telegram_alert_draft' => ['step' => 'type']]);
+
+        $builder = new AlertKeyboardBuilder;
+
         $text = $locale === 'ar'
-            ? "➕ *إنشاء تنبيه جديد*\n\nاستخدم الأمر /alerts ثم اختر 'تنبيه جديد' لإنشاء تنبيه."
-            : "➕ *Create New Alert*\n\nUse /alerts command then select 'New Alert' to create an alert.";
+            ? "📊 *إنشاء تنبيه*\n\nما نوع التنبيه؟"
+            : "📊 *Create Alert*\n\nWhat type of alert?";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildAlertTypeSelector($locale),
+            ],
         ]);
 
-        // Trigger alerts command
-        return $this->triggerAlertsCommand($chatId);
+        return null;
     }
 
     private function triggerSettingsCommand(int $chatId): mixed
