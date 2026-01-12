@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers\Buttons;
 
 use App\Models\Alert;
+use App\Models\Asset;
 use App\Models\User;
 use App\Telegram\Commands\AlertsCommand;
 use App\Telegram\Keyboards\AlertsKeyboard;
@@ -259,28 +260,38 @@ class AlertsButtonHandler extends AbstractButtonHandler
         $label = $labels[$triggerType][$locale] ?? $triggerType;
         $symbol = $draft['asset_symbol'] ?? 'N/A';
 
+        // Get current price for the asset
+        $currentPriceText = '';
+        if (! empty($draft['asset_id'])) {
+            $asset = Asset::with('cachedPrice')->find($draft['asset_id']);
+            if ($asset?->cachedPrice?->price) {
+                $formattedPrice = number_format($asset->cachedPrice->price, 2);
+                $currentPriceText = $locale === 'ar'
+                    ? "\n💵 السعر الحالي: {$formattedPrice}"
+                    : "\n💵 Current price: {$formattedPrice}";
+            }
+        }
+
         if ($triggerType === 'target_price' || $triggerType === 'breakout') {
             $user->update(['telegram_awaiting_input' => 'alert_target_price']);
 
             $text = $locale === 'ar'
-                ? "🎯 *{$label}*\n\n📊 الأصل: {$symbol}\n\nأدخل السعر المستهدف:"
-                : "🎯 *{$label}*\n\n📊 Asset: {$symbol}\n\nEnter the target price:";
+                ? "🎯 *{$label}*\n\n📊 الأصل: {$symbol}{$currentPriceText}\n\nأدخل السعر المستهدف:"
+                : "🎯 *{$label}*\n\n📊 Asset: {$symbol}{$currentPriceText}\n\nEnter the target price:";
         } else {
             $user->update(['telegram_awaiting_input' => 'alert_percentage']);
 
             $text = $locale === 'ar'
-                ? "📊 *{$label}*\n\n📊 الأصل: {$symbol}\n\nأدخل نسبة التغير (مثال: 5):"
-                : "📊 *{$label}*\n\n📊 Asset: {$symbol}\n\nEnter the change percentage (e.g., 5):";
+                ? "📊 *{$label}*\n\n📊 الأصل: {$symbol}{$currentPriceText}\n\nأدخل نسبة التغير (مثال: 5):"
+                : "📊 *{$label}*\n\n📊 Asset: {$symbol}{$currentPriceText}\n\nEnter the change percentage (e.g., 5):";
         }
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::cancelKeyboard($locale),
         ]);
-
-        return null;
     }
 
     // Direction setters
