@@ -381,6 +381,9 @@ class KeyboardButtonHandler extends UpdateHandler
 
     private function setUserLanguage(int $chatId, ?User $user, string $newLocale): mixed
     {
+        $message = $this->update->message;
+        $telegramId = (string) $message->from->id;
+
         if ($user) {
             // Existing user - update language
             $user->update(['language' => $newLocale]);
@@ -395,7 +398,26 @@ class KeyboardButtonHandler extends UpdateHandler
                 'reply_markup' => DefaultKeyboardBuilder::forUser($user, $newLocale),
             ]);
         } else {
-            // New user selecting language - show phone verification
+            // New user selecting language - create user record with language preference
+            $from = $message->from;
+            $firstName = $from->first_name ?? '';
+            $lastName = $from->last_name ?? '';
+            $name = trim("{$firstName} {$lastName}") ?: 'Telegram User';
+
+            $user = User::create([
+                'name' => $name,
+                'telegram_id' => $telegramId,
+                'telegram_username' => $from->username ?? null,
+                'language' => $newLocale,
+            ]);
+
+            \Illuminate\Support\Facades\Log::info('New user created via language selection', [
+                'user_id' => $user->id,
+                'telegram_id' => $telegramId,
+                'language' => $newLocale,
+            ]);
+
+            // Show phone verification
             $text = $newLocale === 'ar'
                 ? "✅ تم اختيار العربية.\n\n📱 يرجى مشاركة رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه:"
                 : "✅ English selected.\n\n📱 Please share your phone number to continue.\n\nTap the button below:";

@@ -46,6 +46,7 @@ class User extends Authenticatable
         'risk_level',
         'trading_style',
         'phone',
+        'phone_verified_at',
         'telegram_id',
         'telegram_username',
         'telegram_photo_url',
