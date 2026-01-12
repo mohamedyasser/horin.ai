@@ -8,7 +8,7 @@ use App\Models\AlertNotification;
 
 class TelegramMessageBuilder
 {
-    private const LINE = '━━━━━━━━━━━━━━━━━━';
+    private string $line = '━━━━━━━━━━━━━━━━━━';
 
     /**
      * Build notification message based on alert type.
@@ -73,7 +73,7 @@ class TelegramMessageBuilder
         if ($locale === 'ar') {
             return <<<MSG
 🎯 *وصول السعر المستهدف*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -85,13 +85,13 @@ class TelegramMessageBuilder
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
         }
 
         return <<<MSG
 🎯 *Target Price Reached*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -103,7 +103,7 @@ Your alert triggered at {$targetPrice} EGP.
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
@@ -134,7 +134,7 @@ MSG;
 
             return <<<MSG
 🚀 *اختراق مؤكد*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -147,7 +147,7 @@ MSG;
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
         }
 
@@ -155,7 +155,7 @@ MSG;
 
         return <<<MSG
 🚀 *Breakout Confirmed*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -168,7 +168,7 @@ Price sustained above breakout level.
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
@@ -197,7 +197,7 @@ MSG;
         if ($locale === 'ar') {
             return <<<MSG
 📊 *تم رصد إشارة فنية*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -209,13 +209,13 @@ MSG;
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
         }
 
         return <<<MSG
 📊 *Technical Signal Detected*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -227,7 +227,7 @@ Current Price: {$currentPrice} EGP
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
@@ -269,7 +269,7 @@ MSG;
 
             return <<<MSG
 {$severityEmoji} *تم رصد شذوذ في السوق*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -284,7 +284,7 @@ MSG;
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
         }
 
@@ -292,7 +292,7 @@ MSG;
 
         return <<<MSG
 {$severityEmoji} *Market Anomaly Detected*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -307,7 +307,7 @@ Current Price: {$currentPrice} EGP
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
@@ -346,7 +346,7 @@ MSG;
 
             return <<<MSG
 📐 *تأكيد نموذج فني*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -361,7 +361,7 @@ MSG;
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
         }
 
@@ -373,7 +373,7 @@ MSG;
 
         return <<<MSG
 📐 *Chart Pattern Confirmed*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -388,7 +388,7 @@ Current Price: {$currentPrice} EGP
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
@@ -426,7 +426,7 @@ MSG;
 
             return <<<MSG
 ⭐ *تحديث التوصية*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -439,7 +439,7 @@ MSG;
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
         }
 
@@ -449,7 +449,7 @@ MSG;
 
         return <<<MSG
 ⭐ *Recommendation Updated*
-{$this::LINE}
+{$this->line}
 
 *{$symbol}* - {$name}
 
@@ -462,7 +462,7 @@ Current Price: {$currentPrice} EGP
 
 🕐 {$time} · {$date}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
@@ -491,10 +491,10 @@ MSG;
         $conditionsText = implode("\n", $conditionLines);
 
         if ($locale === 'ar') {
-            return "⭐ *توافق إشارات متعددة!*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n🔥 *فرصة عالية الثقة*\n\n{$conditionsText}\n\n🎯 الثقة المجمعة: *{$confidence}%*\nالسعر الحالي: {$currentPrice} ج.م\n\n🕐 {$time}";
+            return "⭐ *توافق إشارات متعددة!*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n🔥 *فرصة عالية الثقة*\n\n{$conditionsText}\n\n🎯 الثقة المجمعة: *{$confidence}%*\nالسعر الحالي: {$currentPrice} ج.م\n\n🕐 {$time}";
         }
 
-        return "⭐ *Multiple Signals Aligned!*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n🔥 *High-Conviction Setup*\n\n{$conditionsText}\n\n🎯 Combined Confidence: *{$confidence}%*\nCurrent Price: {$currentPrice} EGP\n\n🕐 {$time}";
+        return "⭐ *Multiple Signals Aligned!*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n🔥 *High-Conviction Setup*\n\n{$conditionsText}\n\n🎯 Combined Confidence: *{$confidence}%*\nCurrent Price: {$currentPrice} EGP\n\n🕐 {$time}";
     }
 
     /**
@@ -509,10 +509,10 @@ MSG;
         $time = now()->setTimezone('Africa/Cairo')->format('h:i A');
 
         if ($locale === 'ar') {
-            return "📍 *تنبيه المنطقة*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\nالسعر دخل المنطقة المحددة.\nالسعر الحالي: {$currentPrice} ج.م\n\n🕐 {$time}";
+            return "📍 *تنبيه المنطقة*\n{$this->line}\n\n*{$symbol}* - {$name}\n\nالسعر دخل المنطقة المحددة.\nالسعر الحالي: {$currentPrice} ج.م\n\n🕐 {$time}";
         }
 
-        return "📍 *Zone Alert*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\nPrice entered the configured zone.\nCurrent Price: {$currentPrice} EGP\n\n🕐 {$time}";
+        return "📍 *Zone Alert*\n{$this->line}\n\n*{$symbol}* - {$name}\n\nPrice entered the configured zone.\nCurrent Price: {$currentPrice} EGP\n\n🕐 {$time}";
     }
 
     /**
@@ -533,10 +533,10 @@ MSG;
         if ($locale === 'ar') {
             $dirText = $direction === 'up' ? 'صاعدة' : 'هابطة';
 
-            return "🕳 *فجوة سعرية {$dirText}*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n{$emoji} الفجوة: {$gapPercent}%\n\n🕐 {$time}";
+            return "🕳 *فجوة سعرية {$dirText}*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n{$emoji} الفجوة: {$gapPercent}%\n\n🕐 {$time}";
         }
 
-        return "🕳 *Gap {$direction} Detected*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n{$emoji} Gap: {$gapPercent}%\n\n🕐 {$time}";
+        return "🕳 *Gap {$direction} Detected*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n{$emoji} Gap: {$gapPercent}%\n\n🕐 {$time}";
     }
 
     /**
@@ -557,12 +557,12 @@ MSG;
         if ($locale === 'ar') {
             $typeText = $type === 'high' ? 'قمة جديدة' : 'قاع جديد';
 
-            return "{$emoji} *{$typeText} لـ 52 أسبوع!*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n⭐ السعر: *{$price} ج.م*\n\n🕐 {$time}";
+            return "{$emoji} *{$typeText} لـ 52 أسبوع!*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n⭐ السعر: *{$price} ج.م*\n\n🕐 {$time}";
         }
 
         $typeText = $type === 'high' ? 'New 52-Week High' : 'New 52-Week Low';
 
-        return "{$emoji} *{$typeText}!*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n⭐ Price: *{$price} EGP*\n\n🕐 {$time}";
+        return "{$emoji} *{$typeText}!*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n⭐ Price: *{$price} EGP*\n\n🕐 {$time}";
     }
 
     /**
@@ -579,10 +579,10 @@ MSG;
         $time = now()->setTimezone('Africa/Cairo')->format('h:i A');
 
         if ($locale === 'ar') {
-            return "{$emoji} *تنبيه حركة كبيرة*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n🔥 التغير: *{$changePercent}%*\n\n🕐 {$time}";
+            return "{$emoji} *تنبيه حركة كبيرة*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n🔥 التغير: *{$changePercent}%*\n\n🕐 {$time}";
         }
 
-        return "{$emoji} *Big Move Alert*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n🔥 Change: *{$changePercent}%*\n\n🕐 {$time}";
+        return "{$emoji} *Big Move Alert*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n🔥 Change: *{$changePercent}%*\n\n🕐 {$time}";
     }
 
     /**
@@ -600,10 +600,10 @@ MSG;
         $time = now()->setTimezone('Africa/Cairo')->format('h:i A');
 
         if ($locale === 'ar') {
-            return "🔄 *العودة لسعر الشراء*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n💰 السعر الحالي: *{$currentPrice} ج.م*\n🎯 سعر شرائك: {$entryPrice} ج.م\n\nفرصة للخروج بدون خسارة.\n\n🕐 {$time}";
+            return "🔄 *العودة لسعر الشراء*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n💰 السعر الحالي: *{$currentPrice} ج.م*\n🎯 سعر شرائك: {$entryPrice} ج.م\n\nفرصة للخروج بدون خسارة.\n\n🕐 {$time}";
         }
 
-        return "🔄 *Back to Your Entry Price*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n💰 Current Price: *{$currentPrice} EGP*\n🎯 Your Entry: {$entryPrice} EGP\n\nBreak-even opportunity.\n\n🕐 {$time}";
+        return "🔄 *Back to Your Entry Price*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n💰 Current Price: *{$currentPrice} EGP*\n🎯 Your Entry: {$entryPrice} EGP\n\nBreak-even opportunity.\n\n🕐 {$time}";
     }
 
     /**
@@ -626,10 +626,10 @@ MSG;
         if ($locale === 'ar') {
             $dirText = $direction === 'up' ? 'صاعد' : 'هابط';
 
-            return "🔮 *تنبيه توقع الذكاء الاصطناعي*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n🤖 توقع حورين:\n{$dirEmoji} الاتجاه: *{$dirText}*\n🕐 المدى: {$horizon}\n🎯 الثقة: *{$confidence}%*\n\nالسعر الحالي: {$currentPrice} ج.م\n\n🕐 {$time}";
+            return "🔮 *تنبيه توقع الذكاء الاصطناعي*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n🤖 توقع حورين:\n{$dirEmoji} الاتجاه: *{$dirText}*\n🕐 المدى: {$horizon}\n🎯 الثقة: *{$confidence}%*\n\nالسعر الحالي: {$currentPrice} ج.م\n\n🕐 {$time}";
         }
 
-        return "🔮 *AI Prediction Alert*\n{$this::LINE}\n\n*{$symbol}* - {$name}\n\n🤖 Horin AI Prediction:\n{$dirEmoji} Direction: *{$direction}*\n🕐 Horizon: {$horizon}\n🎯 Confidence: *{$confidence}%*\n\nCurrent Price: {$currentPrice} EGP\n\n🕐 {$time}";
+        return "🔮 *AI Prediction Alert*\n{$this->line}\n\n*{$symbol}* - {$name}\n\n🤖 Horin AI Prediction:\n{$dirEmoji} Direction: *{$direction}*\n🕐 Horizon: {$horizon}\n🎯 Confidence: *{$confidence}%*\n\nCurrent Price: {$currentPrice} EGP\n\n🕐 {$time}";
     }
 
     /**
@@ -644,11 +644,11 @@ MSG;
 
         return <<<MSG
 🔔 *{$title}*
-{$this::LINE}
+{$this->line}
 
 {$body}
 
-{$this::LINE}
+{$this->line}
 MSG;
     }
 
