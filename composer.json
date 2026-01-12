@@ -26,6 +26,7 @@
         "sentry/sentry-laravel": "^4.20",
         "spiral/roadrunner-cli": "^2.6.0",
         "spiral/roadrunner-http": "^3.3.0",
+        "vermaysha/pgbouncer-laravel-extension": "dev-master",
         "westacks/telebot": "*",
         "westacks/telebot-laravel": "^4.3"
     },

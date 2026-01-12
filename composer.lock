@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6bf1892bd01e11fa360c4d0c0e2e1ed7",
+    "content-hash": "5ce56308039ffbd27e5e906d49c5c870",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -9876,6 +9876,67 @@
             "time": "2024-12-21T16:25:41+00:00"
         },
         {
+            "name": "vermaysha/pgbouncer-laravel-extension",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vermaysha/pgbouncer-laravel-extension.git",
+                "reference": "79590cc1fc0ce35233445f2e528b5c80d6a231f1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vermaysha/pgbouncer-laravel-extension/zipball/79590cc1fc0ce35233445f2e528b5c80d6a231f1",
+                "reference": "79590cc1fc0ce35233445f2e528b5c80d6a231f1",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^10.0 || ^11.0 || ^12.0",
+                "illuminate/support": "^10.0 || ^11.0 || ^12.0",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^8.0 || ^9.0",
+                "phpunit/phpunit": "^10.0 || ^11.0"
+            },
+            "default-branch": true,
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Vermaysha\\PgbouncerLaravelExtension\\PgbouncerExtensionServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Vermaysha\\PgbouncerLaravelExtension\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ashary Vermaysha",
+                    "email": "vermaysha@gmail.com"
+                }
+            ],
+            "description": "A Laravel extension to support PgBouncer with emulated prepared statements for PostgreSQL connections.",
+            "keywords": [
+                "database",
+                "laravel",
+                "pgbouncer",
+                "pgsql",
+                "postgresql"
+            ],
+            "support": {
+                "issues": "https://github.com/vermaysha/pgbouncer-laravel-extension/issues",
+                "source": "https://github.com/vermaysha/pgbouncer-laravel-extension/tree/master"
+            },
+            "time": "2025-07-02T01:37:58+00:00"
+        },
+        {
             "name": "vlucas/phpdotenv",
             "version": "v5.6.2",
             "source": {
@@ -12584,7 +12645,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "vermaysha/pgbouncer-laravel-extension": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
