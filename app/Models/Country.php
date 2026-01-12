@@ -28,8 +28,15 @@ class Country extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('active', function ($query) {
-            $query->where('status', true);
+            $query->whereRaw('status = true');
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'status' => 'boolean',
+        ];
     }
 
     /**
