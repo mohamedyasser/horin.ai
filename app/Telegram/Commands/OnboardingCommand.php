@@ -44,7 +44,7 @@ class OnboardingCommand extends CommandHandler
         // Determine current step
         $currentStep = $builder->getCurrentStep($user);
 
-        if ($currentStep === 0) {
+        if ($currentStep === 'complete') {
             // User has filled all data but not marked as complete
             $user->markOnboardingAsComplete();
             $this->sendCompletionMessage($chatId, $locale, $builder);
@@ -61,20 +61,20 @@ class OnboardingCommand extends CommandHandler
     /**
      * Send onboarding step message with keyboard.
      */
-    public function sendOnboardingStep(int $chatId, User $user, int $step, ?OnboardingKeyboardBuilder $builder = null): void
+    public function sendOnboardingStep(int $chatId, User $user, string $step, ?OnboardingKeyboardBuilder $builder = null): void
     {
         $builder = $builder ?? new OnboardingKeyboardBuilder;
         $locale = $user->language ?? 'en';
-        $selected = $builder->getSelectedValues($user, $step);
 
         $message = $builder->getStepMessage($step, $locale);
         $keyboard = match ($step) {
-            1 => $builder->buildStep1Keyboard($locale, $selected),
-            2 => $builder->buildStep2Keyboard($locale, $selected),
-            3 => $selected['country_id']
-                ? $builder->buildStep3MarketsKeyboard($locale, $selected['country_id'], $selected['markets'] ?? [])
-                : $builder->buildStep3CountryKeyboard($locale),
-            4 => $builder->buildStep4Keyboard($locale, $selected['sectors'] ?? []),
+            '1a' => $builder->buildStep1aKeyboard($locale, $user->experience_level),
+            '1b' => $builder->buildStep1bKeyboard($locale, $user->risk_level),
+            '2a' => $builder->buildStep2aKeyboard($locale, $user->investment_goal),
+            '2b' => $builder->buildStep2bKeyboard($locale, $user->trading_style),
+            '3a' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
+            '3b' => $builder->buildStep3MarketsKeyboard($locale, $user->country_id, $user->markets()->pluck('markets.id')->toArray()),
+            '4' => $builder->buildStep4Keyboard($locale, $user->sectors()->pluck('sectors.id')->toArray()),
             default => [],
         };
 
@@ -130,23 +130,27 @@ class OnboardingCommand extends CommandHandler
     private function sendLoginPrompt(int $chatId): void
     {
         $locale = $this->update->message->from->language_code ?? 'en';
+        // Normalize to supported languages
+        $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
 
         $text = $locale === 'ar'
-            ? '👋 مرحبا! افتح التطبيق للبدء.'
-            : '👋 Hi! Open the app to get started.';
+            ? "👋 مرحبا! شارك رقم هاتفك للتسجيل."
+            : "👋 Hi! Share your phone number to register.";
 
-        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'inline_keyboard' => [[
+                'keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url')],
+                        'request_contact' => true,
                     ],
                 ]],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
             ],
         ]);
     }

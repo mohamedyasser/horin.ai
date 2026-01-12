@@ -59,47 +59,21 @@ class OnboardingKeyboardBuilder
     private const POPULAR_COUNTRY_CODES = ['EG', 'SA', 'AE', 'KW', 'QA', 'BH'];
 
     /**
-     * Build Step 1 keyboard: Experience & Risk selection.
-     *
-     * @param  array{experience_level?: string|null, risk_level?: string|null}  $selected
+     * Build Step 1a keyboard: Experience selection only.
      */
-    public function buildStep1Keyboard(string $locale, array $selected = []): array
+    public function buildStep1aKeyboard(string $locale, ?string $selectedExp = null): array
     {
         $keyboard = [];
 
-        // Experience level buttons (row 1)
-        $expRow = [];
+        // Experience level buttons in single column for clarity
         foreach (self::EXPERIENCE_LEVELS as $key => $labels) {
-            $isSelected = ($selected['experience_level'] ?? null) === $key;
+            $isSelected = $selectedExp === $key;
             $text = $isSelected
                 ? "✓ {$labels['icon']} {$labels[$locale]}"
                 : "{$labels['icon']} {$labels[$locale]}";
-            $expRow[] = [
+            $keyboard[] = [[
                 'text' => $text,
                 'callback_data' => "ob:exp:{$key}",
-            ];
-        }
-        $keyboard[] = $expRow;
-
-        // Risk level buttons (row 2)
-        $riskRow = [];
-        foreach (self::RISK_LEVELS as $key => $labels) {
-            $isSelected = ($selected['risk_level'] ?? null) === $key;
-            $text = $isSelected
-                ? "✓ {$labels['icon']} {$labels[$locale]}"
-                : "{$labels['icon']} {$labels[$locale]}";
-            $riskRow[] = [
-                'text' => $text,
-                'callback_data' => "ob:risk:{$key}",
-            ];
-        }
-        $keyboard[] = $riskRow;
-
-        // Next button if both selected
-        if (isset($selected['experience_level']) && isset($selected['risk_level'])) {
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '➡️ التالي' : '➡️ Next',
-                'callback_data' => 'ob:step1:next',
             ]];
         }
 
@@ -107,37 +81,58 @@ class OnboardingKeyboardBuilder
     }
 
     /**
-     * Build Step 2 keyboard: Investment Goal & Trading Style.
-     *
-     * @param  array{investment_goal?: string|null, trading_style?: string|null}  $selected
+     * Build Step 1b keyboard: Risk selection only.
      */
-    public function buildStep2Keyboard(string $locale, array $selected = [], int $goalPage = 1): array
+    public function buildStep1bKeyboard(string $locale, ?string $selectedRisk = null): array
     {
         $keyboard = [];
 
-        // Investment goals (paginated, 6 per page)
+        // Risk level buttons in single column for clarity
+        foreach (self::RISK_LEVELS as $key => $labels) {
+            $isSelected = $selectedRisk === $key;
+            $text = $isSelected
+                ? "✓ {$labels['icon']} {$labels[$locale]}"
+                : "{$labels['icon']} {$labels[$locale]}";
+            $keyboard[] = [[
+                'text' => $text,
+                'callback_data' => "ob:risk:{$key}",
+            ]];
+        }
+
+        // Back button
+        $keyboard[] = [[
+            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
+            'callback_data' => 'ob:step1b:back',
+        ]];
+
+        return $keyboard;
+    }
+
+    /**
+     * Build Step 2a keyboard: Investment Goal selection only.
+     */
+    public function buildStep2aKeyboard(string $locale, ?string $selectedGoal = null, int $goalPage = 1): array
+    {
+        $keyboard = [];
+
+        // Investment goals (paginated, 5 per page for single column)
         $goals = array_keys(self::INVESTMENT_GOALS);
-        $perPage = 6;
+        $perPage = 5;
         $totalPages = (int) ceil(count($goals) / $perPage);
         $offset = ($goalPage - 1) * $perPage;
         $pageGoals = array_slice($goals, $offset, $perPage);
 
-        // Goals in rows of 3
-        $goalRows = array_chunk($pageGoals, 3);
-        foreach ($goalRows as $row) {
-            $btns = [];
-            foreach ($row as $key) {
-                $labels = self::INVESTMENT_GOALS[$key];
-                $isSelected = ($selected['investment_goal'] ?? null) === $key;
-                $text = $isSelected
-                    ? "✓ {$labels['icon']} {$labels[$locale]}"
-                    : "{$labels['icon']} {$labels[$locale]}";
-                $btns[] = [
-                    'text' => $text,
-                    'callback_data' => "ob:goal:{$key}",
-                ];
-            }
-            $keyboard[] = $btns;
+        // Goals in single column
+        foreach ($pageGoals as $key) {
+            $labels = self::INVESTMENT_GOALS[$key];
+            $isSelected = $selectedGoal === $key;
+            $text = $isSelected
+                ? "✓ {$labels['icon']} {$labels[$locale]}"
+                : "{$labels['icon']} {$labels[$locale]}";
+            $keyboard[] = [[
+                'text' => $text,
+                'callback_data' => "ob:goal:{$key}",
+            ]];
         }
 
         // Pagination for goals if needed
@@ -163,34 +158,39 @@ class OnboardingKeyboardBuilder
             $keyboard[] = $navRow;
         }
 
-        // Separator text (no button functionality)
-        // Trading style buttons (row)
-        $styleRow = [];
+        // Back button
+        $keyboard[] = [[
+            'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
+            'callback_data' => 'ob:step2a:back',
+        ]];
+
+        return $keyboard;
+    }
+
+    /**
+     * Build Step 2b keyboard: Trading Style selection only.
+     */
+    public function buildStep2bKeyboard(string $locale, ?string $selectedStyle = null): array
+    {
+        $keyboard = [];
+
+        // Trading style buttons in single column
         foreach (self::TRADING_STYLES as $key => $labels) {
-            $isSelected = ($selected['trading_style'] ?? null) === $key;
+            $isSelected = $selectedStyle === $key;
             $text = $isSelected
                 ? "✓ {$labels['icon']} {$labels[$locale]}"
                 : "{$labels['icon']} {$labels[$locale]}";
-            $styleRow[] = [
+            $keyboard[] = [[
                 'text' => $text,
                 'callback_data' => "ob:style:{$key}",
-            ];
+            ]];
         }
-        $keyboard[] = $styleRow;
 
-        // Navigation: Back / Next
-        $navRow = [];
-        $navRow[] = [
+        // Back button
+        $keyboard[] = [[
             'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step2:back',
-        ];
-        if (isset($selected['investment_goal']) && isset($selected['trading_style'])) {
-            $navRow[] = [
-                'text' => $locale === 'ar' ? '➡️ التالي' : '➡️ Next',
-                'callback_data' => 'ob:step2:next',
-            ];
-        }
-        $keyboard[] = $navRow;
+            'callback_data' => 'ob:step2b:back',
+        ]];
 
         return $keyboard;
     }
@@ -248,10 +248,10 @@ class OnboardingKeyboardBuilder
             'callback_data' => 'ob:country:search',
         ]];
 
-        // Back button
+        // Back button - goes to step 2b (style)
         $keyboard[] = [[
             'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step3:back',
+            'callback_data' => 'ob:step3a:back',
         ]];
 
         return $keyboard;
@@ -342,12 +342,8 @@ class OnboardingKeyboardBuilder
 
         $navRow = [];
         $navRow[] = [
-            'text' => $locale === 'ar' ? '🌍 تغيير الدولة' : '🌍 Change Country',
-            'callback_data' => 'ob:country:change',
-        ];
-        $navRow[] = [
             'text' => $locale === 'ar' ? '⬅️ السابق' : '⬅️ Back',
-            'callback_data' => 'ob:step3:back',
+            'callback_data' => 'ob:step3b:back',
         ];
         if ($selectedCount > 0) {
             $navRow[] = [
@@ -461,21 +457,30 @@ class OnboardingKeyboardBuilder
     /**
      * Build the step message text.
      */
-    public function getStepMessage(int $step, string $locale): string
+    public function getStepMessage(string $step, string $locale): string
     {
         return match ($step) {
-            1 => $locale === 'ar'
-                ? "📊 *الخطوة 1/4: ملفك الشخصي*\n\nما هو مستوى خبرتك في التداول؟\n\nما هو مستوى تحملك للمخاطر؟"
-                : "📊 *Step 1/4: Your Profile*\n\nWhat's your trading experience?\n\nWhat's your risk tolerance?",
-            2 => $locale === 'ar'
-                ? "📈 *الخطوة 2/4: أهداف الاستثمار*\n\nاختر هدفك الاستثماري الرئيسي:\n\nاختر أسلوب التداول:"
-                : "📈 *Step 2/4: Investment Goals*\n\nSelect your primary investment goal:\n\nSelect your trading style:",
-            3 => $locale === 'ar'
-                ? "🌍 *الخطوة 3/4: الأسواق*\n\nاختر دولتك ثم اختر الأسواق التي تهتم بها:"
-                : "🌍 *Step 3/4: Markets*\n\nSelect your country then choose the markets you're interested in:",
-            4 => $locale === 'ar'
-                ? "🏭 *الخطوة 4/4: القطاعات*\n\nاختر القطاعات التي تهتم بها:"
-                : "🏭 *Step 4/4: Sectors*\n\nSelect the sectors you're interested in:",
+            '1a' => $locale === 'ar'
+                ? 'ما هو مستوى خبرتك في التداول؟'
+                : "What's your trading experience?",
+            '1b' => $locale === 'ar'
+                ? 'ما هو مستوى تحملك للمخاطر؟'
+                : "What's your risk tolerance?",
+            '2a' => $locale === 'ar'
+                ? 'ما هو هدفك الاستثماري؟'
+                : "What's your investment goal?",
+            '2b' => $locale === 'ar'
+                ? 'ما هو أسلوب التداول المفضل لديك؟'
+                : "What's your trading style?",
+            '3a' => $locale === 'ar'
+                ? 'اختر دولتك:'
+                : 'Select your country:',
+            '3b' => $locale === 'ar'
+                ? 'اختر الأسواق:'
+                : 'Select markets:',
+            '4' => $locale === 'ar'
+                ? 'اختر القطاعات:'
+                : 'Select sectors:',
             default => '',
         };
     }
@@ -527,31 +532,47 @@ MSG;
 
     /**
      * Get the current onboarding step for a user based on their data.
+     * Returns string like '1a', '1b', '2a', '2b', '3a', '3b', '4', or 'complete'.
      */
-    public function getCurrentStep(User $user): int
+    public function getCurrentStep(User $user): string
     {
-        // Step 1: Experience & Risk
-        if (! $user->experience_level || ! $user->risk_level) {
-            return 1;
+        // Step 1a: Experience
+        if (! $user->experience_level) {
+            return '1a';
         }
 
-        // Step 2: Goals & Style
-        if (! $user->investment_goal || ! $user->trading_style) {
-            return 2;
+        // Step 1b: Risk
+        if (! $user->risk_level) {
+            return '1b';
         }
 
-        // Step 3: Country & Markets
-        if (! $user->country_id || $user->markets()->count() === 0) {
-            return 3;
+        // Step 2a: Goal
+        if (! $user->investment_goal) {
+            return '2a';
+        }
+
+        // Step 2b: Style
+        if (! $user->trading_style) {
+            return '2b';
+        }
+
+        // Step 3a: Country
+        if (! $user->country_id) {
+            return '3a';
+        }
+
+        // Step 3b: Markets
+        if ($user->markets()->count() === 0) {
+            return '3b';
         }
 
         // Step 4: Sectors
         if ($user->sectors()->count() === 0) {
-            return 4;
+            return '4';
         }
 
         // All complete
-        return 0;
+        return 'complete';
     }
 
     /**

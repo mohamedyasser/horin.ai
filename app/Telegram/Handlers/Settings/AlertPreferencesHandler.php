@@ -49,7 +49,9 @@ class AlertPreferencesHandler extends CallbackHandler
         }
 
         return match ($action) {
+            'channels' => $this->handleChannelsMenu($user, $subAction, $chatId, $messageId, $locale),
             'channel' => $this->handleChannel($user, $subAction, $chatId, $messageId, $locale),
+            'limits' => $this->handleLimitsMenu($user, $subAction, $chatId, $messageId, $locale),
             'max' => $this->handleMax($user, $subAction, $value, $chatId, $messageId, $locale),
             'quiet' => $this->handleQuiet($user, $subAction, $chatId, $messageId, $locale),
             default => $this->showAlertsSettings($chatId, $messageId, $user, $locale),
@@ -61,78 +63,135 @@ class AlertPreferencesHandler extends CallbackHandler
         $prefs = $user->getAlertPreferences();
 
         $channels = $prefs->channels ?? ['telegram', 'in_app'];
-        $quietStart = $prefs->quiet_hours_start ?? '23:00';
-        $quietEnd = $prefs->quiet_hours_end ?? '07:00';
         $maxHour = $prefs->max_alerts_per_hour ?? 10;
         $maxDay = $prefs->max_alerts_per_day ?? 25;
 
-        // Check which channels are enabled
+        $channelCount = count($channels);
+
+        // Simple question: What would you like to change?
+        $text = $locale === 'ar'
+            ? 'ما الذي تريد تغييره؟'
+            : 'What would you like to change?';
+
+        $keyboard = [
+            [[
+                'text' => $locale === 'ar'
+                    ? "📱 قنوات الإشعارات ({$channelCount})"
+                    : "📱 Notification Channels ({$channelCount})",
+                'callback_data' => 'set:alerts:channels:select',
+            ]],
+            [[
+                'text' => $locale === 'ar'
+                    ? "⏰ الحدود: {$maxHour}/ساعة، {$maxDay}/يوم"
+                    : "⏰ Limits: {$maxHour}/hr, {$maxDay}/day",
+                'callback_data' => 'set:alerts:limits:select',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⚙️ إعدادات متقدمة' : '⚙️ Advanced Settings',
+                'web_app' => ['url' => config('app.url').'/settings/notifications'],
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'set:menu',
+            ]],
+        ];
+
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
+    private function handleChannelsMenu(User $user, ?string $action, int $chatId, int $messageId, string $locale): mixed
+    {
+        if ($action === 'select') {
+            return $this->showChannelsSelector($chatId, $messageId, $user, $locale);
+        }
+
+        return $this->showAlertsSettings($chatId, $messageId, $user, $locale);
+    }
+
+    private function showChannelsSelector(int $chatId, int $messageId, User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? 'اختر قنوات الإشعارات:'
+            : 'Select notification channels:';
+
+        $prefs = $user->getAlertPreferences();
+        $channels = $prefs->channels ?? ['telegram', 'in_app'];
+
         $telegramEnabled = in_array('telegram', $channels, true);
         $emailEnabled = in_array('email', $channels, true);
         $pushEnabled = in_array('push', $channels, true);
         $inAppEnabled = in_array('in_app', $channels, true);
 
-        if ($locale === 'ar') {
-            $text = <<<MSG
-🔔 *تفضيلات التنبيهات*
-━━━━━━━━━━━━━━━━━━
+        $keyboard = [
+            [[
+                'text' => ($telegramEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'تيليجرام' : 'Telegram'),
+                'callback_data' => 'set:alerts:channel:telegram',
+            ]],
+            [[
+                'text' => ($emailEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'البريد الإلكتروني' : 'Email'),
+                'callback_data' => 'set:alerts:channel:email',
+            ]],
+            [[
+                'text' => ($pushEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'إشعارات الهاتف' : 'Push Notifications'),
+                'callback_data' => 'set:alerts:channel:push',
+            ]],
+            [[
+                'text' => ($inAppEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'داخل التطبيق' : 'In-App'),
+                'callback_data' => 'set:alerts:channel:in_app',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'set:alerts',
+            ]],
+        ];
 
-*قنوات الإشعارات:*
-📱 تيليجرام: {$this->getStatus($telegramEnabled, $locale)}
-📧 البريد: {$this->getStatus($emailEnabled, $locale)}
-🔔 الإشعارات: {$this->getStatus($pushEnabled, $locale)}
-📲 التطبيق: {$this->getStatus($inAppEnabled, $locale)}
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
 
-*الحدود:*
-⏰ الحد الأقصى/ساعة: {$maxHour}
-📅 الحد الأقصى/يوم: {$maxDay}
+        $this->answerCallbackQuery(['text' => '']);
 
-*ساعات الهدوء:*
-🌙 {$quietStart} - {$quietEnd}
-MSG;
-        } else {
-            $text = <<<MSG
-🔔 *Alert Preferences*
-━━━━━━━━━━━━━━━━━━
+        return null;
+    }
 
-*Notification Channels:*
-📱 Telegram: {$this->getStatus($telegramEnabled, $locale)}
-📧 Email: {$this->getStatus($emailEnabled, $locale)}
-🔔 Push: {$this->getStatus($pushEnabled, $locale)}
-📲 In-App: {$this->getStatus($inAppEnabled, $locale)}
-
-*Limits:*
-⏰ Max/Hour: {$maxHour}
-📅 Max/Day: {$maxDay}
-
-*Quiet Hours:*
-🌙 {$quietStart} - {$quietEnd}
-MSG;
+    private function handleLimitsMenu(User $user, ?string $action, int $chatId, int $messageId, string $locale): mixed
+    {
+        if ($action === 'select') {
+            return $this->showLimitsSelector($chatId, $messageId, $user, $locale);
         }
 
+        return $this->showAlertsSettings($chatId, $messageId, $user, $locale);
+    }
+
+    private function showLimitsSelector(int $chatId, int $messageId, User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? 'حدد الحد الأقصى للتنبيهات:'
+            : 'Set alert limits:';
+
+        $prefs = $user->getAlertPreferences();
+        $maxHour = $prefs->max_alerts_per_hour ?? 10;
+        $maxDay = $prefs->max_alerts_per_day ?? 25;
+
         $keyboard = [
-            // Channel toggles row 1
-            [
-                [
-                    'text' => ($telegramEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'تيليجرام' : 'Telegram'),
-                    'callback_data' => 'set:alerts:channel:telegram',
-                ],
-                [
-                    'text' => ($emailEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'البريد' : 'Email'),
-                    'callback_data' => 'set:alerts:channel:email',
-                ],
-            ],
-            // Channel toggles row 2
-            [
-                [
-                    'text' => ($pushEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'الإشعارات' : 'Push'),
-                    'callback_data' => 'set:alerts:channel:push',
-                ],
-                [
-                    'text' => ($inAppEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'التطبيق' : 'In-App'),
-                    'callback_data' => 'set:alerts:channel:in_app',
-                ],
-            ],
             // Max per hour controls
             [
                 [
@@ -163,20 +222,10 @@ MSG;
                     'callback_data' => 'set:alerts:max:day:'.min(100, $maxDay + 10),
                 ],
             ],
-            // Open app for more settings
-            [
-                [
-                    'text' => $locale === 'ar' ? '⚙️ إعدادات متقدمة' : '⚙️ Advanced Settings',
-                    'web_app' => ['url' => config('app.url').'/settings/notifications'],
-                ],
-            ],
-            // Back button
-            [
-                [
-                    'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                    'callback_data' => 'set:menu',
-                ],
-            ],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'set:alerts',
+            ]],
         ];
 
         $this->editMessageText([
@@ -241,7 +290,8 @@ MSG;
             'show_alert' => false,
         ]);
 
-        return $this->showAlertsSettings($chatId, $messageId, $user->fresh(), $locale);
+        // Stay on channels selector screen
+        return $this->showChannelsSelector($chatId, $messageId, $user->fresh(), $locale);
     }
 
     private function handleMax(User $user, ?string $type, ?string $value, int $chatId, int $messageId, string $locale): mixed
@@ -274,7 +324,8 @@ MSG;
             'show_alert' => false,
         ]);
 
-        return $this->showAlertsSettings($chatId, $messageId, $user->fresh(), $locale);
+        // Stay on limits selector screen
+        return $this->showLimitsSelector($chatId, $messageId, $user->fresh(), $locale);
     }
 
     private function handleQuiet(User $user, ?string $action, int $chatId, int $messageId, string $locale): mixed

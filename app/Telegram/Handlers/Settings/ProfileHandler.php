@@ -45,48 +45,26 @@ class ProfileHandler extends CallbackHandler
     private function showProfileSettings(int $chatId, int $messageId, User $user, string $locale): mixed
     {
         $name = $user->name ?? ($locale === 'ar' ? 'غير محدد' : 'Not set');
-        $phone = $user->phone ?? ($locale === 'ar' ? 'غير محدد' : 'Not set');
         $langDisplay = $locale === 'ar' ? 'العربية' : 'English';
 
-        if ($locale === 'ar') {
-            $text = <<<MSG
-👤 *الملف الشخصي*
-━━━━━━━━━━━━━━━━━━
-
-📛 الاسم: {$name}
-📱 الهاتف: {$phone}
-🌐 اللغة: {$langDisplay}
-MSG;
-        } else {
-            $text = <<<MSG
-👤 *Profile*
-━━━━━━━━━━━━━━━━━━
-
-📛 Name: {$name}
-📱 Phone: {$phone}
-🌐 Language: {$langDisplay}
-MSG;
-        }
+        // Simple question: What would you like to change?
+        $text = $locale === 'ar'
+            ? 'ما الذي تريد تغييره؟'
+            : 'What would you like to change?';
 
         $keyboard = [
-            [
-                [
-                    'text' => $locale === 'ar' ? '✏️ تغيير الاسم' : '✏️ Change Name',
-                    'callback_data' => 'set:profile:name',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '🌐 تغيير اللغة' : '🌐 Change Language',
-                    'callback_data' => 'set:language',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                    'callback_data' => 'set:menu',
-                ],
-            ],
+            [[
+                'text' => $locale === 'ar' ? "📛 الاسم: {$name}" : "📛 Name: {$name}",
+                'callback_data' => 'set:profile:name',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? "🌐 اللغة: {$langDisplay}" : "🌐 Language: {$langDisplay}",
+                'callback_data' => 'set:language',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'set:menu',
+            ]],
         ];
 
         $this->editMessageText([
@@ -110,8 +88,8 @@ MSG;
         $user->update(['telegram_awaiting_input' => 'name']);
 
         $text = $locale === 'ar'
-            ? '✏️ أدخل اسمك الجديد:'
-            : '✏️ Enter your new name:';
+            ? 'أدخل اسمك الجديد:'
+            : 'Enter your new name:';
 
         $this->sendMessage([
             'chat_id' => $chatId,

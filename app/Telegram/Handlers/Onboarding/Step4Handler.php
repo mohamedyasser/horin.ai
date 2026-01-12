@@ -109,16 +109,13 @@ class Step4Handler extends CallbackHandler
         $chatId = $callbackQuery->message->chat->id;
         $messageId = $callbackQuery->message->message_id;
 
-        // Go back to step 3 (markets)
+        // Go back to step 3b (markets)
         $selectedMarketIds = $user->markets()->pluck('markets.id')->toArray();
-        $country = $user->country;
-        $countryName = $country ? ($locale === 'ar' ? $country->name_ar : $country->name_en) : '';
 
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
-            'text' => $builder->getStepMessage(3, $locale)."\n\n".
-                ($locale === 'ar' ? "🌍 الدولة: {$countryName}" : "🌍 Country: {$countryName}"),
+            'text' => $builder->getStepMessage('3b', $locale),
             'parse_mode' => 'Markdown',
             'reply_markup' => [
                 'inline_keyboard' => $builder->buildStep3MarketsKeyboard($locale, $user->country_id, $selectedMarketIds),

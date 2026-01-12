@@ -10,20 +10,21 @@ use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
 /**
- * Handler for Step 3: Country & Markets selection.
+ * Handler for Step 3: Country (3a) & Markets (3b) selection.
  *
  * Callback patterns:
- * - ob:country:{id} - Select country
+ * - ob:country:{id} - Select country, then auto-advance to markets
  * - ob:country:search - Trigger country search mode
  * - ob:country:change - Go back to country selection
  * - ob:market:toggle:{id} - Toggle market selection
  * - ob:market:page:{n} - Change markets pagination page
- * - ob:step3:back - Go back to step 2
+ * - ob:step3a:back - Go back from country to style (step 2b)
+ * - ob:step3b:back - Go back from markets to country (step 3a)
  * - ob:step3:next - Proceed to step 4
  */
 class Step3Handler extends CallbackHandler
 {
-    protected string $match = '/^ob:(country|market|step3):/';
+    protected string $match = '/^ob:(country|market|step3|step3a|step3b):/';
 
     public function handle(): mixed
     {
@@ -45,19 +46,21 @@ class Step3Handler extends CallbackHandler
         $locale = $user->language ?? 'en';
         $builder = new OnboardingKeyboardBuilder;
 
+        $chatId = $callbackQuery->message->chat->id;
+        $messageId = $callbackQuery->message->message_id;
+
         return match ($action) {
-            'country' => $this->handleCountry($user, $value, $locale, $builder, $callbackQuery),
-            'market' => $this->handleMarket($user, $value, $extra, $locale, $builder, $callbackQuery),
-            'step3' => $this->handleNavigation($user, $value, $locale, $builder, $callbackQuery),
+            'country' => $this->handleCountry($user, $value, $locale, $builder, $chatId, $messageId),
+            'market' => $this->handleMarket($user, $value, $extra, $locale, $builder, $chatId, $messageId),
+            'step3a' => $this->handleBackToStyle($user, $locale, $builder, $chatId, $messageId),
+            'step3b' => $this->handleBackToCountry($user, $locale, $builder, $chatId, $messageId),
+            'step3' => $this->handleNext($user, $value, $locale, $builder, $chatId, $messageId),
             default => $this->answerWithError('Invalid action'),
         };
     }
 
-    private function handleCountry(User $user, ?string $value, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleCountry(User $user, ?string $value, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
-
         if ($value === 'search') {
             // Set user state to awaiting country search input
             $user->update(['telegram_awaiting_input' => 'country_search']);
@@ -89,7 +92,7 @@ class Step3Handler extends CallbackHandler
             $this->editMessageText([
                 'chat_id' => $chatId,
                 'message_id' => $messageId,
-                'text' => $builder->getStepMessage(3, $locale),
+                'text' => $builder->getStepMessage('3a', $locale),
                 'parse_mode' => 'Markdown',
                 'reply_markup' => [
                     'inline_keyboard' => $builder->buildStep3CountryKeyboard($locale),
@@ -121,12 +124,11 @@ class Step3Handler extends CallbackHandler
 
         $countryName = $locale === 'ar' ? $country->name_ar : $country->name_en;
 
-        // Show markets keyboard
+        // Auto-advance to step 3b (markets)
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
-            'text' => $builder->getStepMessage(3, $locale)."\n\n".
-                ($locale === 'ar' ? "🌍 الدولة: {$countryName}" : "🌍 Country: {$countryName}"),
+            'text' => $builder->getStepMessage('3b', $locale),
             'parse_mode' => 'Markdown',
             'reply_markup' => [
                 'inline_keyboard' => $builder->buildStep3MarketsKeyboard($locale, $country->id),
@@ -134,25 +136,20 @@ class Step3Handler extends CallbackHandler
         ]);
 
         $this->answerCallbackQuery([
-            'text' => $locale === 'ar'
-                ? "✓ تم اختيار: {$countryName}"
-                : "✓ Selected: {$countryName}",
+            'text' => "✓ {$countryName}",
             'show_alert' => false,
         ]);
 
         return null;
     }
 
-    private function handleMarket(User $user, ?string $value, ?string $extra, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleMarket(User $user, ?string $value, ?string $extra, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
-
         // Handle pagination
         if ($value === 'page' && $extra !== null) {
             $page = (int) $extra;
 
-            return $this->updateMarketsKeyboard($user, $locale, $builder, $callbackQuery, $page);
+            return $this->updateMarketsKeyboard($user, $locale, $builder, $chatId, $messageId, $page);
         }
 
         // Handle market toggle
@@ -181,13 +178,13 @@ class Step3Handler extends CallbackHandler
             ]);
 
             // Update keyboard
-            $this->updateMarketsKeyboard($user, $locale, $builder, $callbackQuery);
+            $this->updateMarketsKeyboard($user, $locale, $builder, $chatId, $messageId);
 
             $marketName = $locale === 'ar' ? ($market->name_ar ?: $market->name_en) : $market->name_en;
             $this->answerCallbackQuery([
                 'text' => $action === 'added'
-                    ? ($locale === 'ar' ? "✅ تمت إضافة: {$marketName}" : "✅ Added: {$marketName}")
-                    : ($locale === 'ar' ? "❌ تمت إزالة: {$marketName}" : "❌ Removed: {$marketName}"),
+                    ? ($locale === 'ar' ? "✅ {$marketName}" : "✅ {$marketName}")
+                    : ($locale === 'ar' ? "❌ {$marketName}" : "❌ {$marketName}"),
                 'show_alert' => false,
             ]);
 
@@ -197,81 +194,85 @@ class Step3Handler extends CallbackHandler
         return $this->answerWithError('Invalid market action');
     }
 
-    private function handleNavigation(User $user, ?string $direction, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleBackToStyle(User $user, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
+        // Go back to step 2b (style)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('2b', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep2bKeyboard($locale, $user->trading_style),
+            ],
+        ]);
 
-        if ($direction === 'back') {
-            // Go back to step 2
-            $selected = $builder->getSelectedValues($user, 2);
+        $this->answerCallbackQuery(['text' => '']);
 
-            $this->editMessageText([
-                'chat_id' => $chatId,
-                'message_id' => $messageId,
-                'text' => $builder->getStepMessage(2, $locale),
-                'parse_mode' => 'Markdown',
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildStep2Keyboard($locale, $selected),
-                ],
-            ]);
-
-            $this->answerCallbackQuery(['text' => '']);
-
-            return null;
-        }
-
-        if ($direction === 'next') {
-            // Validate step 3 is complete
-            if (! $user->country_id || $user->markets()->count() === 0) {
-                return $this->answerWithError(
-                    $locale === 'ar'
-                        ? 'يرجى اختيار الدولة وسوق واحد على الأقل'
-                        : 'Please select a country and at least one market'
-                );
-            }
-
-            // Move to step 4 (sectors)
-            $selected = $builder->getSelectedValues($user, 4);
-
-            $this->editMessageText([
-                'chat_id' => $chatId,
-                'message_id' => $messageId,
-                'text' => $builder->getStepMessage(4, $locale),
-                'parse_mode' => 'Markdown',
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildStep4Keyboard($locale, $selected['sectors'] ?? []),
-                ],
-            ]);
-
-            $this->answerCallbackQuery(['text' => '']);
-
-            return null;
-        }
-
-        return $this->answerWithError('Invalid navigation');
+        return null;
     }
 
-    private function updateMarketsKeyboard(User $user, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery, int $page = 1): mixed
+    private function handleBackToCountry(User $user, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
+        // Go back to step 3a (country)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('3a', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
+            ],
+        ]);
 
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
+    private function handleNext(User $user, ?string $value, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
+    {
+        if ($value !== 'next') {
+            return $this->answerWithError('Invalid navigation');
+        }
+
+        // Validate step 3 is complete
+        if (! $user->country_id || $user->markets()->count() === 0) {
+            return $this->answerWithError(
+                $locale === 'ar'
+                    ? 'يرجى اختيار سوق واحد على الأقل'
+                    : 'Please select at least one market'
+            );
+        }
+
+        // Move to step 4 (sectors)
+        $selectedSectors = $user->sectors()->pluck('sectors.id')->toArray();
+
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('4', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep4Keyboard($locale, $selectedSectors),
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
+    private function updateMarketsKeyboard(User $user, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId, int $page = 1): mixed
+    {
         // Refresh user data
         $user->refresh();
 
         $selectedMarketIds = $user->markets()->pluck('markets.id')->toArray();
 
-        // Get country name
-        $country = $user->country;
-        $countryName = $country ? ($locale === 'ar' ? $country->name_ar : $country->name_en) : '';
-
-        $this->editMessageText([
+        $this->editMessageReplyMarkup([
             'chat_id' => $chatId,
             'message_id' => $messageId,
-            'text' => $builder->getStepMessage(3, $locale)."\n\n".
-                ($locale === 'ar' ? "🌍 الدولة: {$countryName}" : "🌍 Country: {$countryName}"),
-            'parse_mode' => 'Markdown',
             'reply_markup' => [
                 'inline_keyboard' => $builder->buildStep3MarketsKeyboard($locale, $user->country_id, $selectedMarketIds, $page),
             ],

@@ -45,8 +45,8 @@ class SettingsMenuHandler extends CallbackHandler
     private function showMainMenu(int $chatId, int $messageId, string $locale): mixed
     {
         $text = $locale === 'ar'
-            ? "⚙️ *الإعدادات*\n\nاختر فئة للتعديل:"
-            : "⚙️ *Settings*\n\nChoose a category to modify:";
+            ? 'ما الذي تريد تغييره؟'
+            : 'What would you like to change?';
 
         $keyboard = [
             [
@@ -101,8 +101,8 @@ class SettingsMenuHandler extends CallbackHandler
     private function showLanguageMenu(int $chatId, int $messageId, string $locale): mixed
     {
         $text = $locale === 'ar'
-            ? "🌐 *اللغة*\n\nاختر لغتك المفضلة:"
-            : "🌐 *Language*\n\nSelect your preferred language:";
+            ? 'اختر لغتك:'
+            : 'Select your language:';
 
         $keyboard = [
             [

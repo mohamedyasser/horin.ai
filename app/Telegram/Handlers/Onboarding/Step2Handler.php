@@ -8,18 +8,18 @@ use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
 /**
- * Handler for Step 2: Investment Goal & Trading Style selection.
+ * Handler for Step 2: Investment Goal (2a) & Trading Style (2b) selection.
  *
  * Callback patterns:
- * - ob:goal:{goal} - Set investment goal
+ * - ob:goal:{goal} - Set investment goal, then auto-advance to style
  * - ob:goal:page:{n} - Change goal pagination page
- * - ob:style:{style} - Set trading style
- * - ob:step2:back - Go back to step 1
- * - ob:step2:next - Proceed to step 3
+ * - ob:style:{style} - Set trading style, then auto-advance to step 3
+ * - ob:step2a:back - Go back from goal to risk (step 1b)
+ * - ob:step2b:back - Go back from style to goal (step 2a)
  */
 class Step2Handler extends CallbackHandler
 {
-    protected string $match = '/^ob:(goal|style|step2):/';
+    protected string $match = '/^ob:(goal|style|step2a|step2b):/';
 
     private const INVESTMENT_GOALS = [
         'capital_growth', 'fixed_income', 'risk_reduction', 'short_term_speculation',
@@ -49,21 +49,42 @@ class Step2Handler extends CallbackHandler
         $locale = $user->language ?? 'en';
         $builder = new OnboardingKeyboardBuilder;
 
+        $chatId = $callbackQuery->message->chat->id;
+        $messageId = $callbackQuery->message->message_id;
+
         return match ($action) {
-            'goal' => $this->handleGoal($user, $value, $extra, $locale, $builder, $callbackQuery),
-            'style' => $this->handleStyle($user, $value, $locale, $builder, $callbackQuery),
-            'step2' => $this->handleNavigation($user, $value, $locale, $builder, $callbackQuery),
+            'goal' => $this->handleGoal($user, $value, $extra, $locale, $builder, $chatId, $messageId),
+            'style' => $this->handleStyle($user, $value, $locale, $builder, $chatId, $messageId),
+            'step2a' => $this->handleBackToRisk($user, $locale, $builder, $chatId, $messageId),
+            'step2b' => $this->handleBackToGoal($user, $locale, $builder, $chatId, $messageId),
             default => $this->answerWithError('Invalid action'),
         };
     }
 
-    private function handleGoal(User $user, ?string $value, ?string $extra, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleGoal(User $user, ?string $value, ?string $extra, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
         // Handle pagination
         if ($value === 'page' && $extra !== null) {
             $page = (int) $extra;
 
-            return $this->updateStep2Keyboard($user, $locale, $builder, $callbackQuery, $page);
+            $this->editMessageReplyMarkup([
+                'chat_id' => $chatId,
+                'message_id' => $messageId,
+                'reply_markup' => [
+                    'inline_keyboard' => $builder->buildStep2aKeyboard($locale, $user->investment_goal, $page),
+                ],
+            ]);
+
+            $this->answerCallbackQuery(['text' => '']);
+
+            return null;
+        }
+
+        // Handle noop
+        if ($value === 'noop' || $value === null) {
+            $this->answerCallbackQuery(['text' => '']);
+
+            return null;
         }
 
         // Handle goal selection
@@ -78,22 +99,28 @@ class Step2Handler extends CallbackHandler
             'investment_goal' => $value,
         ]);
 
-        // Update keyboard with new selection
-        $this->updateStep2Keyboard($user, $locale, $builder, $callbackQuery);
+        // Auto-advance to step 2b (style)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('2b', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep2bKeyboard($locale, $user->trading_style),
+            ],
+        ]);
 
         $labels = $this->getGoalLabels($locale);
 
         $this->answerCallbackQuery([
-            'text' => $locale === 'ar'
-                ? "✓ تم اختيار: {$labels[$value]}"
-                : "✓ Selected: {$labels[$value]}",
+            'text' => "✓ {$labels[$value]}",
             'show_alert' => false,
         ]);
 
         return null;
     }
 
-    private function handleStyle(User $user, ?string $value, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleStyle(User $user, ?string $value, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
         if (! in_array($value, self::TRADING_STYLES, true)) {
             return $this->answerWithError('Invalid trading style');
@@ -106,89 +133,55 @@ class Step2Handler extends CallbackHandler
             'trading_style' => $value,
         ]);
 
-        // Update keyboard with new selection
-        $this->updateStep2Keyboard($user, $locale, $builder, $callbackQuery);
+        // Auto-advance to step 3a (country)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('3a', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
+            ],
+        ]);
 
         $labels = $this->getStyleLabels($locale);
 
         $this->answerCallbackQuery([
-            'text' => $locale === 'ar'
-                ? "✓ تم اختيار: {$labels[$value]}"
-                : "✓ Selected: {$labels[$value]}",
+            'text' => "✓ {$labels[$value]}",
             'show_alert' => false,
         ]);
 
         return null;
     }
 
-    private function handleNavigation(User $user, ?string $direction, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleBackToRisk(User $user, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
-
-        if ($direction === 'back') {
-            // Go back to step 1
-            $selected = $builder->getSelectedValues($user, 1);
-
-            $this->editMessageText([
-                'chat_id' => $chatId,
-                'message_id' => $messageId,
-                'text' => $builder->getStepMessage(1, $locale),
-                'parse_mode' => 'Markdown',
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildStep1Keyboard($locale, $selected),
-                ],
-            ]);
-
-            $this->answerCallbackQuery(['text' => '']);
-
-            return null;
-        }
-
-        if ($direction === 'next') {
-            // Validate step 2 is complete
-            if (! $user->investment_goal || ! $user->trading_style) {
-                return $this->answerWithError(
-                    $locale === 'ar'
-                        ? 'يرجى اختيار الهدف الاستثماري وأسلوب التداول أولا'
-                        : 'Please select investment goal and trading style first'
-                );
-            }
-
-            // Move to step 3 (country selection)
-            $this->editMessageText([
-                'chat_id' => $chatId,
-                'message_id' => $messageId,
-                'text' => $builder->getStepMessage(3, $locale),
-                'parse_mode' => 'Markdown',
-                'reply_markup' => [
-                    'inline_keyboard' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
-                ],
-            ]);
-
-            $this->answerCallbackQuery(['text' => '']);
-
-            return null;
-        }
-
-        return $this->answerWithError('Invalid navigation');
-    }
-
-    private function updateStep2Keyboard(User $user, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery, int $page = 1): mixed
-    {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
-
-        // Refresh user data
-        $user->refresh();
-
-        $selected = $builder->getSelectedValues($user, 2);
-
-        $this->editMessageReplyMarkup([
+        // Go back to step 1b (risk)
+        $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
+            'text' => $builder->getStepMessage('1b', $locale),
+            'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $builder->buildStep2Keyboard($locale, $selected, $page),
+                'inline_keyboard' => $builder->buildStep1bKeyboard($locale, $user->risk_level),
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
+    private function handleBackToGoal(User $user, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
+    {
+        // Go back to step 2a (goal)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('2a', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep2aKeyboard($locale, $user->investment_goal),
             ],
         ]);
 

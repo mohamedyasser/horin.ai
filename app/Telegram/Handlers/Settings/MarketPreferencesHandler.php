@@ -73,51 +73,28 @@ class MarketPreferencesHandler extends CallbackHandler
         $marketsCount = $user->markets()->count();
         $sectorsCount = $user->sectors()->count();
 
-        if ($locale === 'ar') {
-            $text = <<<MSG
-🌍 *تفضيلات الأسواق*
-━━━━━━━━━━━━━━━━━━
-
-🏳️ الدولة: {$countryName}
-📊 الأسواق المختارة: {$marketsCount}
-🏭 القطاعات المختارة: {$sectorsCount}
-MSG;
-        } else {
-            $text = <<<MSG
-🌍 *Market Preferences*
-━━━━━━━━━━━━━━━━━━
-
-🏳️ Country: {$countryName}
-📊 Selected Markets: {$marketsCount}
-🏭 Selected Sectors: {$sectorsCount}
-MSG;
-        }
+        // Simple question: What would you like to change?
+        $text = $locale === 'ar'
+            ? 'ما الذي تريد تغييره؟'
+            : 'What would you like to change?';
 
         $keyboard = [
-            [
-                [
-                    'text' => $locale === 'ar' ? '🏳️ تغيير الدولة' : '🏳️ Change Country',
-                    'callback_data' => 'set:markets:country',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '📊 تعديل الأسواق' : '📊 Edit Markets',
-                    'callback_data' => 'set:markets:market:page:1',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '🏭 تعديل القطاعات' : '🏭 Edit Sectors',
-                    'callback_data' => 'set:markets:sectors',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                    'callback_data' => 'set:menu',
-                ],
-            ],
+            [[
+                'text' => $locale === 'ar' ? "🏳️ الدولة: {$countryName}" : "🏳️ Country: {$countryName}",
+                'callback_data' => 'set:markets:country',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? "📊 الأسواق ({$marketsCount})" : "📊 Markets ({$marketsCount})",
+                'callback_data' => 'set:markets:market:page:1',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? "🏭 القطاعات ({$sectorsCount})" : "🏭 Sectors ({$sectorsCount})",
+                'callback_data' => 'set:markets:sectors',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'set:menu',
+            ]],
         ];
 
         $this->editMessageText([
@@ -174,8 +151,8 @@ MSG;
     private function showCountrySelector(int $chatId, int $messageId, User $user, string $locale): mixed
     {
         $text = $locale === 'ar'
-            ? "🏳️ *اختر دولتك:*"
-            : "🏳️ *Select your country:*";
+            ? 'اختر دولتك:'
+            : 'Select your country:';
 
         // Use CASE WHEN for PostgreSQL-compatible ordering
         $orderCase = 'CASE ';
@@ -295,8 +272,8 @@ MSG;
         $selectedMarketIds = $user->markets()->pluck('markets.id')->toArray();
 
         $text = $locale === 'ar'
-            ? "📊 *اختر الأسواق:*\n\nاضغط للتحديد/إلغاء التحديد"
-            : "📊 *Select Markets:*\n\nTap to toggle selection";
+            ? 'اختر الأسواق:'
+            : 'Select markets:';
 
         $keyboard = [];
 
@@ -386,8 +363,8 @@ MSG;
         $selectedSectorIds = $user->sectors()->pluck('sectors.id')->toArray();
 
         $text = $locale === 'ar'
-            ? "🏭 *اختر القطاعات:*\n\nاضغط للتحديد/إلغاء التحديد"
-            : "🏭 *Select Sectors:*\n\nTap to toggle selection";
+            ? 'اختر القطاعات:'
+            : 'Select sectors:';
 
         $keyboard = [];
 

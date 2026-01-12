@@ -43,8 +43,8 @@ class SettingsCommand extends CommandHandler
     public function sendSettingsMenu(int $chatId, string $locale): void
     {
         $text = $locale === 'ar'
-            ? "⚙️ *الإعدادات*\n\nاختر فئة للتعديل:"
-            : "⚙️ *Settings*\n\nChoose a category to modify:";
+            ? 'ما الذي تريد تغييره؟'
+            : 'What would you like to change?';
 
         $keyboard = [
             [

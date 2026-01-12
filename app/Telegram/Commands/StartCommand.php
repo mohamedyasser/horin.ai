@@ -92,25 +92,29 @@ class StartCommand extends CommandHandler
     private function sendWelcomeNewUser(int $chatId, object $from): void
     {
         $locale = $from->language_code ?? 'en';
+        // Normalize to supported languages (en, ar)
+        $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
         $name = $from->first_name ?? 'there';
 
         $message = $locale === 'ar'
-            ? "👋 مرحباً *{$name}*!\n\nأنا بوت حورين للتنبيهات. افتح التطبيق للبدء والحصول على تنبيهات الأسهم."
-            : "👋 Welcome *{$name}*!\n\nI'm the Horin alerts bot. Open the app to get started and receive stock alerts.";
+            ? "👋 مرحباً *{$name}*!\n\nأنا بوت حورين للتنبيهات. شارك رقم هاتفك للتسجيل والبدء في تلقي تنبيهات الأسهم."
+            : "👋 Welcome *{$name}*!\n\nI'm the Horin alerts bot. Share your phone number to register and start receiving stock alerts.";
 
-        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => [[
+                'keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url')],
+                        'request_contact' => true,
                     ],
                 ]],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
             ],
         ]);
     }

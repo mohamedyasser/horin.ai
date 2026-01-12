@@ -80,92 +80,34 @@ class TradingProfileHandler extends CallbackHandler
         $goal = $goalLabels[$user->investment_goal] ?? ($locale === 'ar' ? 'غير محدد' : 'Not set');
         $style = $styleLabels[$user->trading_style] ?? ($locale === 'ar' ? 'غير محدد' : 'Not set');
 
-        if ($locale === 'ar') {
-            $text = <<<MSG
-📊 *ملف التداول*
-━━━━━━━━━━━━━━━━━━
+        // Simple question: What would you like to change?
+        $text = $locale === 'ar'
+            ? 'ما الذي تريد تغييره؟'
+            : 'What would you like to change?';
 
-🎯 الخبرة: {$exp}
-⚖️ المخاطر: {$risk}
-📈 الهدف: {$goal}
-📊 الأسلوب: {$style}
-MSG;
-        } else {
-            $text = <<<MSG
-📊 *Trading Profile*
-━━━━━━━━━━━━━━━━━━
-
-🎯 Experience: {$exp}
-⚖️ Risk Level: {$risk}
-📈 Goal: {$goal}
-📊 Style: {$style}
-MSG;
-        }
-
-        // Build keyboard with current selections highlighted
-        $keyboard = [];
-
-        // Experience row
-        $expRow = [];
-        foreach (self::EXPERIENCE_LEVELS as $level) {
-            $label = $expLabels[$level];
-            $icon = match ($level) {
-                'beginner' => '🌱',
-                'intermediate' => '📈',
-                'advanced' => '🎯',
-            };
-            $isSelected = $user->experience_level === $level;
-            $expRow[] = [
-                'text' => $isSelected ? "✓ {$icon}" : $icon,
-                'callback_data' => "set:trading:exp:{$level}",
-            ];
-        }
-        $keyboard[] = $expRow;
-
-        // Risk row
-        $riskRow = [];
-        foreach (self::RISK_LEVELS as $level) {
-            $icon = match ($level) {
-                'conservative' => '🛡️',
-                'moderate' => '⚖️',
-                'aggressive' => '🚀',
-            };
-            $isSelected = $user->risk_level === $level;
-            $riskRow[] = [
-                'text' => $isSelected ? "✓ {$icon}" : $icon,
-                'callback_data' => "set:trading:risk:{$level}",
-            ];
-        }
-        $keyboard[] = $riskRow;
-
-        // Trading style row
-        $styleRow = [];
-        foreach (self::TRADING_STYLES as $style) {
-            $icon = match ($style) {
-                'day_trading' => '📊',
-                'swing_trading' => '🔄',
-                'position_trading' => '📅',
-                'scalping_trading' => '⚡',
-            };
-            $isSelected = $user->trading_style === $style;
-            $styleRow[] = [
-                'text' => $isSelected ? "✓ {$icon}" : $icon,
-                'callback_data' => "set:trading:style:{$style}",
-            ];
-        }
-        $keyboard[] = $styleRow;
-
-        // Goals (first page)
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '📈 تغيير الهدف الاستثماري' : '📈 Change Investment Goal',
-            'callback_data' => 'set:trading:goal:page:1',
-        ]];
-
-        // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-            'callback_data' => 'set:menu',
-        ]];
+        // Menu buttons - each leads to a single question
+        $keyboard = [
+            [[
+                'text' => $locale === 'ar' ? "🎯 الخبرة: {$exp}" : "🎯 Experience: {$exp}",
+                'callback_data' => 'set:trading:exp:select',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? "⚖️ المخاطر: {$risk}" : "⚖️ Risk: {$risk}",
+                'callback_data' => 'set:trading:risk:select',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? "📈 الهدف: {$goal}" : "📈 Goal: {$goal}",
+                'callback_data' => 'set:trading:goal:select',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? "📊 الأسلوب: {$style}" : "📊 Style: {$style}",
+                'callback_data' => 'set:trading:style:select',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'set:menu',
+            ]],
+        ];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -184,6 +126,11 @@ MSG;
 
     private function handleExperience(User $user, ?string $level, int $chatId, int $messageId, string $locale): mixed
     {
+        // Show experience selection screen
+        if ($level === 'select') {
+            return $this->showExperienceSelector($chatId, $messageId, $user, $locale);
+        }
+
         if (! in_array($level, self::EXPERIENCE_LEVELS, true)) {
             return $this->answerWithError('Invalid experience level');
         }
@@ -206,8 +153,53 @@ MSG;
         return $this->showTradingSettings($chatId, $messageId, $user->fresh(), $locale);
     }
 
+    private function showExperienceSelector(int $chatId, int $messageId, User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? 'ما هو مستوى خبرتك في التداول؟'
+            : "What's your trading experience?";
+
+        $labels = $this->getExperienceLabels($locale);
+        $icons = ['beginner' => '🌱', 'intermediate' => '📈', 'advanced' => '🎯'];
+
+        $keyboard = [];
+        foreach (self::EXPERIENCE_LEVELS as $level) {
+            $isSelected = $user->experience_level === $level;
+            $icon = $icons[$level];
+            $label = $labels[$level];
+            $keyboard[] = [[
+                'text' => $isSelected ? "✓ {$icon} {$label}" : "{$icon} {$label}",
+                'callback_data' => "set:trading:exp:{$level}",
+            ]];
+        }
+
+        $keyboard[] = [[
+            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+            'callback_data' => 'set:trading',
+        ]];
+
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
     private function handleRisk(User $user, ?string $level, int $chatId, int $messageId, string $locale): mixed
     {
+        // Show risk selection screen
+        if ($level === 'select') {
+            return $this->showRiskSelector($chatId, $messageId, $user, $locale);
+        }
+
         if (! in_array($level, self::RISK_LEVELS, true)) {
             return $this->answerWithError('Invalid risk level');
         }
@@ -230,8 +222,53 @@ MSG;
         return $this->showTradingSettings($chatId, $messageId, $user->fresh(), $locale);
     }
 
+    private function showRiskSelector(int $chatId, int $messageId, User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? 'ما هو مستوى تحملك للمخاطر؟'
+            : "What's your risk tolerance?";
+
+        $labels = $this->getRiskLabels($locale);
+        $icons = ['conservative' => '🛡️', 'moderate' => '⚖️', 'aggressive' => '🚀'];
+
+        $keyboard = [];
+        foreach (self::RISK_LEVELS as $level) {
+            $isSelected = $user->risk_level === $level;
+            $icon = $icons[$level];
+            $label = $labels[$level];
+            $keyboard[] = [[
+                'text' => $isSelected ? "✓ {$icon} {$label}" : "{$icon} {$label}",
+                'callback_data' => "set:trading:risk:{$level}",
+            ]];
+        }
+
+        $keyboard[] = [[
+            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+            'callback_data' => 'set:trading',
+        ]];
+
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
     private function handleGoal(User $user, ?string $value, ?string $extra, int $chatId, int $messageId, string $locale): mixed
     {
+        // Show goal selection screen
+        if ($value === 'select') {
+            return $this->showGoalSelector($chatId, $messageId, $user, $locale);
+        }
+
         // Handle pagination
         if ($value === 'page') {
             $page = (int) ($extra ?? 1);
@@ -264,6 +301,11 @@ MSG;
 
     private function handleStyle(User $user, ?string $style, int $chatId, int $messageId, string $locale): mixed
     {
+        // Show style selection screen
+        if ($style === 'select') {
+            return $this->showStyleSelector($chatId, $messageId, $user, $locale);
+        }
+
         if (! in_array($style, self::TRADING_STYLES, true)) {
             return $this->answerWithError('Invalid trading style');
         }
@@ -286,11 +328,56 @@ MSG;
         return $this->showTradingSettings($chatId, $messageId, $user->fresh(), $locale);
     }
 
+    private function showStyleSelector(int $chatId, int $messageId, User $user, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? 'ما هو أسلوب التداول المفضل لديك؟'
+            : "What's your trading style?";
+
+        $labels = $this->getStyleLabels($locale);
+        $icons = [
+            'day_trading' => '📊',
+            'swing_trading' => '🔄',
+            'position_trading' => '📅',
+            'scalping_trading' => '⚡',
+        ];
+
+        $keyboard = [];
+        foreach (self::TRADING_STYLES as $style) {
+            $isSelected = $user->trading_style === $style;
+            $icon = $icons[$style];
+            $label = $labels[$style];
+            $keyboard[] = [[
+                'text' => $isSelected ? "✓ {$icon} {$label}" : "{$icon} {$label}",
+                'callback_data' => "set:trading:style:{$style}",
+            ]];
+        }
+
+        $keyboard[] = [[
+            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+            'callback_data' => 'set:trading',
+        ]];
+
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        $this->answerCallbackQuery(['text' => '']);
+
+        return null;
+    }
+
     private function showGoalSelector(int $chatId, int $messageId, User $user, string $locale, int $page = 1): mixed
     {
         $text = $locale === 'ar'
-            ? "📈 *اختر هدفك الاستثماري:*"
-            : "📈 *Select your investment goal:*";
+            ? 'ما هو هدفك الاستثماري؟'
+            : "What's your investment goal?";
 
         $goalLabels = $this->getGoalLabels($locale);
         $goalIcons = [

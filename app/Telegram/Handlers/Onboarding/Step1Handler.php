@@ -8,16 +8,16 @@ use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
 /**
- * Handler for Step 1: Experience & Risk level selection.
+ * Handler for Step 1: Experience (1a) & Risk (1b) level selection.
  *
  * Callback patterns:
- * - ob:exp:{level} - Set experience level
- * - ob:risk:{level} - Set risk level
- * - ob:step1:next - Proceed to step 2
+ * - ob:exp:{level} - Set experience level, then auto-advance to risk
+ * - ob:risk:{level} - Set risk level, then auto-advance to step 2
+ * - ob:step1b:back - Go back from risk to experience
  */
 class Step1Handler extends CallbackHandler
 {
-    protected string $match = '/^ob:(exp|risk|step1):(beginner|intermediate|advanced|conservative|moderate|aggressive|next)$/';
+    protected string $match = '/^ob:(exp|risk|step1b):/';
 
     private const EXPERIENCE_LEVELS = ['beginner', 'intermediate', 'advanced'];
 
@@ -37,20 +37,23 @@ class Step1Handler extends CallbackHandler
 
         $parts = explode(':', $data);
         $action = $parts[1];
-        $value = $parts[2];
+        $value = $parts[2] ?? null;
 
         $locale = $user->language ?? 'en';
         $builder = new OnboardingKeyboardBuilder;
 
+        $chatId = $callbackQuery->message->chat->id;
+        $messageId = $callbackQuery->message->message_id;
+
         return match ($action) {
-            'exp' => $this->handleExperience($user, $value, $locale, $builder, $callbackQuery),
-            'risk' => $this->handleRisk($user, $value, $locale, $builder, $callbackQuery),
-            'step1' => $this->handleNext($user, $locale, $builder, $callbackQuery),
+            'exp' => $this->handleExperience($user, $value, $locale, $builder, $chatId, $messageId),
+            'risk' => $this->handleRisk($user, $value, $locale, $builder, $chatId, $messageId),
+            'step1b' => $this->handleBack($user, $locale, $builder, $chatId, $messageId),
             default => $this->answerWithError('Invalid action'),
         };
     }
 
-    private function handleExperience(User $user, string $level, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleExperience(User $user, ?string $level, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
         if (! in_array($level, self::EXPERIENCE_LEVELS, true)) {
             return $this->answerWithError('Invalid experience level');
@@ -63,8 +66,16 @@ class Step1Handler extends CallbackHandler
             'experience_level' => $level,
         ]);
 
-        // Update keyboard with new selection
-        $this->updateStep1Keyboard($user, $locale, $builder, $callbackQuery);
+        // Auto-advance to step 1b (risk)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('1b', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep1bKeyboard($locale, $user->risk_level),
+            ],
+        ]);
 
         $labels = [
             'beginner' => $locale === 'ar' ? 'مبتدئ' : 'Beginner',
@@ -74,15 +85,15 @@ class Step1Handler extends CallbackHandler
 
         $this->answerCallbackQuery([
             'text' => $locale === 'ar'
-                ? "✓ تم اختيار: {$labels[$level]}"
-                : "✓ Selected: {$labels[$level]}",
+                ? "✓ {$labels[$level]}"
+                : "✓ {$labels[$level]}",
             'show_alert' => false,
         ]);
 
         return null;
     }
 
-    private function handleRisk(User $user, string $level, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleRisk(User $user, ?string $level, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
         if (! in_array($level, self::RISK_LEVELS, true)) {
             return $this->answerWithError('Invalid risk level');
@@ -95,8 +106,16 @@ class Step1Handler extends CallbackHandler
             'risk_level' => $level,
         ]);
 
-        // Update keyboard with new selection
-        $this->updateStep1Keyboard($user, $locale, $builder, $callbackQuery);
+        // Auto-advance to step 2a (goal)
+        $this->editMessageText([
+            'chat_id' => $chatId,
+            'message_id' => $messageId,
+            'text' => $builder->getStepMessage('2a', $locale),
+            'parse_mode' => 'Markdown',
+            'reply_markup' => [
+                'inline_keyboard' => $builder->buildStep2aKeyboard($locale, $user->investment_goal),
+            ],
+        ]);
 
         $labels = [
             'conservative' => $locale === 'ar' ? 'محافظ' : 'Conservative',
@@ -106,63 +125,30 @@ class Step1Handler extends CallbackHandler
 
         $this->answerCallbackQuery([
             'text' => $locale === 'ar'
-                ? "✓ تم اختيار: {$labels[$level]}"
-                : "✓ Selected: {$labels[$level]}",
+                ? "✓ {$labels[$level]}"
+                : "✓ {$labels[$level]}",
             'show_alert' => false,
         ]);
 
         return null;
     }
 
-    private function handleNext(User $user, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): mixed
+    private function handleBack(User $user, string $locale, OnboardingKeyboardBuilder $builder, int $chatId, int $messageId): mixed
     {
-        // Validate step 1 is complete
-        if (! $user->experience_level || ! $user->risk_level) {
-            return $this->answerWithError(
-                $locale === 'ar'
-                    ? 'يرجى اختيار مستوى الخبرة والمخاطر أولا'
-                    : 'Please select experience and risk level first'
-            );
-        }
-
-        // Move to step 2
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
-
-        $selected = $builder->getSelectedValues($user, 2);
-
+        // Go back to step 1a (experience)
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
-            'text' => $builder->getStepMessage(2, $locale),
+            'text' => $builder->getStepMessage('1a', $locale),
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $builder->buildStep2Keyboard($locale, $selected),
+                'inline_keyboard' => $builder->buildStep1aKeyboard($locale, $user->experience_level),
             ],
         ]);
 
         $this->answerCallbackQuery(['text' => '']);
 
         return null;
-    }
-
-    private function updateStep1Keyboard(User $user, string $locale, OnboardingKeyboardBuilder $builder, object $callbackQuery): void
-    {
-        $chatId = $callbackQuery->message->chat->id;
-        $messageId = $callbackQuery->message->message_id;
-
-        // Refresh user data
-        $user->refresh();
-
-        $selected = $builder->getSelectedValues($user, 1);
-
-        $this->editMessageReplyMarkup([
-            'chat_id' => $chatId,
-            'message_id' => $messageId,
-            'reply_markup' => [
-                'inline_keyboard' => $builder->buildStep1Keyboard($locale, $selected),
-            ],
-        ]);
     }
 
     private function answerWithError(string $message): null
