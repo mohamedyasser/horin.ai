@@ -217,7 +217,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep1bKeyboard($locale, $user->risk_level),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleRisk(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
@@ -244,7 +244,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep2aKeyboard($locale, $user->investment_goal),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleGoal(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
@@ -271,7 +271,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep2bKeyboard($locale, $user->trading_style),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleStyle(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
@@ -298,7 +298,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep3CountryKeyboard($locale, $user->country_id),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleCountry(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
