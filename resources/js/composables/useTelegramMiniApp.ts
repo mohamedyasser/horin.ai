@@ -1,80 +1,18 @@
-import { computed, ref } from 'vue';
-
-/**
- * Telegram Mini App Web App interface.
- * @see https://core.telegram.org/bots/webapps#initializing-mini-apps
- */
-interface TelegramWebApp {
-    initData: string;
-    initDataUnsafe: {
-        query_id?: string;
-        user?: TelegramUser;
-        auth_date?: number;
-        hash?: string;
-    };
-    version: string;
-    platform: string;
-    colorScheme: 'light' | 'dark';
-    themeParams: Record<string, string>;
-    isExpanded: boolean;
-    viewportHeight: number;
-    viewportStableHeight: number;
-    headerColor: string;
-    backgroundColor: string;
-    isClosingConfirmationEnabled: boolean;
-    ready: () => void;
-    expand: () => void;
-    close: () => void;
-    enableClosingConfirmation: () => void;
-    disableClosingConfirmation: () => void;
-    setHeaderColor: (color: string) => void;
-    setBackgroundColor: (color: string) => void;
-    MainButton: TelegramMainButton;
-    BackButton: TelegramBackButton;
-    HapticFeedback: TelegramHapticFeedback;
-}
-
-interface TelegramUser {
-    id: number;
-    first_name: string;
-    last_name?: string;
-    username?: string;
-    language_code?: string;
-    is_premium?: boolean;
-    photo_url?: string;
-}
-
-interface TelegramMainButton {
-    text: string;
-    color: string;
-    textColor: string;
-    isVisible: boolean;
-    isActive: boolean;
-    isProgressVisible: boolean;
-    setText: (text: string) => void;
-    onClick: (callback: () => void) => void;
-    offClick: (callback: () => void) => void;
-    show: () => void;
-    hide: () => void;
-    enable: () => void;
-    disable: () => void;
-    showProgress: (leaveActive?: boolean) => void;
-    hideProgress: () => void;
-}
-
-interface TelegramBackButton {
-    isVisible: boolean;
-    onClick: (callback: () => void) => void;
-    offClick: (callback: () => void) => void;
-    show: () => void;
-    hide: () => void;
-}
-
-interface TelegramHapticFeedback {
-    impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
-    notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
-    selectionChanged: () => void;
-}
+import { computed, ref, shallowRef } from 'vue';
+import {
+    init,
+    isTMA,
+    retrieveLaunchParams,
+    retrieveRawInitData,
+    postEvent,
+    $debug,
+    miniApp,
+    themeParams,
+    viewport,
+    backButton,
+    mainButton,
+    type User,
+} from '@telegram-apps/sdk';
 
 interface AuthResponse {
     success: boolean;
@@ -90,61 +28,105 @@ interface AuthResponse {
     error?: string;
 }
 
-declare global {
-    interface Window {
-        Telegram?: {
-            WebApp: TelegramWebApp;
-        };
-    }
-}
-
+const isInitialized = ref(false);
 const isAuthenticating = ref(false);
 const authError = ref<string | null>(null);
+const launchParams = shallowRef<ReturnType<typeof retrieveLaunchParams> | null>(null);
 
 /**
- * Composable for Telegram Mini App integration.
+ * Composable for Telegram Mini App integration using @telegram-apps/sdk.
  *
- * Provides utilities for detecting Mini App context, accessing the Telegram WebApp API,
- * and authenticating users via the Mini App init data.
+ * @see https://docs.telegram-mini-apps.com/packages/telegram-apps-sdk
  */
 export function useTelegramMiniApp() {
     /**
-     * Whether the app is running inside a Telegram Mini App.
+     * Whether the app is running inside a Telegram Mini App environment.
      */
     const isMiniApp = computed(() => {
         if (typeof window === 'undefined') return false;
-        return !!window.Telegram?.WebApp?.initData;
+        return isTMA();
     });
 
     /**
-     * The Telegram WebApp instance.
+     * The raw init data string for backend authentication.
+     * Use this for sending to the server for validation.
      */
-    const webApp = computed(() => {
-        if (typeof window === 'undefined') return null;
-        return window.Telegram?.WebApp ?? null;
+    const initDataRaw = computed(() => {
+        if (!isMiniApp.value) return '';
+        try {
+            return retrieveRawInitData() ?? '';
+        } catch {
+            return '';
+        }
     });
 
     /**
-     * The raw init data string for authentication.
+     * The parsed user data from launch params.
      */
-    const initData = computed(() => webApp.value?.initData ?? '');
+    const user = computed((): User | null => {
+        if (!launchParams.value?.initData?.user) return null;
+        return launchParams.value.initData.user;
+    });
 
     /**
-     * The parsed user data from init data (unsafe, not validated).
+     * The color scheme from Telegram theme.
      */
-    const user = computed(() => webApp.value?.initDataUnsafe?.user ?? null);
+    const colorScheme = computed(() => {
+        if (!launchParams.value?.themeParams) return 'light';
+        return launchParams.value.themeParams.bgColor ? 'dark' : 'light';
+    });
 
     /**
-     * The color scheme from Telegram (light or dark).
+     * Initialize the Telegram Mini App SDK.
+     * Must be called before using other SDK features.
      */
-    const colorScheme = computed(() => webApp.value?.colorScheme ?? 'light');
+    function initializeSdk(debug = false) {
+        if (isInitialized.value) return true;
+        if (!isMiniApp.value) return false;
+
+        try {
+            // Enable debug mode if requested
+            if (debug) {
+                $debug.set(true);
+            }
+
+            // Initialize all SDK components
+            init();
+
+            // Retrieve and store launch params
+            launchParams.value = retrieveLaunchParams();
+
+            // Mount and configure components
+            if (viewport.mount.isAvailable()) {
+                viewport.mount();
+                viewport.expand();
+            }
+
+            if (miniApp.mount.isAvailable()) {
+                miniApp.mount();
+                miniApp.ready();
+            }
+
+            if (themeParams.mount.isAvailable()) {
+                themeParams.mount();
+            }
+
+            isInitialized.value = true;
+            return true;
+        } catch (error) {
+            console.error('Failed to initialize Telegram Mini App SDK:', error);
+            return false;
+        }
+    }
 
     /**
      * Authenticate the user using Mini App init data.
-     * Sends the init data to the backend for validation and user creation/login.
+     * Sends the raw init data to the backend for validation and user creation/login.
      */
     async function authenticate(): Promise<AuthResponse | null> {
-        if (!initData.value) {
+        const rawData = initDataRaw.value;
+
+        if (!rawData) {
             authError.value = 'No init data available';
             return null;
         }
@@ -156,9 +138,10 @@ export function useTelegramMiniApp() {
             const response = await fetch('/auth/telegram/mini-app', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `tma ${initData.value}`,
+                    'Authorization': `tma ${rawData}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
+                    'X-Telegram-Mini-App': 'true',
                 },
             });
 
@@ -179,46 +162,91 @@ export function useTelegramMiniApp() {
     }
 
     /**
-     * Initialize the Mini App (call ready() and expand()).
-     */
-    function initialize() {
-        if (!webApp.value) return;
-
-        webApp.value.ready();
-        webApp.value.expand();
-    }
-
-    /**
      * Close the Mini App.
      */
     function close() {
-        webApp.value?.close();
+        if (miniApp.close.isAvailable()) {
+            miniApp.close();
+        }
+    }
+
+    /**
+     * Show the back button and set up click handler.
+     */
+    function showBackButton(onClick: () => void) {
+        if (!backButton.mount.isAvailable()) return;
+
+        backButton.mount();
+        backButton.show();
+        backButton.onClick(onClick);
+    }
+
+    /**
+     * Hide the back button.
+     */
+    function hideBackButton() {
+        if (backButton.hide.isAvailable()) {
+            backButton.hide();
+        }
+    }
+
+    /**
+     * Configure and show the main button.
+     */
+    function showMainButton(text: string, onClick: () => void) {
+        if (!mainButton.mount.isAvailable()) return;
+
+        mainButton.mount();
+        mainButton.setParams({ text, isVisible: true });
+        mainButton.onClick(onClick);
+    }
+
+    /**
+     * Hide the main button.
+     */
+    function hideMainButton() {
+        if (mainButton.hide.isAvailable()) {
+            mainButton.hide();
+        }
     }
 
     /**
      * Trigger haptic feedback.
      */
     function hapticFeedback(type: 'success' | 'error' | 'warning' | 'light' | 'medium' | 'heavy') {
-        if (!webApp.value?.HapticFeedback) return;
-
-        if (type === 'success' || type === 'error' || type === 'warning') {
-            webApp.value.HapticFeedback.notificationOccurred(type);
-        } else {
-            webApp.value.HapticFeedback.impactOccurred(type);
+        try {
+            if (type === 'success' || type === 'error' || type === 'warning') {
+                postEvent('web_app_trigger_haptic_feedback', {
+                    type: 'notification',
+                    notification_type: type,
+                });
+            } else {
+                postEvent('web_app_trigger_haptic_feedback', {
+                    type: 'impact',
+                    impact_style: type,
+                });
+            }
+        } catch {
+            // Haptic feedback not available
         }
     }
 
     return {
         isMiniApp,
-        webApp,
-        initData,
+        isInitialized,
+        initDataRaw,
+        launchParams,
         user,
         colorScheme,
         isAuthenticating,
         authError,
+        initializeSdk,
         authenticate,
-        initialize,
         close,
+        showBackButton,
+        hideBackButton,
+        showMainButton,
+        hideMainButton,
         hapticFeedback,
     };
 }
@@ -230,12 +258,13 @@ export function useTelegramMiniApp() {
 export async function initializeTelegramMiniApp(isAuthenticated: boolean): Promise<AuthResponse | null> {
     if (typeof window === 'undefined') return null;
 
-    const { isMiniApp, initialize, authenticate } = useTelegramMiniApp();
+    const { isMiniApp, initializeSdk, authenticate } = useTelegramMiniApp();
 
     if (!isMiniApp.value) return null;
 
-    // Initialize the Mini App
-    initialize();
+    // Initialize the SDK
+    const initialized = initializeSdk();
+    if (!initialized) return null;
 
     // If already authenticated, no need to re-authenticate
     if (isAuthenticated) return null;
