@@ -17,7 +17,7 @@ class AlertResource extends JsonResource
                 'symbol' => $this->asset->symbol,
                 'name' => $this->asset->name,
                 'name_ar' => $this->asset->name_ar,
-                'last_price' => $this->asset->last_price,
+                'last_price' => $this->asset->cachedPrice?->price,
             ]),
             'template' => $this->whenLoaded('template', fn () => [
                 'id' => $this->template->id,

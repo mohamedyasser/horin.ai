@@ -56,9 +56,30 @@ class SettingsButtonHandler extends AbstractButtonHandler
 
     public function showTrading(int $chatId, ?User $user, string $locale): mixed
     {
-        $experience = $user?->experience_level ?? 'Not set';
-        $risk = $user?->risk_level ?? 'Not set';
-        $style = $user?->trading_style ?? 'Not set';
+        $experienceLabels = [
+            'beginner' => ['en' => 'Beginner', 'ar' => 'مبتدئ'],
+            'intermediate' => ['en' => 'Intermediate', 'ar' => 'متوسط'],
+            'advanced' => ['en' => 'Advanced', 'ar' => 'متقدم'],
+        ];
+
+        $riskLabels = [
+            'conservative' => ['en' => 'Conservative', 'ar' => 'محافظ'],
+            'moderate' => ['en' => 'Moderate', 'ar' => 'معتدل'],
+            'aggressive' => ['en' => 'Aggressive', 'ar' => 'مغامر'],
+        ];
+
+        $styleLabels = [
+            'day_trading' => ['en' => 'Day Trading', 'ar' => 'تداول يومي'],
+            'swing_trading' => ['en' => 'Swing Trading', 'ar' => 'تداول متأرجح'],
+            'position_trading' => ['en' => 'Position Trading', 'ar' => 'تداول مراكز'],
+            'scalping_trading' => ['en' => 'Scalping', 'ar' => 'سكالبينج'],
+        ];
+
+        $notSet = $locale === 'ar' ? 'غير محدد' : 'Not set';
+
+        $experience = $experienceLabels[$user?->experience_level][$locale] ?? $notSet;
+        $risk = $riskLabels[$user?->risk_level][$locale] ?? $notSet;
+        $style = $styleLabels[$user?->trading_style][$locale] ?? $notSet;
 
         $text = $locale === 'ar'
             ? "📊 *ملف التداول*\n\n📈 الخبرة: {$experience}\n⚠️ المخاطرة: {$risk}\n🎯 الأسلوب: {$style}\n\nاختر من القائمة أدناه:"
@@ -74,7 +95,16 @@ class SettingsButtonHandler extends AbstractButtonHandler
 
     public function showMarkets(int $chatId, ?User $user, string $locale): mixed
     {
-        $markets = $user?->markets()->pluck('name')->join(', ') ?? 'None';
+        $none = $locale === 'ar' ? 'لا يوجد' : 'None';
+
+        if ($user) {
+            $marketNames = $user->markets()->pluck('name')->toArray();
+            // Escape underscores for Markdown
+            $marketNames = array_map(fn ($name) => str_replace('_', '\\_', $name), $marketNames);
+            $markets = ! empty($marketNames) ? implode(', ', $marketNames) : $none;
+        } else {
+            $markets = $none;
+        }
 
         $text = $locale === 'ar'
             ? "🌍 *الأسواق*\n\n📍 الأسواق المتابعة: {$markets}\n\nاختر من القائمة أدناه:"

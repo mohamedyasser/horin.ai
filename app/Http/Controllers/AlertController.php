@@ -34,7 +34,7 @@ class AlertController extends Controller
     public function index(Request $request): Response
     {
         $alerts = Alert::where('user_id', $request->user()->id)
-            ->with(['asset:id,symbol,name,name_ar,last_price'])
+            ->with(['asset:id,symbol,name_en,name_ar,inv_id', 'asset.cachedPrice:pid,price'])
             ->when($request->filled('type'), fn ($q) => $q->where('type', $request->type))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
             ->when($request->filled('asset_id'), fn ($q) => $q->where('asset_id', $request->asset_id))
@@ -447,7 +447,7 @@ class AlertController extends Controller
     private function getUserAssets($user): \Illuminate\Support\Collection
     {
         try {
-            return $user->userWishlists()->with('asset:id,symbol,name,name_ar')->get();
+            return $user->userWishlists()->with('asset:id,symbol,name_en,name_ar')->get();
         } catch (\Illuminate\Database\QueryException) {
             return collect();
         }
@@ -459,7 +459,7 @@ class AlertController extends Controller
     private function getUserAlertsForChaining(int $userId): array
     {
         return Alert::where('user_id', $userId)
-            ->with('asset:id,symbol,name,name_ar')
+            ->with('asset:id,symbol,name_en,name_ar')
             ->select('id', 'user_id', 'asset_id', 'type', 'trigger_type', 'status', 'chain_from_id')
             ->get()
             ->map(fn ($alert) => [
