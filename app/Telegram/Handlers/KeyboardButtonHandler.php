@@ -62,6 +62,10 @@ class KeyboardButtonHandler extends UpdateHandler
         // Language selection buttons
         '🇬🇧 English' => 'set_language_en',
         '🇸🇦 العربية' => 'set_language_ar',
+
+        // Phone share button (if user types it instead of using contact share)
+        '📱 Share Phone Number' => 'phone_share_hint',
+        '📱 مشاركة رقم الهاتف' => 'phone_share_hint',
     ];
 
     public function trigger(): bool
@@ -136,6 +140,9 @@ class KeyboardButtonHandler extends UpdateHandler
             // Language selection
             'set_language_en' => $this->setUserLanguage($chatId, $user, 'en'),
             'set_language_ar' => $this->setUserLanguage($chatId, $user, 'ar'),
+
+            // Phone share hint (user typed text instead of using contact share)
+            'phone_share_hint' => $this->showPhoneShareHint($chatId, $locale),
 
             default => $this->handleUnknownInput($chatId, $user, $locale),
         };
@@ -394,6 +401,21 @@ class KeyboardButtonHandler extends UpdateHandler
                 'reply_markup' => DefaultKeyboardBuilder::phoneVerificationKeyboard($newLocale),
             ]);
         }
+
+        return null;
+    }
+
+    private function showPhoneShareHint(int $chatId, string $locale): mixed
+    {
+        $text = $locale === 'ar'
+            ? "📱 يرجى الضغط على الزر أدناه لمشاركة رقم هاتفك.\n\n⚠️ لا تكتب الرقم - اضغط الزر للمشاركة التلقائية."
+            : "📱 Please tap the button below to share your phone number.\n\n⚠️ Don't type the text - tap the button to share automatically.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::phoneVerificationKeyboard($locale),
+        ]);
 
         return null;
     }

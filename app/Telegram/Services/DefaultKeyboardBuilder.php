@@ -11,9 +11,14 @@ class DefaultKeyboardBuilder
      */
     public static function forUser(?User $user, ?string $locale = null): array
     {
-        // No user or not verified - show phone verification keyboard
-        if (! $user || ! $user->hasVerifiedPhone()) {
-            return self::phoneVerificationKeyboard($locale ?? 'en');
+        // Truly new user (no record) - show language selection first
+        if (! $user) {
+            return self::languageKeyboard();
+        }
+
+        // User exists but not phone verified - show phone verification
+        if (! $user->hasVerifiedPhone()) {
+            return self::phoneVerificationKeyboard($user->language ?? $locale ?? 'en');
         }
 
         // User not onboarded - show onboarding keyboard
@@ -98,10 +103,19 @@ class DefaultKeyboardBuilder
 
     /**
      * Get the "I don't understand" message with default keyboard.
+     * For truly new users (no record), show language selection first.
      */
     public static function getUnknownInputResponse(?User $user, ?string $locale = null): array
     {
-        $locale = $locale ?? $user?->language ?? 'en';
+        // Truly new user - show language selection first
+        if (! $user) {
+            return [
+                'text' => "👋 Welcome! / مرحباً!\n\nPlease select your language:\nيرجى اختيار لغتك:",
+                'reply_markup' => self::languageKeyboard(),
+            ];
+        }
+
+        $locale = $locale ?? $user->language ?? 'en';
 
         $message = $locale === 'ar'
             ? 'عذراً، لم أفهم ذلك. يرجى اختيار أحد الخيارات من القائمة أدناه:'
