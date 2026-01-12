@@ -6,6 +6,7 @@ use App\Models\Country;
 use App\Models\Market;
 use App\Models\Sector;
 use App\Models\User;
+use App\Telegram\Services\SettingsKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
@@ -25,8 +26,6 @@ use WeStacks\TeleBot\Foundation\CallbackHandler;
 class MarketPreferencesHandler extends CallbackHandler
 {
     protected string $match = '/^set:markets/';
-
-    private const POPULAR_COUNTRY_CODES = ['EG', 'SA'];
 
     public function handle(): mixed
     {
@@ -65,37 +64,11 @@ class MarketPreferencesHandler extends CallbackHandler
 
     private function showMarketsSettings(int $chatId, int $messageId, User $user, string $locale): mixed
     {
-        $country = $user->country;
-        $countryName = $country
-            ? ($locale === 'ar' ? $country->name_ar : $country->name_en)
-            : ($locale === 'ar' ? 'غير محدد' : 'Not set');
+        $builder = new SettingsKeyboardBuilder;
 
-        $marketsCount = $user->markets()->count();
-        $sectorsCount = $user->sectors()->count();
-
-        // Simple question: What would you like to change?
         $text = $locale === 'ar'
             ? 'ما الذي تريد تغييره؟'
             : 'What would you like to change?';
-
-        $keyboard = [
-            [[
-                'text' => $locale === 'ar' ? "🏳️ الدولة: {$countryName}" : "🏳️ Country: {$countryName}",
-                'callback_data' => 'set:markets:country',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? "📊 الأسواق ({$marketsCount})" : "📊 Markets ({$marketsCount})",
-                'callback_data' => 'set:markets:market:page:1',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? "🏭 القطاعات ({$sectorsCount})" : "🏭 Sectors ({$sectorsCount})",
-                'callback_data' => 'set:markets:sectors',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'set:menu',
-            ]],
-        ];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -103,7 +76,7 @@ class MarketPreferencesHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildMarketPreferencesMenu($user, $locale),
             ],
         ]);
 
@@ -150,55 +123,11 @@ class MarketPreferencesHandler extends CallbackHandler
 
     private function showCountrySelector(int $chatId, int $messageId, User $user, string $locale): mixed
     {
+        $builder = new SettingsKeyboardBuilder;
+
         $text = $locale === 'ar'
             ? 'اختر دولتك:'
             : 'Select your country:';
-
-        // Use CASE WHEN for PostgreSQL-compatible ordering
-        $orderCase = 'CASE ';
-        foreach (self::POPULAR_COUNTRY_CODES as $index => $code) {
-            $orderCase .= "WHEN code = '{$code}' THEN {$index} ";
-        }
-        $orderCase .= 'END';
-
-        $popularCountries = Country::whereIn('code', self::POPULAR_COUNTRY_CODES)
-            ->orderByRaw($orderCase)
-            ->get();
-
-        $flags = [
-            'EG' => '🇪🇬',
-            'SA' => '🇸🇦',
-        ];
-
-        $keyboard = [];
-
-        // Countries in rows of 2
-        $rows = $popularCountries->chunk(2);
-        foreach ($rows as $row) {
-            $btns = [];
-            foreach ($row as $country) {
-                $name = $locale === 'ar' ? $country->name_ar : $country->name_en;
-                $flag = $flags[$country->code] ?? '🏳️';
-                $isSelected = $user->country_id === $country->id;
-                $btns[] = [
-                    'text' => $isSelected ? "✓ {$flag} {$name}" : "{$flag} {$name}",
-                    'callback_data' => "set:markets:country:{$country->id}",
-                ];
-            }
-            $keyboard[] = $btns;
-        }
-
-        // Search button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '🔍 بحث عن دولة أخرى' : '🔍 Search other country',
-            'callback_data' => 'set:markets:country:search',
-        ]];
-
-        // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-            'callback_data' => 'set:markets',
-        ]];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -206,7 +135,7 @@ class MarketPreferencesHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildCountrySelector($user->country_id, $locale),
             ],
         ]);
 
@@ -264,79 +193,12 @@ class MarketPreferencesHandler extends CallbackHandler
             return $this->showCountrySelector($chatId, $messageId, $user, $locale);
         }
 
-        $markets = Market::where('country_id', $user->country_id)->get();
+        $builder = new SettingsKeyboardBuilder;
         $selectedMarketIds = $user->markets()->pluck('markets.id')->toArray();
 
         $text = $locale === 'ar'
             ? 'اختر الأسواق:'
             : 'Select markets:';
-
-        $keyboard = [];
-
-        if ($markets->isEmpty()) {
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '⚠️ لا توجد أسواق متاحة' : '⚠️ No markets available',
-                'callback_data' => 'noop',
-            ]];
-        } else {
-            // Paginate
-            $perPage = 6;
-            $totalPages = (int) ceil($markets->count() / $perPage);
-            $offset = ($page - 1) * $perPage;
-            $pageMarkets = $markets->slice($offset, $perPage);
-
-            // Markets in rows of 2
-            $rows = $pageMarkets->chunk(2);
-            foreach ($rows as $row) {
-                $btns = [];
-                foreach ($row as $market) {
-                    $name = $locale === 'ar' ? ($market->name_ar ?: $market->name_en) : $market->name_en;
-                    $isSelected = in_array($market->id, $selectedMarketIds, true);
-                    $btns[] = [
-                        'text' => $isSelected ? "✅ {$name}" : "⬜ {$name}",
-                        'callback_data' => "set:markets:market:toggle:{$market->id}",
-                    ];
-                }
-                $keyboard[] = $btns;
-            }
-
-            // Pagination
-            if ($totalPages > 1) {
-                $navRow = [];
-                if ($page > 1) {
-                    $navRow[] = [
-                        'text' => '◀️',
-                        'callback_data' => 'set:markets:market:page:'.($page - 1),
-                    ];
-                }
-                $navRow[] = [
-                    'text' => "{$page}/{$totalPages}",
-                    'callback_data' => 'noop',
-                ];
-                if ($page < $totalPages) {
-                    $navRow[] = [
-                        'text' => '▶️',
-                        'callback_data' => 'set:markets:market:page:'.($page + 1),
-                    ];
-                }
-                $keyboard[] = $navRow;
-            }
-        }
-
-        // Selected count
-        $selectedCount = count($selectedMarketIds);
-        $keyboard[] = [[
-            'text' => $locale === 'ar'
-                ? "📊 المختار: {$selectedCount}"
-                : "📊 Selected: {$selectedCount}",
-            'callback_data' => 'noop',
-        ]];
-
-        // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-            'callback_data' => 'set:markets',
-        ]];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -344,7 +206,7 @@ class MarketPreferencesHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildMarketSelector($user->country_id, $selectedMarketIds, $locale, $page),
             ],
         ]);
 
@@ -355,79 +217,12 @@ class MarketPreferencesHandler extends CallbackHandler
 
     private function showSectorSelector(int $chatId, int $messageId, User $user, string $locale, int $page = 1): mixed
     {
-        $sectors = Sector::all();
+        $builder = new SettingsKeyboardBuilder;
         $selectedSectorIds = $user->sectors()->pluck('sectors.id')->toArray();
 
         $text = $locale === 'ar'
             ? 'اختر القطاعات:'
             : 'Select sectors:';
-
-        $keyboard = [];
-
-        if ($sectors->isEmpty()) {
-            $keyboard[] = [[
-                'text' => $locale === 'ar' ? '⚠️ لا توجد قطاعات متاحة' : '⚠️ No sectors available',
-                'callback_data' => 'noop',
-            ]];
-        } else {
-            // Paginate
-            $perPage = 6;
-            $totalPages = (int) ceil($sectors->count() / $perPage);
-            $offset = ($page - 1) * $perPage;
-            $pageSectors = $sectors->slice($offset, $perPage);
-
-            // Sectors in rows of 2
-            $rows = $pageSectors->chunk(2);
-            foreach ($rows as $row) {
-                $btns = [];
-                foreach ($row as $sector) {
-                    $name = $locale === 'ar' ? ($sector->name_ar ?: $sector->name_en) : $sector->name_en;
-                    $isSelected = in_array($sector->id, $selectedSectorIds, true);
-                    $btns[] = [
-                        'text' => $isSelected ? "✅ {$name}" : "⬜ {$name}",
-                        'callback_data' => "set:markets:sector:toggle:{$sector->id}",
-                    ];
-                }
-                $keyboard[] = $btns;
-            }
-
-            // Pagination
-            if ($totalPages > 1) {
-                $navRow = [];
-                if ($page > 1) {
-                    $navRow[] = [
-                        'text' => '◀️',
-                        'callback_data' => "set:markets:sector:page:".($page - 1),
-                    ];
-                }
-                $navRow[] = [
-                    'text' => "{$page}/{$totalPages}",
-                    'callback_data' => 'noop',
-                ];
-                if ($page < $totalPages) {
-                    $navRow[] = [
-                        'text' => '▶️',
-                        'callback_data' => "set:markets:sector:page:".($page + 1),
-                    ];
-                }
-                $keyboard[] = $navRow;
-            }
-        }
-
-        // Selected count
-        $selectedCount = count($selectedSectorIds);
-        $keyboard[] = [[
-            'text' => $locale === 'ar'
-                ? "🏭 المختار: {$selectedCount}"
-                : "🏭 Selected: {$selectedCount}",
-            'callback_data' => 'noop',
-        ]];
-
-        // Back button
-        $keyboard[] = [[
-            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-            'callback_data' => 'set:markets',
-        ]];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -435,7 +230,7 @@ class MarketPreferencesHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildSectorSelector($selectedSectorIds, $locale, $page),
             ],
         ]);
 

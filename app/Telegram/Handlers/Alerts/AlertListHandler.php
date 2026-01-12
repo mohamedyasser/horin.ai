@@ -70,13 +70,7 @@ class AlertListHandler extends CallbackHandler
                 ? "📊 *التنبيهات النشطة*\n\n📭 لا توجد تنبيهات نشطة."
                 : "📊 *Active Alerts*\n\n📭 No active alerts.";
 
-            $keyboard = [[[
-                'text' => $locale === 'ar' ? '➕ إنشاء تنبيه' : '➕ Create Alert',
-                'callback_data' => 'alert:create',
-            ]], [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'alert:menu',
-            ]]];
+            $keyboard = $builder->buildEmptyAlertList($locale);
         } else {
             // Build alert list text
             $lines = [];
@@ -113,6 +107,8 @@ class AlertListHandler extends CallbackHandler
 
     private function showTriggeredToday(int $chatId, int $messageId, User $user, string $locale): mixed
     {
+        $builder = new AlertKeyboardBuilder;
+
         $alerts = Alert::where('user_id', $user->id)
             ->whereDate('last_triggered_at', today())
             ->with('asset')
@@ -132,7 +128,6 @@ class AlertListHandler extends CallbackHandler
                 : "🔔 *Triggered Today ({$count})*";
             $lines[] = '';
 
-            $builder = new AlertKeyboardBuilder;
             foreach ($alerts as $index => $alert) {
                 $num = $index + 1;
                 $time = $alert->last_triggered_at->format('H:i');
@@ -143,10 +138,7 @@ class AlertListHandler extends CallbackHandler
             $text = implode("\n", $lines);
         }
 
-        $keyboard = [[[
-            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-            'callback_data' => 'alert:menu',
-        ]]];
+        $keyboard = $builder->buildBackButton('alert:menu', $locale);
 
         $this->editMessageText([
             'chat_id' => $chatId,

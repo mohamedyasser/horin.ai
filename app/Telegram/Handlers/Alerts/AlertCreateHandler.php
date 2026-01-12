@@ -60,8 +60,21 @@ class AlertCreateHandler extends CallbackHandler
             'trigger' => $this->handleTriggerSelection($user, $value, $chatId, $messageId, $locale),
             'direction' => $this->handleDirectionSelection($user, $value, $chatId, $messageId, $locale),
             'confirm' => $this->handleConfirm($user, $chatId, $messageId, $locale),
+            'cancel' => $this->handleCancel($user, $chatId, $messageId, $locale),
             default => $this->showTypeSelector($chatId, $messageId, $user, $locale),
         };
+    }
+
+    private function handleCancel(User $user, int $chatId, int $messageId, string $locale): mixed
+    {
+        // Clear awaiting input and draft
+        $user->update([
+            'telegram_awaiting_input' => null,
+            'telegram_alert_draft' => null,
+        ]);
+
+        // Go back to type selector with a fresh start
+        return $this->showTypeSelector($chatId, $messageId, $user, $locale);
     }
 
     private function showMainMenu(int $chatId, int $messageId, User $user, string $locale): mixed
@@ -216,18 +229,11 @@ class AlertCreateHandler extends CallbackHandler
             ? "🔍 أدخل رمز أو اسم الأصل:\n\nاكتب رمز السهم أو اسمه في الرسالة التالية."
             : "🔍 Enter asset symbol or name:\n\nType the stock symbol or name in your next message.";
 
-        $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $cancelText,
-                        'callback_data' => 'alert:create:cancel',
-                    ],
-                ]],
+                'inline_keyboard' => $builder->buildCancelButton('alert:create:cancel', $locale),
             ],
         ]);
 
@@ -377,19 +383,12 @@ class AlertCreateHandler extends CallbackHandler
             default => '',
         };
 
-        $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $cancelText,
-                        'callback_data' => 'alert:create:cancel',
-                    ],
-                ]],
+                'inline_keyboard' => $builder->buildCancelButton('alert:create:cancel', $locale),
             ],
         ]);
 

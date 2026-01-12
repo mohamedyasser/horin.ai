@@ -517,6 +517,91 @@ class AlertKeyboardBuilder
     }
 
     /**
+     * Build cancel button keyboard for text input prompts.
+     */
+    public function buildCancelButton(string $callbackData, string $locale): array
+    {
+        return [[
+            [
+                'text' => $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel',
+                'callback_data' => $callbackData,
+            ],
+        ]];
+    }
+
+    /**
+     * Build direction selector for percentage-based alerts.
+     */
+    public function buildPercentageDirectionSelector(float $percentage, string $locale): array
+    {
+        return [
+            [[
+                'text' => $locale === 'ar' ? '⬆️ ارتفاع فقط' : '⬆️ Up Only',
+                'callback_data' => 'alert:create:direction:above',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬇️ انخفاض فقط' : '⬇️ Down Only',
+                'callback_data' => 'alert:create:direction:below',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '↕️ أي اتجاه' : '↕️ Either Direction',
+                'callback_data' => 'alert:create:direction:both',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'alert:create',
+            ]],
+        ];
+    }
+
+    /**
+     * Build delete success keyboard.
+     */
+    public function buildDeleteSuccess(string $locale): array
+    {
+        return [
+            [[
+                'text' => $locale === 'ar' ? '📊 عرض التنبيهات' : '📊 View Alerts',
+                'callback_data' => 'alert:list',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ القائمة الرئيسية' : '⬅️ Main Menu',
+                'callback_data' => 'alert:menu',
+            ]],
+        ];
+    }
+
+    /**
+     * Build empty alert list keyboard.
+     */
+    public function buildEmptyAlertList(string $locale): array
+    {
+        return [
+            [[
+                'text' => $locale === 'ar' ? '➕ إنشاء تنبيه' : '➕ Create Alert',
+                'callback_data' => 'alert:create',
+            ]],
+            [[
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => 'alert:menu',
+            ]],
+        ];
+    }
+
+    /**
+     * Build back button keyboard.
+     */
+    public function buildBackButton(string $callbackData, string $locale): array
+    {
+        return [[
+            [
+                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                'callback_data' => $callbackData,
+            ],
+        ]];
+    }
+
+    /**
      * Format alert for display in list.
      */
     public function formatAlertLine(Alert $alert, string $locale): string

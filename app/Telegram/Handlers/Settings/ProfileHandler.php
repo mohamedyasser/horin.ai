@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers\Settings;
 
 use App\Models\User;
+use App\Telegram\Services\SettingsKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
 /**
@@ -44,28 +45,11 @@ class ProfileHandler extends CallbackHandler
 
     private function showProfileSettings(int $chatId, int $messageId, User $user, string $locale): mixed
     {
-        $name = $user->name ?? ($locale === 'ar' ? 'غير محدد' : 'Not set');
-        $langDisplay = $locale === 'ar' ? 'العربية' : 'English';
+        $builder = new SettingsKeyboardBuilder;
 
-        // Simple question: What would you like to change?
         $text = $locale === 'ar'
             ? 'ما الذي تريد تغييره؟'
             : 'What would you like to change?';
-
-        $keyboard = [
-            [[
-                'text' => $locale === 'ar' ? "📛 الاسم: {$name}" : "📛 Name: {$name}",
-                'callback_data' => 'set:profile:name',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? "🌐 اللغة: {$langDisplay}" : "🌐 Language: {$langDisplay}",
-                'callback_data' => 'set:language',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'set:menu',
-            ]],
-        ];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -73,7 +57,7 @@ class ProfileHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildProfileMenu($user, $locale),
             ],
         ]);
 
@@ -84,6 +68,8 @@ class ProfileHandler extends CallbackHandler
 
     private function promptNameChange(int $chatId, User $user, string $locale): mixed
     {
+        $builder = new SettingsKeyboardBuilder;
+
         // Set awaiting input state
         $user->update(['telegram_awaiting_input' => 'name']);
 
@@ -91,18 +77,11 @@ class ProfileHandler extends CallbackHandler
             ? "✏️ أدخل اسمك الجديد:\n\nاكتب اسمك في الرسالة التالية."
             : "✏️ Enter your new name:\n\nType your name in your next message.";
 
-        $cancelText = $locale === 'ar' ? '⬅️ إلغاء' : '⬅️ Cancel';
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $cancelText,
-                        'callback_data' => 'set:profile',
-                    ],
-                ]],
+                'inline_keyboard' => $builder->buildCancelButton('set:profile', $locale),
             ],
         ]);
 

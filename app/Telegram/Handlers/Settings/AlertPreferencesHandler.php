@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers\Settings;
 
 use App\Models\User;
+use App\Telegram\Services\SettingsKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
@@ -60,41 +61,11 @@ class AlertPreferencesHandler extends CallbackHandler
 
     private function showAlertsSettings(int $chatId, int $messageId, User $user, string $locale): mixed
     {
-        $prefs = $user->getAlertPreferences();
+        $builder = new SettingsKeyboardBuilder;
 
-        $channels = $prefs->channels ?? ['telegram', 'in_app'];
-        $maxHour = $prefs->max_alerts_per_hour ?? 10;
-        $maxDay = $prefs->max_alerts_per_day ?? 25;
-
-        $channelCount = count($channels);
-
-        // Simple question: What would you like to change?
         $text = $locale === 'ar'
             ? 'ما الذي تريد تغييره؟'
             : 'What would you like to change?';
-
-        $keyboard = [
-            [[
-                'text' => $locale === 'ar'
-                    ? "📱 قنوات الإشعارات ({$channelCount})"
-                    : "📱 Notification Channels ({$channelCount})",
-                'callback_data' => 'set:alerts:channels:select',
-            ]],
-            [[
-                'text' => $locale === 'ar'
-                    ? "⏰ الحدود: {$maxHour}/ساعة، {$maxDay}/يوم"
-                    : "⏰ Limits: {$maxHour}/hr, {$maxDay}/day",
-                'callback_data' => 'set:alerts:limits:select',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⚙️ إعدادات متقدمة' : '⚙️ Advanced Settings',
-                'web_app' => ['url' => route('settings.alerts')],
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'set:menu',
-            ]],
-        ];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -102,7 +73,7 @@ class AlertPreferencesHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildAlertPreferencesMenu($user, $locale),
             ],
         ]);
 
@@ -122,6 +93,8 @@ class AlertPreferencesHandler extends CallbackHandler
 
     private function showChannelsSelector(int $chatId, int $messageId, User $user, string $locale): mixed
     {
+        $builder = new SettingsKeyboardBuilder;
+
         $text = $locale === 'ar'
             ? 'اختر قنوات الإشعارات:'
             : 'Select notification channels:';
@@ -129,41 +102,13 @@ class AlertPreferencesHandler extends CallbackHandler
         $prefs = $user->getAlertPreferences();
         $channels = $prefs->channels ?? ['telegram', 'in_app'];
 
-        $telegramEnabled = in_array('telegram', $channels, true);
-        $emailEnabled = in_array('email', $channels, true);
-        $pushEnabled = in_array('push', $channels, true);
-        $inAppEnabled = in_array('in_app', $channels, true);
-
-        $keyboard = [
-            [[
-                'text' => ($telegramEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'تيليجرام' : 'Telegram'),
-                'callback_data' => 'set:alerts:channel:telegram',
-            ]],
-            [[
-                'text' => ($emailEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'البريد الإلكتروني' : 'Email'),
-                'callback_data' => 'set:alerts:channel:email',
-            ]],
-            [[
-                'text' => ($pushEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'إشعارات الهاتف' : 'Push Notifications'),
-                'callback_data' => 'set:alerts:channel:push',
-            ]],
-            [[
-                'text' => ($inAppEnabled ? '✅' : '⬜').' '.($locale === 'ar' ? 'داخل التطبيق' : 'In-App'),
-                'callback_data' => 'set:alerts:channel:in_app',
-            ]],
-            [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'set:alerts',
-            ]],
-        ];
-
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildChannelsSelector($channels, $locale),
             ],
         ]);
 
@@ -183,6 +128,8 @@ class AlertPreferencesHandler extends CallbackHandler
 
     private function showLimitsSelector(int $chatId, int $messageId, User $user, string $locale): mixed
     {
+        $builder = new SettingsKeyboardBuilder;
+
         $text = $locale === 'ar'
             ? 'حدد الحد الأقصى للتنبيهات:'
             : 'Set alert limits:';
@@ -191,50 +138,13 @@ class AlertPreferencesHandler extends CallbackHandler
         $maxHour = $prefs->max_alerts_per_hour ?? 10;
         $maxDay = $prefs->max_alerts_per_day ?? 25;
 
-        $keyboard = [
-            // Max per hour controls
-            [
-                [
-                    'text' => '➖',
-                    'callback_data' => 'set:alerts:max:hour:'.max(1, $maxHour - 5),
-                ],
-                [
-                    'text' => $locale === 'ar' ? "⏰ {$maxHour}/ساعة" : "⏰ {$maxHour}/hr",
-                    'callback_data' => 'noop',
-                ],
-                [
-                    'text' => '➕',
-                    'callback_data' => 'set:alerts:max:hour:'.min(50, $maxHour + 5),
-                ],
-            ],
-            // Max per day controls
-            [
-                [
-                    'text' => '➖',
-                    'callback_data' => 'set:alerts:max:day:'.max(5, $maxDay - 10),
-                ],
-                [
-                    'text' => $locale === 'ar' ? "📅 {$maxDay}/يوم" : "📅 {$maxDay}/day",
-                    'callback_data' => 'noop',
-                ],
-                [
-                    'text' => '➕',
-                    'callback_data' => 'set:alerts:max:day:'.min(100, $maxDay + 10),
-                ],
-            ],
-            [[
-                'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                'callback_data' => 'set:alerts',
-            ]],
-        ];
-
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildLimitsSelector($maxHour, $maxDay, $locale),
             ],
         ]);
 
@@ -249,6 +159,7 @@ class AlertPreferencesHandler extends CallbackHandler
             return $this->answerWithError('Invalid channel');
         }
 
+        $builder = new SettingsKeyboardBuilder;
         $prefs = $user->getAlertPreferences();
         $channels = $prefs->channels ?? ['telegram', 'in_app'];
 
@@ -276,17 +187,12 @@ class AlertPreferencesHandler extends CallbackHandler
             'channel' => $channel,
         ]);
 
-        $channelNames = [
-            'telegram' => $locale === 'ar' ? 'تيليجرام' : 'Telegram',
-            'email' => $locale === 'ar' ? 'البريد' : 'Email',
-            'push' => $locale === 'ar' ? 'الإشعارات' : 'Push',
-            'in_app' => $locale === 'ar' ? 'التطبيق' : 'In-App',
-        ];
+        $channelLabel = $builder->getChannelLabel($channel, $locale);
 
         $this->answerCallbackQuery([
             'text' => $action === 'enabled'
-                ? ($locale === 'ar' ? "✅ تم تفعيل: {$channelNames[$channel]}" : "✅ Enabled: {$channelNames[$channel]}")
-                : ($locale === 'ar' ? "❌ تم إيقاف: {$channelNames[$channel]}" : "❌ Disabled: {$channelNames[$channel]}"),
+                ? ($locale === 'ar' ? "✅ تم تفعيل: {$channelLabel}" : "✅ Enabled: {$channelLabel}")
+                : ($locale === 'ar' ? "❌ تم إيقاف: {$channelLabel}" : "❌ Disabled: {$channelLabel}"),
             'show_alert' => false,
         ]);
 
@@ -339,15 +245,6 @@ class AlertPreferencesHandler extends CallbackHandler
         ]);
 
         return null;
-    }
-
-    private function getStatus(bool $enabled, string $locale): string
-    {
-        if ($locale === 'ar') {
-            return $enabled ? '✅ مفعل' : '❌ معطل';
-        }
-
-        return $enabled ? '✅ On' : '❌ Off';
     }
 
     private function answerWithError(string $message): null

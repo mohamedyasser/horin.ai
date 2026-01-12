@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers;
 
 use App\Models\User;
+use App\Telegram\Services\SettingsKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
@@ -61,28 +62,14 @@ class LanguageCallbackHandler extends CallbackHandler
             ? "✅ تم تغيير اللغة إلى العربية بنجاح.\n\nاضغط الزر أدناه للمتابعة."
             : "✅ Language successfully changed to English.\n\nTap the button below to continue.";
 
-        $buttonText = $newLocale === 'ar' ? '📊 فتح حورين' : '📊 Open Horin';
-        $settingsText = $newLocale === 'ar' ? '⚙️ الإعدادات' : '⚙️ Settings';
+        $builder = new SettingsKeyboardBuilder;
 
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $confirmText,
             'reply_markup' => [
-                'inline_keyboard' => [
-                    [
-                        [
-                            'text' => $buttonText,
-                            'web_app' => ['url' => route('dashboard')],
-                        ],
-                    ],
-                    [
-                        [
-                            'text' => $settingsText,
-                            'callback_data' => 'settings:menu',
-                        ],
-                    ],
-                ],
+                'inline_keyboard' => $builder->buildLanguageConfirmation($newLocale),
             ],
         ]);
 

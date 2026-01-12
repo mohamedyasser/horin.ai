@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers\Settings;
 
 use App\Models\User;
+use App\Telegram\Services\SettingsKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\CallbackHandler;
 
 /**
@@ -44,44 +45,11 @@ class SettingsMenuHandler extends CallbackHandler
 
     private function showMainMenu(int $chatId, int $messageId, string $locale): mixed
     {
+        $builder = new SettingsKeyboardBuilder;
+
         $text = $locale === 'ar'
             ? 'ما الذي تريد تغييره؟'
             : 'What would you like to change?';
-
-        $keyboard = [
-            [
-                [
-                    'text' => $locale === 'ar' ? '👤 الملف الشخصي' : '👤 Profile',
-                    'callback_data' => 'set:profile',
-                ],
-                [
-                    'text' => $locale === 'ar' ? '📊 التداول' : '📊 Trading',
-                    'callback_data' => 'set:trading',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '🌍 الأسواق' : '🌍 Markets',
-                    'callback_data' => 'set:markets',
-                ],
-                [
-                    'text' => $locale === 'ar' ? '🔔 التنبيهات' : '🔔 Alerts',
-                    'callback_data' => 'set:alerts',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '🌐 اللغة' : '🌐 Language',
-                    'callback_data' => 'set:language',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '📱 فتح التطبيق' : '📱 Open App',
-                    'web_app' => ['url' => route('profile.edit')],
-                ],
-            ],
-        ];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -89,7 +57,7 @@ class SettingsMenuHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildMainMenu($locale),
             ],
         ]);
 
@@ -100,28 +68,11 @@ class SettingsMenuHandler extends CallbackHandler
 
     private function showLanguageMenu(int $chatId, int $messageId, string $locale): mixed
     {
+        $builder = new SettingsKeyboardBuilder;
+
         $text = $locale === 'ar'
             ? 'اختر لغتك:'
             : 'Select your language:';
-
-        $keyboard = [
-            [
-                [
-                    'text' => $locale === 'en' ? '✓ 🇬🇧 English' : '🇬🇧 English',
-                    'callback_data' => 'lang:en',
-                ],
-                [
-                    'text' => $locale === 'ar' ? '✓ 🇸🇦 العربية' : '🇸🇦 العربية',
-                    'callback_data' => 'lang:ar',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
-                    'callback_data' => 'set:menu',
-                ],
-            ],
-        ];
 
         $this->editMessageText([
             'chat_id' => $chatId,
@@ -129,7 +80,7 @@ class SettingsMenuHandler extends CallbackHandler
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildLanguageSelector($locale),
             ],
         ]);
 

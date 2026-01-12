@@ -196,7 +196,6 @@ class AlertDetailHandler extends CallbackHandler
     {
         $builder = new AlertKeyboardBuilder;
 
-        $symbol = $alert->asset?->symbol ?? 'N/A';
         $line = $builder->formatAlertLine($alert, $locale);
 
         $text = $locale === 'ar'
@@ -222,6 +221,7 @@ class AlertDetailHandler extends CallbackHandler
 
     private function executeDelete(Alert $alert, int $chatId, int $messageId, string $locale): mixed
     {
+        $builder = new AlertKeyboardBuilder;
         $symbol = $alert->asset?->symbol ?? 'N/A';
 
         $alert->delete();
@@ -234,21 +234,13 @@ class AlertDetailHandler extends CallbackHandler
             ? "🗑️ *تم الحذف*\n\nتم حذف تنبيه {$symbol} بنجاح."
             : "🗑️ *Deleted*\n\nAlert for {$symbol} has been deleted.";
 
-        $keyboard = [[[
-            'text' => $locale === 'ar' ? '📊 عرض التنبيهات' : '📊 View Alerts',
-            'callback_data' => 'alert:list',
-        ]], [[
-            'text' => $locale === 'ar' ? '⬅️ القائمة الرئيسية' : '⬅️ Main Menu',
-            'callback_data' => 'alert:menu',
-        ]]];
-
         $this->editMessageText([
             'chat_id' => $chatId,
             'message_id' => $messageId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => $keyboard,
+                'inline_keyboard' => $builder->buildDeleteSuccess($locale),
             ],
         ]);
 
