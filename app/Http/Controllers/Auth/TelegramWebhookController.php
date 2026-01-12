@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Laravel\TeleBot;
+use WeStacks\TeleBot\Objects\Update;
 
 class TelegramWebhookController extends Controller
 {
@@ -19,15 +20,16 @@ class TelegramWebhookController extends Controller
     public function handle(Request $request): JsonResponse
     {
         try {
-            $update = $request->all();
+            $data = $request->all();
 
             Log::debug('Telegram webhook received', [
-                'update_id' => $update['update_id'] ?? null,
-                'type' => $this->getUpdateType($update),
+                'update_id' => $data['update_id'] ?? null,
+                'type' => $this->getUpdateType($data),
             ]);
 
-            // Process through TeleBot kernel
-            TeleBot::handleUpdate($update);
+            // Create Update object and process through TeleBot kernel
+            $update = Update::from($request->getContent());
+            TeleBot::bot()->handle($update);
 
             return response()->json(['ok' => true]);
 
