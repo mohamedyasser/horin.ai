@@ -134,8 +134,8 @@ class OnboardingCommand extends CommandHandler
         $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
 
         $text = $locale === 'ar'
-            ? "👋 مرحبا! اضغط الزر أدناه للتسجيل."
-            : "👋 Hi! Tap the button below to register.";
+            ? '👋 مرحبا! اضغط الزر أدناه للتسجيل.'
+            : '👋 Hi! Tap the button below to register.';
 
         $buttonText = $locale === 'ar' ? '📱 التسجيل الآن' : '📱 Register Now';
 
@@ -146,7 +146,7 @@ class OnboardingCommand extends CommandHandler
                 'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url').'/auth/telegram/register'],
+                        'web_app' => ['url' => route('auth.telegram')],
                     ],
                 ]],
             ],

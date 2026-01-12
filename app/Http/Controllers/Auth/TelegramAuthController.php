@@ -88,7 +88,7 @@ class TelegramAuthController extends Controller
                 'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url').'/verification/phone'],
+                        'web_app' => ['url' => route('verification.phone')],
                     ],
                 ]],
             ],

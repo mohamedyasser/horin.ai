@@ -88,7 +88,7 @@ class AlertPreferencesHandler extends CallbackHandler
             ]],
             [[
                 'text' => $locale === 'ar' ? '⚙️ إعدادات متقدمة' : '⚙️ Advanced Settings',
-                'web_app' => ['url' => config('app.url').'/settings/notifications'],
+                'web_app' => ['url' => route('settings.alerts')],
             ]],
             [[
                 'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',

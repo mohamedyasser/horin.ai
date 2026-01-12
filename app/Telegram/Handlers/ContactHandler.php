@@ -30,7 +30,7 @@ class ContactHandler extends UpdateHandler
                     'inline_keyboard' => [[
                         [
                             'text' => '📱 Try Again',
-                            'web_app' => ['url' => config('app.url').'/verification/phone'],
+                            'web_app' => ['url' => route('verification.phone')],
                         ],
                     ]],
                 ],
