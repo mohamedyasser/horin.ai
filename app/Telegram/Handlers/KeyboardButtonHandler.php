@@ -92,8 +92,20 @@ class KeyboardButtonHandler extends UpdateHandler
 
         // Don't handle if user is in onboarding (OnboardingTextHandler handles that)
         if ($user && $user->hasVerifiedPhone() && ! $user->hasCompletedOnboarding()) {
+            \Illuminate\Support\Facades\Log::debug('KeyboardButtonHandler: skipping - user in onboarding', [
+                'telegram_id' => $telegramId,
+            ]);
+
             return false;
         }
+
+        \Illuminate\Support\Facades\Log::debug('KeyboardButtonHandler: triggering', [
+            'telegram_id' => $telegramId,
+            'user_exists' => $user !== null,
+            'phone_verified' => $user?->hasVerifiedPhone(),
+            'onboarding_complete' => $user?->hasCompletedOnboarding(),
+            'phone_verified_at' => $user?->phone_verified_at,
+        ]);
 
         return true;
     }

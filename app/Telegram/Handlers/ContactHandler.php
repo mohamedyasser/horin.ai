@@ -61,14 +61,20 @@ class ContactHandler extends UpdateHandler
             ]);
         } else {
             // Update existing user with verified phone
-            $user->update([
+            $updateResult = $user->update([
                 'phone' => $phone,
                 'phone_verified_at' => now(),
             ]);
 
+            // Refresh the model to ensure we have the latest data
+            $user->refresh();
+
             Log::info('Phone verified via Telegram', [
                 'user_id' => $user->id,
                 'phone' => $phone,
+                'update_result' => $updateResult,
+                'phone_verified_at' => $user->phone_verified_at,
+                'has_verified_phone' => $user->hasVerifiedPhone(),
             ]);
         }
 
