@@ -3,6 +3,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\User;
+use App\Telegram\Services\DefaultKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\CommandHandler;
 
 class SettingsCommand extends CommandHandler
@@ -43,75 +44,30 @@ class SettingsCommand extends CommandHandler
     public function sendSettingsMenu(int $chatId, string $locale): void
     {
         $text = $locale === 'ar'
-            ? 'ما الذي تريد تغييره؟'
-            : 'What would you like to change?';
-
-        $keyboard = [
-            [
-                [
-                    'text' => $locale === 'ar' ? '👤 الملف الشخصي' : '👤 Profile',
-                    'callback_data' => 'set:profile',
-                ],
-                [
-                    'text' => $locale === 'ar' ? '📊 التداول' : '📊 Trading',
-                    'callback_data' => 'set:trading',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '🌍 الأسواق' : '🌍 Markets',
-                    'callback_data' => 'set:markets',
-                ],
-                [
-                    'text' => $locale === 'ar' ? '🔔 التنبيهات' : '🔔 Alerts',
-                    'callback_data' => 'set:alerts',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '🌐 اللغة' : '🌐 Language',
-                    'callback_data' => 'set:language',
-                ],
-            ],
-            [
-                [
-                    'text' => $locale === 'ar' ? '📱 فتح التطبيق' : '📱 Open App',
-                    'web_app' => ['url' => route('profile.edit')],
-                ],
-            ],
-        ];
+            ? "⚙️ *الإعدادات*\n\nاختر ما تريد تغييره من القائمة أدناه:"
+            : "⚙️ *Settings*\n\nChoose what you want to change from the menu below:";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => $keyboard,
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::settingsKeyboard($locale),
         ]);
     }
 
     private function sendLoginPrompt(int $chatId): void
     {
-        $locale = $this->update->message->from->language_code ?? 'en';
+        $langCode = $this->update->message->from->language_code ?? 'en';
+        $locale = str_starts_with($langCode, 'ar') ? 'ar' : 'en';
 
         $text = $locale === 'ar'
-            ? '👋 مرحباً! افتح التطبيق للبدء.'
-            : '👋 Hi! Open the app to get started.';
-
-        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+            ? "👋 مرحباً! يرجى التحقق من رقم هاتفك للبدء.\n\nاضغط الزر أدناه لمشاركة رقم هاتفك."
+            : "👋 Hi! Please verify your phone number to get started.\n\nTap the button below to share your phone number.";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url')],
-                    ],
-                ]],
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::phoneVerificationKeyboard($locale),
         ]);
     }
 }

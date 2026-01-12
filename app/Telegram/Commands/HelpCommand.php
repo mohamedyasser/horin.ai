@@ -3,6 +3,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\User;
+use App\Telegram\Services\DefaultKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\CommandHandler;
 
 class HelpCommand extends CommandHandler
@@ -27,20 +28,11 @@ class HelpCommand extends CommandHandler
 
         $helpText = $locale === 'ar' ? $this->getHelpTextAr() : $this->getHelpTextEn();
 
-        $buttonText = $locale === 'ar' ? '📊 فتح حورين' : '📊 Open Horin';
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $helpText,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => route('dashboard')],
-                    ],
-                ]],
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
         ]);
 
         return null;

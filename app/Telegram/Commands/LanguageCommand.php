@@ -3,6 +3,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\User;
+use App\Telegram\Services\DefaultKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\CommandHandler;
 
 class LanguageCommand extends CommandHandler
@@ -32,19 +33,9 @@ class LanguageCommand extends CommandHandler
 
         $this->sendMessage([
             'chat_id' => $chatId,
-            'text' => '🌐 Select your language / اختر لغتك:',
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => '🇬🇧 English',
-                        'callback_data' => 'lang:en',
-                    ],
-                    [
-                        'text' => '🇸🇦 العربية',
-                        'callback_data' => 'lang:ar',
-                    ],
-                ]],
-            ],
+            'text' => "🌐 *Select your language / اختر لغتك*\n\nChoose from the menu below:",
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::languageKeyboard(),
         ]);
 
         return null;
@@ -52,25 +43,17 @@ class LanguageCommand extends CommandHandler
 
     private function sendLoginPrompt(int $chatId): void
     {
-        $locale = $this->update->message->from->language_code ?? 'en';
+        $langCode = $this->update->message->from->language_code ?? 'en';
+        $locale = str_starts_with($langCode, 'ar') ? 'ar' : 'en';
 
         $text = $locale === 'ar'
-            ? '👋 مرحباً! افتح التطبيق للبدء.'
-            : '👋 Hi! Open the app to get started.';
-
-        $buttonText = $locale === 'ar' ? '🚀 فتح حورين' : '🚀 Open Horin';
+            ? "👋 مرحباً! يرجى التحقق من رقم هاتفك للبدء.\n\nاضغط الزر أدناه لمشاركة رقم هاتفك."
+            : "👋 Hi! Please verify your phone number to get started.\n\nTap the button below to share your phone number.";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url')],
-                    ],
-                ]],
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::phoneVerificationKeyboard($locale),
         ]);
     }
 }

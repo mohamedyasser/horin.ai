@@ -111,18 +111,11 @@ class OnboardingCommand extends CommandHandler
             ? "✅ لقد أكملت الإعداد بالفعل!\n\nاستخدم /settings لتعديل إعداداتك."
             : "✅ You've already completed setup!\n\nUse /settings to modify your preferences.";
 
-        $buttonText = $locale === 'ar' ? '📊 فتح لوحة التحكم' : '📊 Open Dashboard';
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => route('dashboard')],
-                    ],
-                ]],
+                'remove_keyboard' => true,
             ],
         ]);
     }
@@ -134,21 +127,23 @@ class OnboardingCommand extends CommandHandler
         $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
 
         $text = $locale === 'ar'
-            ? '👋 مرحبا! اضغط الزر أدناه للتسجيل.'
-            : '👋 Hi! Tap the button below to register.';
+            ? '👋 مرحبا! اضغط الزر أدناه لمشاركة رقم هاتفك.'
+            : '👋 Hi! Tap the button below to share your phone number.';
 
-        $buttonText = $locale === 'ar' ? '📱 التسجيل الآن' : '📱 Register Now';
+        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => [
-                'inline_keyboard' => [[
+                'keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => route('auth.telegram')],
+                        'request_contact' => true,
                     ],
                 ]],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
             ],
         ]);
     }

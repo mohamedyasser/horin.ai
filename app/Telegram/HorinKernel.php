@@ -14,6 +14,7 @@ use App\Telegram\Handlers\Alerts\AlertDetailHandler;
 use App\Telegram\Handlers\Alerts\AlertHistoryHandler;
 use App\Telegram\Handlers\Alerts\AlertListHandler;
 use App\Telegram\Handlers\ContactHandler;
+use App\Telegram\Handlers\KeyboardButtonHandler;
 use App\Telegram\Handlers\LanguageCallbackHandler;
 use App\Telegram\Handlers\Onboarding\Step1Handler;
 use App\Telegram\Handlers\Onboarding\Step2Handler;
@@ -70,6 +71,9 @@ class HorinKernel extends Kernel
 
             // Text input handler (for name change, country search)
             TextInputHandler::class,
+
+            // Keyboard button handler (maps button text to commands, fallback for unknown input)
+            KeyboardButtonHandler::class,
 
             // Contact handler for phone verification (should be last)
             ContactHandler::class,

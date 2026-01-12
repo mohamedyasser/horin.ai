@@ -3,6 +3,7 @@
 namespace App\Telegram\Commands;
 
 use App\Models\User;
+use App\Telegram\Services\DefaultKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\CommandHandler;
 
@@ -69,51 +70,31 @@ class StartCommand extends CommandHandler
         $name = $user->name ?? 'there';
 
         $message = $locale === 'ar'
-            ? "👋 مرحباً مجدداً، *{$name}*!\n\nأنت جاهز لتلقي تنبيهات الأسهم.\n\n📋 /alerts - عرض التنبيهات\n⚙️ /settings - الإعدادات\n❓ /help - المساعدة"
-            : "👋 Welcome back, *{$name}*!\n\nYou're all set to receive stock alerts.\n\n📋 /alerts - View alerts\n⚙️ /settings - Settings\n❓ /help - Help";
-
-        $buttonText = $locale === 'ar' ? '📊 فتح حورين' : '📊 Open Horin';
+            ? "👋 مرحباً مجدداً، *{$name}*!\n\nأنت جاهز لتلقي تنبيهات الأسهم. اختر من القائمة أدناه:"
+            : "👋 Welcome back, *{$name}*!\n\nYou're all set to receive stock alerts. Choose from the menu below:";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => route('dashboard')],
-                    ],
-                ]],
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::forUser($user),
         ]);
     }
 
     private function sendWelcomeNewUser(int $chatId, object $from): void
     {
-        $locale = $from->language_code ?? 'en';
-        // Normalize to supported languages (en, ar)
-        $locale = str_starts_with($locale, 'ar') ? 'ar' : 'en';
         $name = $from->first_name ?? 'there';
 
-        $message = $locale === 'ar'
-            ? "👋 مرحباً *{$name}*!\n\nأنا بوت حورين للتنبيهات. اضغط الزر أدناه للتسجيل والبدء في تلقي تنبيهات الأسهم."
-            : "👋 Welcome *{$name}*!\n\nI'm the Horin alerts bot. Tap the button below to register and start receiving stock alerts.";
-
-        $buttonText = $locale === 'ar' ? '📱 التسجيل الآن' : '📱 Register Now';
+        // Show bilingual welcome with language selection
+        $message = "👋 Welcome *{$name}*! / مرحباً *{$name}*!\n\n"
+            ."Please select your language:\n"
+            .'يرجى اختيار لغتك:';
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => route('auth.telegram')],
-                    ],
-                ]],
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::languageKeyboard(),
         ]);
     }
 
@@ -126,22 +107,11 @@ class StartCommand extends CommandHandler
             ? "📱 يرجى التحقق من رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه لمشاركة رقم هاتفك."
             : "📱 Please verify your phone number to continue.\n\nTap the button below to share your phone number.";
 
-        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
-
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
-            'reply_markup' => [
-                'keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'request_contact' => true,
-                    ],
-                ]],
-                'resize_keyboard' => true,
-                'one_time_keyboard' => true,
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::phoneVerificationKeyboard($locale),
         ]);
     }
 }

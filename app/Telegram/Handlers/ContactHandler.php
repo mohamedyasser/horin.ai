@@ -3,6 +3,7 @@
 namespace App\Telegram\Handlers;
 
 use App\Models\User;
+use App\Telegram\Services\DefaultKeyboardBuilder;
 use App\Telegram\Services\OnboardingKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\UpdateHandler;
@@ -27,12 +28,14 @@ class ContactHandler extends UpdateHandler
                 'chat_id' => $chatId,
                 'text' => '❌ Please share your own phone number.',
                 'reply_markup' => [
-                    'inline_keyboard' => [[
+                    'keyboard' => [[
                         [
-                            'text' => '📱 Try Again',
-                            'web_app' => ['url' => route('verification.phone')],
+                            'text' => '📱 Share Phone Number',
+                            'request_contact' => true,
                         ],
                     ]],
+                    'resize_keyboard' => true,
+                    'one_time_keyboard' => true,
                 ],
             ]);
 
@@ -160,23 +163,17 @@ class ContactHandler extends UpdateHandler
 
     private function sendWelcomeBack(int $chatId, string $locale): void
     {
-        $text = $locale === 'ar'
-            ? "🎉 أنت جاهز لتلقي تنبيهات الأسهم!\n\nاضغط الزر أدناه لفتح التطبيق."
-            : "🎉 You're all set to receive stock alerts!\n\nTap below to open the app.";
+        $telegramId = (string) $this->update->message->from->id;
+        $user = User::where('telegram_id', $telegramId)->first();
 
-        $buttonText = $locale === 'ar' ? '📊 فتح لوحة التحكم' : '📊 Open Dashboard';
+        $text = $locale === 'ar'
+            ? "🎉 أنت جاهز لتلقي تنبيهات الأسهم!\n\nاختر من القائمة أدناه:"
+            : "🎉 You're all set to receive stock alerts!\n\nChoose from the menu below:";
 
         $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
-            'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $buttonText,
-                        'web_app' => ['url' => route('dashboard')],
-                    ],
-                ]],
-            ],
+            'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
         ]);
     }
 }
