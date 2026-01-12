@@ -26,7 +26,7 @@ class MarketPreferencesHandler extends CallbackHandler
 {
     protected string $match = '/^set:markets/';
 
-    private const POPULAR_COUNTRY_CODES = ['EG', 'SA', 'AE', 'KW', 'QA', 'BH'];
+    private const POPULAR_COUNTRY_CODES = ['EG', 'SA'];
 
     public function handle(): mixed
     {
@@ -177,8 +177,15 @@ MSG;
             ? "🏳️ *اختر دولتك:*"
             : "🏳️ *Select your country:*";
 
+        // Use CASE WHEN for PostgreSQL-compatible ordering
+        $orderCase = 'CASE ';
+        foreach (self::POPULAR_COUNTRY_CODES as $index => $code) {
+            $orderCase .= "WHEN code = '{$code}' THEN {$index} ";
+        }
+        $orderCase .= 'END';
+
         $popularCountries = Country::whereIn('code', self::POPULAR_COUNTRY_CODES)
-            ->orderByRaw("FIELD(code, '".implode("','", self::POPULAR_COUNTRY_CODES)."')")
+            ->orderByRaw($orderCase)
             ->get();
 
         $flags = [

@@ -204,9 +204,15 @@ class OnboardingKeyboardBuilder
     {
         $keyboard = [];
 
-        // Popular countries
+        // Popular countries - use CASE WHEN for PostgreSQL-compatible ordering
+        $orderCase = 'CASE ';
+        foreach (self::POPULAR_COUNTRY_CODES as $index => $code) {
+            $orderCase .= "WHEN code = '{$code}' THEN {$index} ";
+        }
+        $orderCase .= 'END';
+
         $popularCountries = Country::whereIn('code', self::POPULAR_COUNTRY_CODES)
-            ->orderByRaw("FIELD(code, '".implode("','", self::POPULAR_COUNTRY_CODES)."')")
+            ->orderByRaw($orderCase)
             ->get();
 
         // Country flags by code
