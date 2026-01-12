@@ -16,23 +16,26 @@ use WeStacks\TeleBot\Kernel;
 class HorinKernel extends Kernel
 {
     /**
-     * Registered update handlers.
-     * Order matters - handlers are processed in sequence.
+     * Create a new Horin kernel instance.
+     * Handlers are processed in sequence - order matters.
      */
-    protected array $handlers = [
-        // Commands (processed first)
-        StartCommand::class,
-        HelpCommand::class,
-        AlertsCommand::class,
-        SettingsCommand::class,
-        LanguageCommand::class,
+    public function __construct()
+    {
+        parent::__construct([
+            // Commands (processed first)
+            StartCommand::class,
+            HelpCommand::class,
+            AlertsCommand::class,
+            SettingsCommand::class,
+            LanguageCommand::class,
 
-        // Callback handlers
-        SnoozeCallbackHandler::class,
-        AcknowledgeCallbackHandler::class,
-        LanguageCallbackHandler::class,
+            // Callback handlers
+            SnoozeCallbackHandler::class,
+            AcknowledgeCallbackHandler::class,
+            LanguageCallbackHandler::class,
 
-        // Contact handler for phone verification
-        ContactHandler::class,
-    ];
+            // Contact handler for phone verification
+            ContactHandler::class,
+        ]);
+    }
 }
