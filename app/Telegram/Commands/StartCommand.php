@@ -110,7 +110,7 @@ class StartCommand extends CommandHandler
                 'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url').'/auth/telegram/register'],
+                        'web_app' => ['url' => route('auth.telegram')],
                     ],
                 ]],
             ],
@@ -136,7 +136,7 @@ class StartCommand extends CommandHandler
                 'inline_keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => config('app.url').'/verification/phone'],
+                        'web_app' => ['url' => route('verification.phone')],
                     ],
                 ]],
             ],
