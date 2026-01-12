@@ -2,8 +2,10 @@
 
 namespace App\Telegram\Handlers;
 
+use App\Models\Asset;
 use App\Models\Country;
 use App\Models\User;
+use App\Telegram\Services\AlertKeyboardBuilder;
 use App\Telegram\Services\OnboardingKeyboardBuilder;
 use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\UpdateHandler;
@@ -14,6 +16,9 @@ use WeStacks\TeleBot\Foundation\UpdateHandler;
  * This handles:
  * - Name change (telegram_awaiting_input = 'name')
  * - Country search (telegram_awaiting_input = 'country_search')
+ * - Alert asset search (telegram_awaiting_input = 'alert_asset_search')
+ * - Alert target price (telegram_awaiting_input = 'alert_target_price')
+ * - Alert percentage (telegram_awaiting_input = 'alert_percentage')
  */
 class TextInputHandler extends UpdateHandler
 {
@@ -64,6 +69,9 @@ class TextInputHandler extends UpdateHandler
         return match ($awaitingInput) {
             'name' => $this->handleNameInput($user, $text, $chatId, $locale),
             'country_search' => $this->handleCountrySearch($user, $text, $chatId, $locale),
+            'alert_asset_search' => $this->handleAlertAssetSearch($user, $text, $chatId, $locale),
+            'alert_target_price' => $this->handleAlertTargetPrice($user, $text, $chatId, $locale),
+            'alert_percentage' => $this->handleAlertPercentage($user, $text, $chatId, $locale),
             default => null,
         };
     }
@@ -190,6 +198,176 @@ class TextInputHandler extends UpdateHandler
                 'callback_data' => 'ob:step3:back',
             ],
         ];
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        return null;
+    }
+
+    private function handleAlertAssetSearch(User $user, string $query, int $chatId, string $locale): mixed
+    {
+        $query = trim($query);
+
+        if (mb_strlen($query) < 2) {
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $locale === 'ar'
+                    ? '❌ يرجى إدخال حرفين على الأقل للبحث.'
+                    : '❌ Please enter at least 2 characters to search.',
+            ]);
+
+            return null;
+        }
+
+        // Search assets by symbol or name
+        $assets = Asset::where('symbol', 'LIKE', "%{$query}%")
+            ->orWhere('name', 'LIKE', "%{$query}%")
+            ->orWhere('name_ar', 'LIKE', "%{$query}%")
+            ->limit(5)
+            ->get();
+
+        $builder = new AlertKeyboardBuilder;
+
+        if ($assets->isEmpty()) {
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $locale === 'ar'
+                    ? "❌ لم يتم العثور على أصول بهذا الاسم: {$query}"
+                    : "❌ No assets found matching: {$query}",
+                'reply_markup' => [
+                    'inline_keyboard' => [[
+                        [
+                            'text' => $locale === 'ar' ? '🔍 بحث مرة أخرى' : '🔍 Search Again',
+                            'callback_data' => 'alert:create:asset:search',
+                        ],
+                        [
+                            'text' => $locale === 'ar' ? '⬅️ رجوع' : '⬅️ Back',
+                            'callback_data' => 'alert:create:type:price',
+                        ],
+                    ]],
+                ],
+            ]);
+
+            return null;
+        }
+
+        $keyboard = $builder->buildAssetSearchResults($assets, $locale);
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $locale === 'ar'
+                ? "🔍 نتائج البحث عن: {$query}"
+                : "🔍 Search results for: {$query}",
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        return null;
+    }
+
+    private function handleAlertTargetPrice(User $user, string $input, int $chatId, string $locale): mixed
+    {
+        $input = trim($input);
+
+        // Parse the number (handle both . and , as decimal separator)
+        $input = str_replace(',', '.', $input);
+        $price = (float) $input;
+
+        if ($price <= 0) {
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $locale === 'ar'
+                    ? '❌ يرجى إدخال سعر صحيح (رقم موجب).'
+                    : '❌ Please enter a valid price (positive number).',
+            ]);
+
+            // Re-set awaiting input
+            $user->update(['telegram_awaiting_input' => 'alert_target_price']);
+
+            return null;
+        }
+
+        // Update draft with the target price
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['step'] = 'direction';
+        $draft['parameters'] = $draft['parameters'] ?? [];
+        $draft['parameters']['target_price'] = $price;
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        Log::info('Alert target price set via Telegram', [
+            'user_id' => $user->id,
+            'target_price' => $price,
+        ]);
+
+        // Show direction selector
+        $builder = new AlertKeyboardBuilder;
+        $keyboard = $builder->buildDirectionSelector($price, $locale);
+
+        $formattedPrice = number_format($price, 2);
+        $text = $locale === 'ar'
+            ? "🎯 السعر المستهدف: {$formattedPrice}\n\nتنبيه عندما يصبح السعر:"
+            : "🎯 Target Price: {$formattedPrice}\n\nAlert when price goes:";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => [
+                'inline_keyboard' => $keyboard,
+            ],
+        ]);
+
+        return null;
+    }
+
+    private function handleAlertPercentage(User $user, string $input, int $chatId, string $locale): mixed
+    {
+        $input = trim($input);
+
+        // Remove % sign if present
+        $input = str_replace('%', '', $input);
+        $input = str_replace(',', '.', $input);
+        $percentage = (float) $input;
+
+        if ($percentage <= 0 || $percentage > 100) {
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $locale === 'ar'
+                    ? '❌ يرجى إدخال نسبة صحيحة (1-100).'
+                    : '❌ Please enter a valid percentage (1-100).',
+            ]);
+
+            // Re-set awaiting input
+            $user->update(['telegram_awaiting_input' => 'alert_percentage']);
+
+            return null;
+        }
+
+        // Update draft with the percentage
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['step'] = 'direction';
+        $draft['parameters'] = $draft['parameters'] ?? [];
+        $draft['parameters']['threshold_percent'] = $percentage;
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        Log::info('Alert percentage set via Telegram', [
+            'user_id' => $user->id,
+            'percentage' => $percentage,
+        ]);
+
+        // Show direction selector
+        $builder = new AlertKeyboardBuilder;
+        $keyboard = $builder->buildDirectionSelector($percentage, $locale);
+
+        $text = $locale === 'ar'
+            ? "📊 نسبة التغير: {$percentage}%\n\nتنبيه عندما يتغير السعر:"
+            : "📊 Change: {$percentage}%\n\nAlert when price changes:";
 
         $this->sendMessage([
             'chat_id' => $chatId,

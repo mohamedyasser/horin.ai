@@ -50,6 +50,7 @@ class User extends Authenticatable
         'telegram_username',
         'telegram_photo_url',
         'telegram_awaiting_input',
+        'telegram_alert_draft',
         'onboarding_completed_at',
     ];
 
@@ -74,6 +75,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'onboarding_completed_at' => 'datetime',
+            'telegram_alert_draft' => 'array',
         ];
     }
 

@@ -9,6 +9,10 @@ use App\Telegram\Commands\OnboardingCommand;
 use App\Telegram\Commands\SettingsCommand;
 use App\Telegram\Commands\StartCommand;
 use App\Telegram\Handlers\AcknowledgeCallbackHandler;
+use App\Telegram\Handlers\Alerts\AlertCreateHandler;
+use App\Telegram\Handlers\Alerts\AlertDetailHandler;
+use App\Telegram\Handlers\Alerts\AlertHistoryHandler;
+use App\Telegram\Handlers\Alerts\AlertListHandler;
 use App\Telegram\Handlers\ContactHandler;
 use App\Telegram\Handlers\LanguageCallbackHandler;
 use App\Telegram\Handlers\Onboarding\Step1Handler;
@@ -54,7 +58,12 @@ class HorinKernel extends Kernel
             MarketPreferencesHandler::class,
             AlertPreferencesHandler::class,
 
-            // Callback handlers - Alerts
+            // Callback handlers - Alerts (full management)
+            AlertCreateHandler::class,
+            AlertListHandler::class,
+            AlertDetailHandler::class,
+            AlertHistoryHandler::class,
+            // Legacy alert callbacks
             SnoozeCallbackHandler::class,
             AcknowledgeCallbackHandler::class,
             LanguageCallbackHandler::class,

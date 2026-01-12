@@ -4,6 +4,7 @@ namespace App\Telegram\Commands;
 
 use App\Models\Alert;
 use App\Models\User;
+use App\Telegram\Services\AlertKeyboardBuilder;
 use WeStacks\TeleBot\Foundation\CommandHandler;
 
 class AlertsCommand extends CommandHandler
@@ -15,7 +16,7 @@ class AlertsCommand extends CommandHandler
 
     protected static function description(?string $locale = null): string
     {
-        return 'View your active alerts';
+        return 'Manage your alerts';
     }
 
     public function handle(): mixed
@@ -32,62 +33,42 @@ class AlertsCommand extends CommandHandler
         }
 
         $locale = $user->language ?? 'en';
+        $this->sendAlertsMenu($chatId, $user, $locale);
 
-        $alerts = Alert::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->with('asset')
-            ->limit(10)
-            ->get();
+        return null;
+    }
 
-        if ($alerts->isEmpty()) {
-            $text = $locale === 'ar'
-                ? '📭 لا توجد تنبيهات نشطة.\n\nاستخدم التطبيق لإنشاء تنبيهات جديدة.'
-                : "📭 No active alerts.\n\nUse the app to create new alerts.";
+    /**
+     * Send the main alerts menu.
+     */
+    public function sendAlertsMenu(int $chatId, User $user, string $locale): void
+    {
+        $builder = new AlertKeyboardBuilder;
 
-            $this->sendMessage([
-                'chat_id' => $chatId,
-                'text' => $text,
-                'reply_markup' => [
-                    'inline_keyboard' => [[
-                        [
-                            'text' => $locale === 'ar' ? '➕ إنشاء تنبيه' : '➕ Create Alert',
-                            'web_app' => ['url' => config('app.url').'/alerts/create'],
-                        ],
-                    ]],
-                ],
-            ]);
+        $activeCount = Alert::where('user_id', $user->id)->active()->count();
+        $triggeredToday = Alert::where('user_id', $user->id)
+            ->whereDate('last_triggered_at', today())
+            ->count();
 
-            return null;
-        }
+        // Build stats line
+        $statsLine = $locale === 'ar'
+            ? "نشط: {$activeCount} | تم تفعيلها اليوم: {$triggeredToday}"
+            : "Active: {$activeCount} | Triggered Today: {$triggeredToday}";
 
-        $lines = [];
-        $lines[] = $locale === 'ar' ? '📋 *تنبيهاتك النشطة:*' : '📋 *Your Active Alerts:*';
-        $lines[] = '━━━━━━━━━━━━━━━━━━';
+        $text = $locale === 'ar'
+            ? "📋 *تنبيهاتك*\n\n{$statsLine}"
+            : "📋 *Your Alerts*\n\n{$statsLine}";
 
-        foreach ($alerts as $alert) {
-            $symbol = $alert->asset?->symbol ?? 'N/A';
-            $type = $this->formatTriggerType($alert->trigger_type, $locale);
-            $lines[] = "• *{$symbol}* - {$type}";
-        }
-
-        $lines[] = '';
-        $lines[] = $locale === 'ar' ? '📊 استخدم التطبيق لإدارة التنبيهات' : '📊 Use the app to manage alerts';
+        $keyboard = $builder->buildMainMenu($user, $locale);
 
         $this->sendMessage([
             'chat_id' => $chatId,
-            'text' => implode("\n", $lines),
+            'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => [[
-                    [
-                        'text' => $locale === 'ar' ? '📊 إدارة التنبيهات' : '📊 Manage Alerts',
-                        'web_app' => ['url' => config('app.url').'/alerts'],
-                    ],
-                ]],
+                'inline_keyboard' => $keyboard,
             ],
         ]);
-
-        return null;
     }
 
     private function sendLoginPrompt(int $chatId): void
@@ -112,19 +93,5 @@ class AlertsCommand extends CommandHandler
                 ]],
             ],
         ]);
-    }
-
-    private function formatTriggerType(string $type, string $locale): string
-    {
-        $types = [
-            'target_price' => ['en' => 'Target Price', 'ar' => 'سعر مستهدف'],
-            'breakout' => ['en' => 'Breakout', 'ar' => 'اختراق'],
-            'daily_change' => ['en' => 'Daily Change', 'ar' => 'تغير يومي'],
-            'signal' => ['en' => 'Technical Signal', 'ar' => 'إشارة فنية'],
-            'prediction' => ['en' => 'AI Prediction', 'ar' => 'توقع ذكي'],
-            'pattern' => ['en' => 'Chart Pattern', 'ar' => 'نموذج فني'],
-        ];
-
-        return $types[$type][$locale] ?? $type;
     }
 }
