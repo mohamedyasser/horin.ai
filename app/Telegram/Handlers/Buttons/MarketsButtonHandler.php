@@ -18,9 +18,12 @@ class MarketsButtonHandler extends AbstractButtonHandler
 
     public function showCountryInfo(int $chatId, ?User $user, string $locale): mixed
     {
-        $countryName = 'Not set';
+        $notSet = $locale === 'ar' ? 'غير محدد' : 'Not set';
+        $countryName = $notSet;
         if ($user?->country) {
-            $countryName = $locale === 'ar' ? $user->country->name_ar : $user->country->name_en;
+            $name = $locale === 'ar' ? $user->country->name_ar : $user->country->name_en;
+            // Escape underscores for Markdown
+            $countryName = str_replace('_', '\\_', $name);
         }
 
         $text = $locale === 'ar'
@@ -37,11 +40,18 @@ class MarketsButtonHandler extends AbstractButtonHandler
 
     public function showMarketsInfo(int $chatId, ?User $user, string $locale): mixed
     {
-        $marketNames = 'None';
+        $none = $locale === 'ar' ? 'لا يوجد' : 'None';
+        $marketNames = $none;
         if ($user) {
             $markets = $user->markets()->get();
             if ($markets->isNotEmpty()) {
-                $marketNames = $markets->map(fn ($m) => $locale === 'ar' ? ($m->name_ar ?: $m->name_en) : $m->name_en)->join(', ');
+                $names = $markets->map(function ($m) use ($locale) {
+                    $name = $locale === 'ar' ? ($m->name_ar ?: $m->name_en) : $m->name_en;
+
+                    // Escape underscores for Markdown
+                    return str_replace('_', '\\_', $name);
+                });
+                $marketNames = $names->join(', ');
             }
         }
 
@@ -59,11 +69,18 @@ class MarketsButtonHandler extends AbstractButtonHandler
 
     public function showSectorsInfo(int $chatId, ?User $user, string $locale): mixed
     {
-        $sectorNames = 'None';
+        $none = $locale === 'ar' ? 'لا يوجد' : 'None';
+        $sectorNames = $none;
         if ($user) {
             $sectors = $user->sectors()->get();
             if ($sectors->isNotEmpty()) {
-                $sectorNames = $sectors->map(fn ($s) => $locale === 'ar' ? ($s->name_ar ?: $s->name_en) : $s->name_en)->join(', ');
+                $names = $sectors->map(function ($s) use ($locale) {
+                    $name = $locale === 'ar' ? ($s->name_ar ?: $s->name_en) : $s->name_en;
+
+                    // Escape underscores for Markdown
+                    return str_replace('_', '\\_', $name);
+                });
+                $sectorNames = $names->join(', ');
             }
         }
 

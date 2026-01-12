@@ -67,7 +67,8 @@ class StartCommand extends CommandHandler
     private function sendWelcomeBack(int $chatId, User $user): void
     {
         $locale = $user->language ?? 'en';
-        $name = $user->name ?? 'there';
+        // Escape underscores for Markdown
+        $name = str_replace('_', '\\_', $user->name ?? 'there');
 
         $message = $locale === 'ar'
             ? "👋 مرحباً مجدداً، *{$name}*!\n\nأنت جاهز لتلقي تنبيهات الأسهم. اختر من القائمة أدناه:"
@@ -83,7 +84,8 @@ class StartCommand extends CommandHandler
 
     private function sendWelcomeNewUser(int $chatId, object $from): void
     {
-        $name = $from->first_name ?? 'there';
+        // Escape underscores for Markdown
+        $name = str_replace('_', '\\_', $from->first_name ?? 'there');
 
         // Show bilingual welcome with language selection
         $message = "👋 Welcome *{$name}*! / مرحباً *{$name}*!\n\n"

@@ -95,8 +95,15 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? "📋 *تنبيهاتك*\n\nلا توجد تنبيهات نشطة.\n\nاضغط '➕ تنبيه جديد' لإنشاء تنبيه."
                 : "📋 *Your Alerts*\n\nNo active alerts.\n\nTap '➕ New Alert' to create one.";
         } else {
-            $alertLines = $alerts->map(function ($alert) {
-                $symbol = $alert->asset?->symbol ?? 'N/A';
+            $triggerLabels = [
+                'target_price' => 'Price',
+                'daily_change' => 'Change',
+                'breakout' => 'Breakout',
+            ];
+
+            $alertLines = $alerts->map(function ($alert) use ($triggerLabels) {
+                // Escape underscores in symbol for Markdown
+                $symbol = str_replace('_', '\\_', $alert->asset?->symbol ?? 'N/A');
                 $direction = $alert->direction ?? 'any';
                 $params = $alert->parameters ?? [];
                 $value = $params['target_price'] ?? $params['threshold_percent'] ?? null;
@@ -117,7 +124,10 @@ class AlertsButtonHandler extends AbstractButtonHandler
                     return "• {$symbol}: {$directionIcon} {$valueStr}";
                 }
 
-                return "• {$symbol}: {$directionIcon} {$alert->trigger_type}";
+                // Use label instead of raw trigger_type to avoid underscores
+                $triggerLabel = $triggerLabels[$alert->trigger_type] ?? str_replace('_', ' ', $alert->trigger_type);
+
+                return "• {$symbol}: {$directionIcon} {$triggerLabel}";
             })->join("\n");
 
             $text = $locale === 'ar'
@@ -152,7 +162,8 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 : "📜 *Alert History*\n\nNo alert history.";
         } else {
             $alertLines = $alerts->map(function ($alert) {
-                $symbol = $alert->asset?->symbol ?? 'N/A';
+                // Escape underscores in symbol for Markdown
+                $symbol = str_replace('_', '\\_', $alert->asset?->symbol ?? 'N/A');
                 $date = $alert->last_triggered_at?->format('M d, H:i') ?? 'N/A';
 
                 return "• {$symbol} - {$date}";
@@ -263,7 +274,8 @@ class AlertsButtonHandler extends AbstractButtonHandler
         ];
 
         $label = $labels[$triggerType][$locale] ?? $triggerType;
-        $symbol = $draft['asset_symbol'] ?? 'N/A';
+        // Escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
 
         // Get current price for the asset
         $currentPriceText = '';
@@ -335,7 +347,8 @@ class AlertsButtonHandler extends AbstractButtonHandler
         $dirLabel = $directionLabels[$direction][$locale] ?? $direction;
         $dirIcon = $directionLabels[$direction]['icon'] ?? '';
 
-        $symbol = $draft['asset_symbol'] ?? 'N/A';
+        // Escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
         $triggerType = $draft['trigger_type'] ?? 'target_price';
         $value = $draft['parameters']['target_price'] ?? $draft['parameters']['threshold_percent'] ?? 'N/A';
 
@@ -404,7 +417,8 @@ class AlertsButtonHandler extends AbstractButtonHandler
 
         $user->update(['telegram_alert_draft' => null]);
 
-        $symbol = $draft['asset_symbol'] ?? 'N/A';
+        // Escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
 
         $text = $locale === 'ar'
             ? "✅ *تم إنشاء التنبيه*\n\n📊 الأصل: {$symbol}\n\nسيتم إشعارك عند تحقق الشرط."
@@ -561,7 +575,8 @@ class AlertsButtonHandler extends AbstractButtonHandler
             return $this->showAlertsList($chatId, $user, $locale);
         }
 
-        $symbol = $alert->asset?->symbol ?? 'N/A';
+        // Escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $alert->asset?->symbol ?? 'N/A');
 
         $text = $locale === 'ar'
             ? "🗑️ *حذف التنبيه*\n\n📊 الأصل: {$symbol}\n\n⚠️ هل أنت متأكد من حذف هذا التنبيه؟"

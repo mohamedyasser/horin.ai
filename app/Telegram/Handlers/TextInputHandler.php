@@ -207,16 +207,21 @@ class TextInputHandler extends UpdateHandler
             'telegram_awaiting_input' => 'alert_asset_select',
         ]);
 
-        // Build asset list text
+        // Build asset list text - escape underscores for Markdown
         $assetLines = $assets->map(function ($asset, $index) use ($locale) {
             $name = $locale === 'ar' ? ($asset->name_ar ?: $asset->name_en) : $asset->name_en;
+            $symbol = str_replace('_', '\\_', $asset->symbol);
+            $name = str_replace('_', '\\_', $name);
 
-            return ($index + 1).". {$asset->symbol} - {$name}";
+            return ($index + 1).". {$symbol} - {$name}";
         })->join("\n");
 
+        // Escape underscores in query for Markdown
+        $escapedQuery = str_replace('_', '\\_', $query);
+
         $text = $locale === 'ar'
-            ? "🔍 *نتائج البحث عن: {$query}*\n\n{$assetLines}\n\nأرسل رقم الأصل للاختيار:"
-            : "🔍 *Search results for: {$query}*\n\n{$assetLines}\n\nSend the asset number to select:";
+            ? "🔍 *نتائج البحث عن: {$escapedQuery}*\n\n{$assetLines}\n\nأرسل رقم الأصل للاختيار:"
+            : "🔍 *Search results for: {$escapedQuery}*\n\n{$assetLines}\n\nSend the asset number to select:";
 
         return $this->sendMessage([
             'chat_id' => $chatId,
@@ -282,8 +287,9 @@ class TextInputHandler extends UpdateHandler
             'asset_symbol' => $selectedAsset['symbol'],
         ]);
 
-        $symbol = $selectedAsset['symbol'];
-        $name = $selectedAsset['name'];
+        // Escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $selectedAsset['symbol']);
+        $name = str_replace('_', '\\_', $selectedAsset['name']);
 
         $text = $locale === 'ar'
             ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\nاختر نوع التنبيه:"
@@ -326,8 +332,8 @@ class TextInputHandler extends UpdateHandler
         $draft['parameters']['target_price'] = $price;
         $user->update(['telegram_alert_draft' => $draft]);
 
-        // Show direction selector
-        $symbol = $draft['asset_symbol'] ?? 'N/A';
+        // Show direction selector - escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
         $formattedPrice = number_format($price, 2);
 
         $text = $locale === 'ar'
@@ -369,8 +375,8 @@ class TextInputHandler extends UpdateHandler
         $draft['parameters']['threshold_percent'] = $percentage;
         $user->update(['telegram_alert_draft' => $draft]);
 
-        // Show direction selector
-        $symbol = $draft['asset_symbol'] ?? 'N/A';
+        // Show direction selector - escape underscores for Markdown
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
 
         $text = $locale === 'ar'
             ? "📊 *تنبيه تغير يومي لـ {$symbol}*\n\nنسبة التغير: {$percentage}%\n\nمتى يتم تنبيهك؟"

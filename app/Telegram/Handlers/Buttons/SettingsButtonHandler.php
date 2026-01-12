@@ -38,9 +38,11 @@ class SettingsButtonHandler extends AbstractButtonHandler
 
     public function showProfile(int $chatId, ?User $user, string $locale): mixed
     {
-        $name = $user?->name ?? 'N/A';
-        $phone = $user?->phone ?? 'N/A';
-        $email = $user?->email ?? 'N/A';
+        $notAvailable = $locale === 'ar' ? 'غير متوفر' : 'N/A';
+        // Escape underscores for Markdown
+        $name = str_replace('_', '\\_', $user?->name ?? $notAvailable);
+        $phone = $user?->phone ?? $notAvailable;
+        $email = str_replace('_', '\\_', $user?->email ?? $notAvailable);
 
         $text = $locale === 'ar'
             ? "👤 *الملف الشخصي*\n\n📛 الاسم: {$name}\n📱 الهاتف: {$phone}\n📧 البريد: {$email}\n\nاختر من القائمة أدناه:"
