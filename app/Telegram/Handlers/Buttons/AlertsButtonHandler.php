@@ -97,10 +97,27 @@ class AlertsButtonHandler extends AbstractButtonHandler
         } else {
             $alertLines = $alerts->map(function ($alert) {
                 $symbol = $alert->asset?->symbol ?? 'N/A';
-                $condition = $alert->condition ?? 'N/A';
-                $value = $alert->target_value ?? 'N/A';
+                $direction = $alert->direction ?? 'any';
+                $params = $alert->parameters ?? [];
+                $value = $params['target_price'] ?? $params['threshold_percent'] ?? null;
 
-                return "• {$symbol}: {$condition} {$value}";
+                $directionIcon = match ($direction) {
+                    'above' => '⬆️',
+                    'below' => '⬇️',
+                    'both' => '↕️',
+                    default => '📊',
+                };
+
+                if ($value !== null) {
+                    $valueStr = is_numeric($value) ? number_format((float) $value, 2) : $value;
+                    if (isset($params['threshold_percent'])) {
+                        $valueStr .= '%';
+                    }
+
+                    return "• {$symbol}: {$directionIcon} {$valueStr}";
+                }
+
+                return "• {$symbol}: {$directionIcon} {$alert->trigger_type}";
             })->join("\n");
 
             $text = $locale === 'ar'
