@@ -2,6 +2,7 @@
 
 namespace App\Telegram\Handlers;
 
+use App\Models\Alert;
 use App\Models\User;
 use App\Telegram\Commands\AlertsCommand;
 use App\Telegram\Commands\HelpCommand;
@@ -9,6 +10,8 @@ use App\Telegram\Commands\OnboardingCommand;
 use App\Telegram\Commands\SettingsCommand;
 use App\Telegram\Services\AlertKeyboardBuilder;
 use App\Telegram\Services\DefaultKeyboardBuilder;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use WeStacks\TeleBot\Foundation\UpdateHandler;
 
 /**
@@ -153,6 +156,58 @@ class KeyboardButtonHandler extends UpdateHandler
         // Cancel button
         '❌ Cancel' => 'cancel_input',
         '❌ إلغاء' => 'cancel_input',
+
+        // Alert trigger type buttons
+        '🎯 Target Price' => 'alert_trigger_target_price',
+        '🎯 سعر مستهدف' => 'alert_trigger_target_price',
+        '📊 Daily Change' => 'alert_trigger_daily_change',
+        '📊 تغير يومي' => 'alert_trigger_daily_change',
+        '📈 Price Breakout' => 'alert_trigger_breakout',
+        '📈 اختراق سعر' => 'alert_trigger_breakout',
+
+        // Alert direction buttons
+        '⬆️ Above' => 'alert_direction_above',
+        '⬆️ أعلى من' => 'alert_direction_above',
+        '⬇️ Below' => 'alert_direction_below',
+        '⬇️ أقل من' => 'alert_direction_below',
+        '↕️ Either Direction' => 'alert_direction_both',
+        '↕️ أي اتجاه' => 'alert_direction_both',
+
+        // Alert confirmation buttons
+        '✅ Confirm Create' => 'alert_confirm_create',
+        '✅ تأكيد الإنشاء' => 'alert_confirm_create',
+
+        // Alert action buttons
+        '😴 Snooze' => 'alert_snooze',
+        '😴 تأجيل' => 'alert_snooze',
+        '⏰ Unsnooze' => 'alert_unsnooze',
+        '⏰ إلغاء التأجيل' => 'alert_unsnooze',
+        '⏸️ Pause' => 'alert_pause',
+        '⏸️ إيقاف مؤقت' => 'alert_pause',
+        '▶️ Resume' => 'alert_resume',
+        '▶️ تفعيل' => 'alert_resume',
+        '🗑️ Delete' => 'alert_delete',
+        '🗑️ حذف' => 'alert_delete',
+
+        // Snooze preset buttons
+        '⏰ 1 Hour' => 'snooze_1h',
+        '⏰ ساعة واحدة' => 'snooze_1h',
+        '⏰ 4 Hours' => 'snooze_4h',
+        '⏰ 4 ساعات' => 'snooze_4h',
+        '📅 1 Day' => 'snooze_1d',
+        '📅 يوم واحد' => 'snooze_1d',
+        '🔔 Until Market Close' => 'snooze_market_close',
+        '🔔 حتى إغلاق السوق' => 'snooze_market_close',
+
+        // Delete confirmation buttons
+        '🗑️ Yes, Delete' => 'alert_delete_confirm',
+        '🗑️ نعم، احذف' => 'alert_delete_confirm',
+        '◀️ No, Go Back' => 'back',
+        '◀️ لا، رجوع' => 'back',
+
+        // Asset search button
+        '🔍 Search Asset' => 'alert_search_asset',
+        '🔍 بحث عن أصل' => 'alert_search_asset',
     ];
 
     public function trigger(): bool
@@ -301,6 +356,38 @@ class KeyboardButtonHandler extends UpdateHandler
 
             // Cancel input
             'cancel_input' => $this->cancelInput($chatId, $user, $locale),
+
+            // Alert trigger type selection
+            'alert_trigger_target_price' => $this->setAlertTriggerType($chatId, $user, $locale, 'target_price'),
+            'alert_trigger_daily_change' => $this->setAlertTriggerType($chatId, $user, $locale, 'daily_change'),
+            'alert_trigger_breakout' => $this->setAlertTriggerType($chatId, $user, $locale, 'breakout'),
+
+            // Alert direction selection
+            'alert_direction_above' => $this->setAlertDirection($chatId, $user, $locale, 'above'),
+            'alert_direction_below' => $this->setAlertDirection($chatId, $user, $locale, 'below'),
+            'alert_direction_both' => $this->setAlertDirection($chatId, $user, $locale, 'both'),
+
+            // Alert confirmation
+            'alert_confirm_create' => $this->confirmCreateAlert($chatId, $user, $locale),
+
+            // Alert actions
+            'alert_snooze' => $this->showSnoozeOptions($chatId, $user, $locale),
+            'alert_unsnooze' => $this->unsnoozeAlert($chatId, $user, $locale),
+            'alert_pause' => $this->toggleAlertStatus($chatId, $user, $locale),
+            'alert_resume' => $this->toggleAlertStatus($chatId, $user, $locale),
+            'alert_delete' => $this->showDeleteConfirmation($chatId, $user, $locale),
+
+            // Snooze presets
+            'snooze_1h' => $this->applySnooze($chatId, $user, $locale, '1h'),
+            'snooze_4h' => $this->applySnooze($chatId, $user, $locale, '4h'),
+            'snooze_1d' => $this->applySnooze($chatId, $user, $locale, '1d'),
+            'snooze_market_close' => $this->applySnooze($chatId, $user, $locale, 'market_close'),
+
+            // Delete confirmation
+            'alert_delete_confirm' => $this->executeDeleteAlert($chatId, $user, $locale),
+
+            // Asset search
+            'alert_search_asset' => $this->promptAssetSearch($chatId, $user, $locale),
 
             default => $this->handleUnknownInput($chatId, $user, $locale),
         };
@@ -1026,6 +1113,484 @@ class KeyboardButtonHandler extends UpdateHandler
         }
 
         return $this->goBackToMainMenu($chatId, $user, $locale);
+    }
+
+    private function setAlertTriggerType(int $chatId, ?User $user, string $locale, string $triggerType): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['trigger_type'] = $triggerType;
+        $draft['step'] = 'value';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $labels = [
+            'target_price' => ['en' => 'Target Price', 'ar' => 'سعر مستهدف'],
+            'daily_change' => ['en' => 'Daily Change', 'ar' => 'تغير يومي'],
+            'breakout' => ['en' => 'Price Breakout', 'ar' => 'اختراق سعر'],
+        ];
+
+        $label = $labels[$triggerType][$locale] ?? $triggerType;
+        $symbol = $draft['asset_symbol'] ?? 'N/A';
+
+        // For target_price and breakout, prompt for price value
+        if ($triggerType === 'target_price' || $triggerType === 'breakout') {
+            $user->update(['telegram_awaiting_input' => 'alert_target_price']);
+
+            $text = $locale === 'ar'
+                ? "🎯 *{$label}*\n\n📊 الأصل: {$symbol}\n\nأدخل السعر المستهدف:"
+                : "🎯 *{$label}*\n\n📊 Asset: {$symbol}\n\nEnter the target price:";
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+            ]);
+        } else {
+            // For daily_change, prompt for percentage
+            $user->update(['telegram_awaiting_input' => 'alert_percentage']);
+
+            $text = $locale === 'ar'
+                ? "📊 *{$label}*\n\n📊 الأصل: {$symbol}\n\nأدخل نسبة التغير (مثال: 5):"
+                : "📊 *{$label}*\n\n📊 Asset: {$symbol}\n\nEnter the change percentage (e.g., 5):";
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+            ]);
+        }
+
+        return null;
+    }
+
+    private function setAlertDirection(int $chatId, ?User $user, string $locale, string $direction): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['direction'] = $direction;
+        $draft['step'] = 'confirm';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $directionLabels = [
+            'above' => ['en' => 'Above', 'ar' => 'أعلى من', 'icon' => '⬆️'],
+            'below' => ['en' => 'Below', 'ar' => 'أقل من', 'icon' => '⬇️'],
+            'both' => ['en' => 'Either Direction', 'ar' => 'أي اتجاه', 'icon' => '↕️'],
+        ];
+
+        $dirLabel = $directionLabels[$direction][$locale] ?? $direction;
+        $dirIcon = $directionLabels[$direction]['icon'] ?? '';
+
+        $symbol = $draft['asset_symbol'] ?? 'N/A';
+        $triggerType = $draft['trigger_type'] ?? 'target_price';
+        $value = $draft['parameters']['target_price'] ?? $draft['parameters']['threshold_percent'] ?? 'N/A';
+
+        $valueStr = is_numeric($value) ? number_format($value, 2) : $value;
+        if ($triggerType === 'daily_change') {
+            $valueStr .= '%';
+        }
+
+        $text = $locale === 'ar'
+            ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerType}\n🎯 القيمة: {$valueStr}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
+            : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerType}\n🎯 Value: {$valueStr}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::alertConfirmKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function confirmCreateAlert(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+
+        if (empty($draft['asset_id']) || empty($draft['trigger_type'])) {
+            $text = $locale === 'ar'
+                ? '❌ بيانات التنبيه غير مكتملة. يرجى البدء من جديد.'
+                : '❌ Alert data incomplete. Please start again.';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        // Create the alert
+        $alertData = [
+            'user_id' => $user->id,
+            'asset_id' => $draft['asset_id'],
+            'type' => $draft['type'] ?? 'price',
+            'trigger_type' => $draft['trigger_type'],
+            'condition' => $draft['direction'] ?? 'above',
+            'is_active' => true,
+        ];
+
+        if (isset($draft['parameters']['target_price'])) {
+            $alertData['target_value'] = $draft['parameters']['target_price'];
+        }
+        if (isset($draft['parameters']['threshold_percent'])) {
+            $alertData['threshold_percent'] = $draft['parameters']['threshold_percent'];
+        }
+
+        $alert = Alert::create($alertData);
+
+        Log::info('Alert created via Telegram', [
+            'alert_id' => $alert->id,
+            'user_id' => $user->id,
+            'type' => $alert->type,
+        ]);
+
+        // Clear draft
+        $user->update(['telegram_alert_draft' => null]);
+
+        $symbol = $draft['asset_symbol'] ?? 'N/A';
+
+        $text = $locale === 'ar'
+            ? "✅ *تم إنشاء التنبيه*\n\n📊 الأصل: {$symbol}\n\nسيتم إشعارك عند تحقق الشرط."
+            : "✅ *Alert Created*\n\n📊 Asset: {$symbol}\n\nYou'll be notified when the condition is met.";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::alertSuccessKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showSnoozeOptions(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $alertId = $draft['viewing_alert_id'] ?? null;
+
+        if (! $alertId) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $text = $locale === 'ar'
+            ? "😴 *تأجيل التنبيه*\n\nاختر مدة التأجيل:"
+            : "😴 *Snooze Alert*\n\nSelect snooze duration:";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::snoozeOptionsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function unsnoozeAlert(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $alertId = $draft['viewing_alert_id'] ?? null;
+
+        if (! $alertId) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $alert = Alert::where('id', $alertId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $alert) {
+            $text = $locale === 'ar'
+                ? '❌ التنبيه غير موجود'
+                : '❌ Alert not found';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        $alert->update(['snoozed_until' => null]);
+
+        Log::info('Alert unsnoozed via Telegram', [
+            'alert_id' => $alert->id,
+            'user_id' => $user->id,
+        ]);
+
+        $text = $locale === 'ar'
+            ? '✅ تم إلغاء تأجيل التنبيه'
+            : '✅ Alert unsnoozed';
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function toggleAlertStatus(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $alertId = $draft['viewing_alert_id'] ?? null;
+
+        if (! $alertId) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $alert = Alert::where('id', $alertId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $alert) {
+            $text = $locale === 'ar'
+                ? '❌ التنبيه غير موجود'
+                : '❌ Alert not found';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        $newStatus = ! $alert->is_active;
+        $alert->update(['is_active' => $newStatus]);
+
+        Log::info('Alert status toggled via Telegram', [
+            'alert_id' => $alert->id,
+            'user_id' => $user->id,
+            'is_active' => $newStatus,
+        ]);
+
+        $text = $newStatus
+            ? ($locale === 'ar' ? '✅ تم تفعيل التنبيه' : '✅ Alert resumed')
+            : ($locale === 'ar' ? '⏸️ تم إيقاف التنبيه مؤقتاً' : '⏸️ Alert paused');
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function showDeleteConfirmation(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $alertId = $draft['viewing_alert_id'] ?? null;
+
+        if (! $alertId) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $alert = Alert::where('id', $alertId)
+            ->where('user_id', $user->id)
+            ->with('asset')
+            ->first();
+
+        if (! $alert) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $symbol = $alert->asset?->symbol ?? 'N/A';
+
+        $text = $locale === 'ar'
+            ? "🗑️ *حذف التنبيه*\n\n📊 الأصل: {$symbol}\n\n⚠️ هل أنت متأكد من حذف هذا التنبيه؟"
+            : "🗑️ *Delete Alert*\n\n📊 Asset: {$symbol}\n\n⚠️ Are you sure you want to delete this alert?";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::deleteConfirmKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function applySnooze(int $chatId, ?User $user, string $locale, string $duration): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $alertId = $draft['viewing_alert_id'] ?? null;
+
+        if (! $alertId) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $alert = Alert::where('id', $alertId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $alert) {
+            $text = $locale === 'ar'
+                ? '❌ التنبيه غير موجود'
+                : '❌ Alert not found';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        $snoozedUntil = match ($duration) {
+            '1h' => Carbon::now()->addHour(),
+            '4h' => Carbon::now()->addHours(4),
+            '1d' => Carbon::now()->addDay(),
+            'market_close' => Carbon::now()->setTime(16, 0, 0),
+            default => Carbon::now()->addHour(),
+        };
+
+        $alert->update(['snoozed_until' => $snoozedUntil]);
+
+        Log::info('Alert snoozed via Telegram', [
+            'alert_id' => $alert->id,
+            'user_id' => $user->id,
+            'duration' => $duration,
+            'snoozed_until' => $snoozedUntil,
+        ]);
+
+        $durationLabels = [
+            '1h' => ['en' => '1 hour', 'ar' => 'ساعة واحدة'],
+            '4h' => ['en' => '4 hours', 'ar' => '4 ساعات'],
+            '1d' => ['en' => '1 day', 'ar' => 'يوم واحد'],
+            'market_close' => ['en' => 'market close', 'ar' => 'إغلاق السوق'],
+        ];
+
+        $durationLabel = $durationLabels[$duration][$locale] ?? $duration;
+
+        $text = $locale === 'ar'
+            ? "😴 تم تأجيل التنبيه لمدة {$durationLabel}"
+            : "😴 Alert snoozed for {$durationLabel}";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function executeDeleteAlert(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $alertId = $draft['viewing_alert_id'] ?? null;
+
+        if (! $alertId) {
+            return $this->showAlertsList($chatId, $user, $locale);
+        }
+
+        $alert = Alert::where('id', $alertId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (! $alert) {
+            $text = $locale === 'ar'
+                ? '❌ التنبيه غير موجود'
+                : '❌ Alert not found';
+
+            $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+            ]);
+
+            return null;
+        }
+
+        Log::info('Alert deleted via Telegram', [
+            'alert_id' => $alert->id,
+            'user_id' => $user->id,
+        ]);
+
+        $alert->delete();
+
+        // Clear viewing alert from draft
+        $draft['viewing_alert_id'] = null;
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $text = $locale === 'ar'
+            ? '✅ تم حذف التنبيه'
+            : '✅ Alert deleted';
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => DefaultKeyboardBuilder::alertsKeyboard($locale),
+        ]);
+
+        return null;
+    }
+
+    private function promptAssetSearch(int $chatId, ?User $user, string $locale): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $user->update(['telegram_awaiting_input' => 'alert_asset_search']);
+
+        $text = $locale === 'ar'
+            ? "🔍 *بحث عن أصل*\n\nأدخل رمز أو اسم الأصل للبحث:"
+            : "🔍 *Search Asset*\n\nEnter asset symbol or name to search:";
+
+        $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => DefaultKeyboardBuilder::cancelKeyboard($locale),
+        ]);
+
+        return null;
     }
 
     private function handleUnknownInput(int $chatId, ?User $user, string $locale): mixed
