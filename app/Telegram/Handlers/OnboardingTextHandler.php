@@ -327,7 +327,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep3MarketsKeyboard($locale, $country->id, $user->markets()->pluck('markets.id')->toArray()),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleMarketToggle(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
@@ -369,7 +369,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep3MarketsKeyboard($locale, $user->country_id, $currentMarkets),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleSectorToggle(int $chatId, User $user, string $text, OnboardingKeyboardBuilder $builder): mixed
@@ -407,7 +407,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep4Keyboard($locale, $currentSectors),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleBack(int $chatId, User $user, string $currentStep, OnboardingKeyboardBuilder $builder): mixed
@@ -445,7 +445,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $keyboard,
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleNext(int $chatId, User $user, string $currentStep, OnboardingKeyboardBuilder $builder): mixed
@@ -464,7 +464,7 @@ class OnboardingTextHandler extends UpdateHandler
                 'text' => $locale === 'ar' ? 'يرجى اختيار سوق واحد على الأقل.' : 'Please select at least one market.',
             ]);
 
-            return null;
+            return true;
         }
 
         // Advance to step 4
@@ -475,7 +475,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => $builder->buildStep4Keyboard($locale, $user->sectors()->pluck('sectors.id')->toArray()),
         ]);
 
-        return null;
+        return true;
     }
 
     private function handleComplete(int $chatId, User $user, string $locale, OnboardingKeyboardBuilder $builder): mixed
@@ -487,7 +487,7 @@ class OnboardingTextHandler extends UpdateHandler
                 'text' => $locale === 'ar' ? 'يرجى اختيار قطاع واحد على الأقل.' : 'Please select at least one sector.',
             ]);
 
-            return null;
+            return true;
         }
 
         $user->markOnboardingAsComplete();
@@ -503,7 +503,7 @@ class OnboardingTextHandler extends UpdateHandler
             'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),
         ]);
 
-        return null;
+        return true;
     }
 
     private function findMatch(string $text, array $map): ?string
