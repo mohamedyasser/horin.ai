@@ -529,9 +529,9 @@ class OnboardingTextHandler extends UpdateHandler
 
     private function findCountryByText(string $text, string $locale): ?Country
     {
-        // Remove flag emoji and checkmark
-        $text = preg_replace('/^[✓✅⬜]\s*/', '', $text);
-        $text = preg_replace('/^[\x{1F1E0}-\x{1F1FF}]{2}\s*/u', '', $text);
+        // Remove flag emoji and checkmark (use 'u' flag for Unicode)
+        $text = preg_replace('/^[\x{2713}\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
+        $text = preg_replace('/^[\x{1F1E0}-\x{1F1FF}]{2}\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
         if ($locale === 'ar') {
@@ -543,8 +543,8 @@ class OnboardingTextHandler extends UpdateHandler
 
     private function findMarketByText(string $text, string $countryId, string $locale): ?Market
     {
-        // Remove checkbox emoji
-        $text = preg_replace('/^[✅⬜]\s*/', '', $text);
+        // Remove checkbox emoji (use 'u' flag for Unicode)
+        $text = preg_replace('/^[\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
         $query = Market::where('country_id', $countryId);
@@ -560,8 +560,8 @@ class OnboardingTextHandler extends UpdateHandler
 
     private function findSectorByText(string $text, string $locale): ?Sector
     {
-        // Remove checkbox emoji
-        $text = preg_replace('/^[✅⬜]\s*/', '', $text);
+        // Remove checkbox emoji (use 'u' flag for Unicode)
+        $text = preg_replace('/^[\x{2705}\x{2B1C}]\s*/u', '', $text) ?? $text;
         $text = trim($text);
 
         if ($locale === 'ar') {
