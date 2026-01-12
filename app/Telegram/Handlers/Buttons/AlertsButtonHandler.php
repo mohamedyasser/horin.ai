@@ -58,12 +58,10 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ يرجى التسجيل أولاً باستخدام /start'
                 : '❌ Please register first using /start';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
             ]);
-
-            return null;
         }
 
         $user->update(['telegram_alert_draft' => ['step' => 'type']]);
@@ -72,14 +70,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "📊 *إنشاء تنبيه*\n\nما نوع التنبيه؟"
             : "📊 *Create Alert*\n\nWhat type of alert?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::alertTypeKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function showAlertsList(int $chatId, ?User $user, string $locale): mixed
@@ -112,14 +108,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 : "📋 *Your Active Alerts*\n\n{$alertLines}";
         }
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showAlertsHistory(int $chatId, ?User $user, string $locale): mixed
@@ -152,14 +146,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 : "📜 *Alert History*\n\n{$alertLines}";
         }
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     // Alert type selection
@@ -185,12 +177,10 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ يرجى التسجيل أولاً باستخدام /start'
                 : '❌ Please register first using /start';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
             ]);
-
-            return null;
         }
 
         $draft = $user->telegram_alert_draft ?? [];
@@ -214,14 +204,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "{$typeIcon} *{$typeLabel}*\n\n🔍 أدخل رمز أو اسم الأصل للبحث:"
             : "{$typeIcon} *{$typeLabel}*\n\n🔍 Enter asset symbol or name to search:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::cancelKeyboard($locale),
         ]);
-
-        return null;
     }
 
     // Trigger type setters
@@ -343,14 +331,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerType}\n🎯 القيمة: {$valueStr}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
             : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerType}\n🎯 Value: {$valueStr}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::alertConfirmKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function confirmCreateAlert(int $chatId, ?User $user, string $locale): mixed
@@ -366,13 +352,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ بيانات التنبيه غير مكتملة. يرجى البدء من جديد.'
                 : '❌ Alert data incomplete. Please start again.';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => AlertsKeyboard::menu($locale),
             ]);
-
-            return null;
         }
 
         $alertData = [
@@ -407,14 +391,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "✅ *تم إنشاء التنبيه*\n\n📊 الأصل: {$symbol}\n\nسيتم إشعارك عند تحقق الشرط."
             : "✅ *Alert Created*\n\n📊 Asset: {$symbol}\n\nYou'll be notified when the condition is met.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::alertSuccessKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function showSnoozeOptions(int $chatId, ?User $user, string $locale): mixed
@@ -434,14 +416,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "😴 *تأجيل التنبيه*\n\nاختر مدة التأجيل:"
             : "😴 *Snooze Alert*\n\nSelect snooze duration:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::snoozeOptionsKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function unsnoozeAlert(int $chatId, ?User $user, string $locale): mixed
@@ -466,13 +446,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ التنبيه غير موجود'
                 : '❌ Alert not found';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => AlertsKeyboard::menu($locale),
             ]);
-
-            return null;
         }
 
         $alert->update(['snoozed_until' => null]);
@@ -486,13 +464,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? '✅ تم إلغاء تأجيل التنبيه'
             : '✅ Alert unsnoozed';
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function toggleAlertStatus(int $chatId, ?User $user, string $locale): mixed
@@ -517,13 +493,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ التنبيه غير موجود'
                 : '❌ Alert not found';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => AlertsKeyboard::menu($locale),
             ]);
-
-            return null;
         }
 
         $newStatus = ! $alert->is_active;
@@ -539,13 +513,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? ($locale === 'ar' ? '✅ تم تفعيل التنبيه' : '✅ Alert resumed')
             : ($locale === 'ar' ? '⏸️ تم إيقاف التنبيه مؤقتاً' : '⏸️ Alert paused');
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showDeleteConfirmation(int $chatId, ?User $user, string $locale): mixed
@@ -576,14 +548,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "🗑️ *حذف التنبيه*\n\n📊 الأصل: {$symbol}\n\n⚠️ هل أنت متأكد من حذف هذا التنبيه؟"
             : "🗑️ *Delete Alert*\n\n📊 Asset: {$symbol}\n\n⚠️ Are you sure you want to delete this alert?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::deleteConfirmKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function executeDeleteAlert(int $chatId, ?User $user, string $locale): mixed
@@ -608,13 +578,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ التنبيه غير موجود'
                 : '❌ Alert not found';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => AlertsKeyboard::menu($locale),
             ]);
-
-            return null;
         }
 
         Log::info('Alert deleted via Telegram', [
@@ -631,13 +599,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? '✅ تم حذف التنبيه'
             : '✅ Alert deleted';
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     // Snooze presets
@@ -683,13 +649,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
                 ? '❌ التنبيه غير موجود'
                 : '❌ Alert not found';
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => AlertsKeyboard::menu($locale),
             ]);
-
-            return null;
         }
 
         $snoozedUntil = match ($duration) {
@@ -722,13 +686,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "😴 تم تأجيل التنبيه لمدة {$durationLabel}"
             : "😴 Alert snoozed for {$durationLabel}";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function promptAssetSearch(int $chatId, ?User $user, string $locale): mixed
@@ -743,14 +705,12 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "🔍 *بحث عن أصل*\n\nأدخل رمز أو اسم الأصل للبحث:"
             : "🔍 *Search Asset*\n\nEnter asset symbol or name to search:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => AlertsKeyboard::cancelKeyboard($locale),
         ]);
-
-        return null;
     }
 
     private function goBackToMainMenu(int $chatId, ?User $user, string $locale): mixed
@@ -759,13 +719,11 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ? "🏠 *القائمة الرئيسية*\n\nاختر من القائمة أدناه:"
             : "🏠 *Main Menu*\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => MainMenuKeyboard::forUser($user, $locale),
         ]);
-
-        return null;
     }
 }

@@ -29,14 +29,12 @@ class NavigationButtonHandler extends AbstractButtonHandler
             ? "🏠 *القائمة الرئيسية*\n\nاختر من القائمة أدناه:"
             : "🏠 *Main Menu*\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => MainMenuKeyboard::forUser($user, $locale),
         ]);
-
-        return null;
     }
 
     public function cancelInput(int $chatId, ?User $user, string $locale): mixed
@@ -70,42 +68,40 @@ class NavigationButtonHandler extends AbstractButtonHandler
                 ? "✅ تم تغيير اللغة إلى العربية.\n\nاختر من القائمة أدناه:"
                 : "✅ Language changed to English.\n\nChoose from the menu below:";
 
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => $text,
                 'reply_markup' => MainMenuKeyboard::forUser($user, $newLocale),
             ]);
-        } else {
-            $from = $message->from;
-            $firstName = $from->first_name ?? '';
-            $lastName = $from->last_name ?? '';
-            $name = trim("{$firstName} {$lastName}") ?: 'Telegram User';
-
-            $user = User::create([
-                'name' => $name,
-                'telegram_id' => $telegramId,
-                'telegram_username' => $from->username ?? null,
-                'language' => $newLocale,
-            ]);
-
-            Log::info('New user created via language selection', [
-                'user_id' => $user->id,
-                'telegram_id' => $telegramId,
-                'language' => $newLocale,
-            ]);
-
-            $text = $newLocale === 'ar'
-                ? "✅ تم اختيار العربية.\n\n📱 يرجى مشاركة رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه:"
-                : "✅ English selected.\n\n📱 Please share your phone number to continue.\n\nTap the button below:";
-
-            $this->sendMessage([
-                'chat_id' => $chatId,
-                'text' => $text,
-                'reply_markup' => MainMenuKeyboard::phoneVerificationKeyboard($newLocale),
-            ]);
         }
 
-        return null;
+        $from = $message->from;
+        $firstName = $from->first_name ?? '';
+        $lastName = $from->last_name ?? '';
+        $name = trim("{$firstName} {$lastName}") ?: 'Telegram User';
+
+        $user = User::create([
+            'name' => $name,
+            'telegram_id' => $telegramId,
+            'telegram_username' => $from->username ?? null,
+            'language' => $newLocale,
+        ]);
+
+        Log::info('New user created via language selection', [
+            'user_id' => $user->id,
+            'telegram_id' => $telegramId,
+            'language' => $newLocale,
+        ]);
+
+        $text = $newLocale === 'ar'
+            ? "✅ تم اختيار العربية.\n\n📱 يرجى مشاركة رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه:"
+            : "✅ English selected.\n\n📱 Please share your phone number to continue.\n\nTap the button below:";
+
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'reply_markup' => MainMenuKeyboard::phoneVerificationKeyboard($newLocale),
+        ]);
     }
 
     public function showPhoneShareHint(int $chatId, ?User $user, string $locale): mixed
@@ -114,13 +110,11 @@ class NavigationButtonHandler extends AbstractButtonHandler
             ? "📱 يرجى الضغط على الزر أدناه لمشاركة رقم هاتفك.\n\n⚠️ لا تكتب الرقم - اضغط الزر للمشاركة التلقائية."
             : "📱 Please tap the button below to share your phone number.\n\n⚠️ Don't type the text - tap the button to share automatically.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => MainMenuKeyboard::phoneVerificationKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function triggerHelpCommand(int $chatId, ?User $user, string $locale): mixed

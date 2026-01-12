@@ -61,13 +61,11 @@ class LanguageCallbackHandler extends CallbackHandler
             ? "✅ تم تغيير اللغة إلى العربية بنجاح.\n\nاختر من القائمة أدناه:"
             : "✅ Language successfully changed to English.\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $confirmText,
             'reply_markup' => DefaultKeyboardBuilder::settingsKeyboard($newLocale),
         ]);
-
-        return null;
     }
 
     private function answerWithError(string $message): null

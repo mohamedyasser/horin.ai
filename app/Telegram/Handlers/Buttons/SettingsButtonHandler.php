@@ -46,14 +46,12 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "👤 *الملف الشخصي*\n\n📛 الاسم: {$name}\n📱 الهاتف: {$phone}\n📧 البريد: {$email}\n\nاختر من القائمة أدناه:"
             : "👤 *Profile*\n\n📛 Name: {$name}\n📱 Phone: {$phone}\n📧 Email: {$email}\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showTrading(int $chatId, ?User $user, string $locale): mixed
@@ -66,14 +64,12 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "📊 *ملف التداول*\n\n📈 الخبرة: {$experience}\n⚠️ المخاطرة: {$risk}\n🎯 الأسلوب: {$style}\n\nاختر من القائمة أدناه:"
             : "📊 *Trading Profile*\n\n📈 Experience: {$experience}\n⚠️ Risk Level: {$risk}\n🎯 Style: {$style}\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showMarkets(int $chatId, ?User $user, string $locale): mixed
@@ -84,14 +80,12 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "🌍 *الأسواق*\n\n📍 الأسواق المتابعة: {$markets}\n\nاختر من القائمة أدناه:"
             : "🌍 *Markets*\n\n📍 Followed Markets: {$markets}\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showAlertSettings(int $chatId, ?User $user, string $locale): mixed
@@ -103,14 +97,12 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "🔔 *إعدادات التنبيهات*\n\n📱 تيليجرام: {$telegramEnabled}\n📧 البريد: {$emailEnabled}\n\nاختر من القائمة أدناه:"
             : "🔔 *Alert Settings*\n\n📱 Telegram: {$telegramEnabled}\n📧 Email: {$emailEnabled}\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showLanguage(int $chatId, ?User $user, string $locale): mixed
@@ -133,13 +125,11 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "✏️ أدخل اسمك الجديد:\n\nاكتب اسمك في الرسالة التالية."
             : "✏️ Enter your new name:\n\nType your name in your next message.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => AlertsKeyboard::cancelKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function showChannelsSelector(int $chatId, ?User $user, string $locale): mixed
@@ -154,14 +144,12 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "📱 *قنوات الإشعارات*\n\nاختر القنوات لتلقي التنبيهات:\n\n⚠️ لتغيير القنوات، يرجى استخدام التطبيق."
             : "📱 *Notification Channels*\n\nSelect channels for receiving alerts:\n\n⚠️ To change channels, please use the app.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::channelsKeyboard($channels, $locale),
         ]);
-
-        return null;
     }
 
     public function showLimitsSelector(int $chatId, ?User $user, string $locale): mixed
@@ -179,14 +167,12 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "🔢 *حدود التنبيهات*\n\nحدد الحد الأقصى للتنبيهات:"
             : "🔢 *Alert Limits*\n\nSet maximum alerts:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::limitsKeyboard($maxHour, $maxDay, $locale),
         ]);
-
-        return null;
     }
 
     public function adjustLimitHourDecrease(int $chatId, ?User $user, string $locale): mixed
@@ -232,13 +218,11 @@ class SettingsButtonHandler extends AbstractButtonHandler
             ? "🔢 *حدود التنبيهات*\n\n✅ تم التحديث"
             : "🔢 *Alert Limits*\n\n✅ Updated";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => SettingsKeyboard::limitsKeyboard($maxHour, $maxDay, $locale),
         ]);
-
-        return null;
     }
 }

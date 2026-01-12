@@ -37,14 +37,12 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "📈 *مستوى الخبرة*\n\nما هو مستوى خبرتك في التداول؟"
             : "📈 *Experience Level*\n\nWhat's your trading experience?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => TradingKeyboard::experienceKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function showRiskSelector(int $chatId, ?User $user, string $locale): mixed
@@ -53,14 +51,12 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "⚠️ *مستوى المخاطرة*\n\nما هو مستوى تحملك للمخاطر؟"
             : "⚠️ *Risk Level*\n\nWhat's your risk tolerance?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => TradingKeyboard::riskKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function showGoalSelector(int $chatId, ?User $user, string $locale): mixed
@@ -69,14 +65,12 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "🎯 *الهدف الاستثماري*\n\nما هو هدفك الاستثماري؟"
             : "🎯 *Investment Goal*\n\nWhat's your investment goal?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => TradingKeyboard::goalKeyboard($locale),
         ]);
-
-        return null;
     }
 
     public function showStyleSelector(int $chatId, ?User $user, string $locale): mixed
@@ -85,14 +79,12 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "📊 *أسلوب التداول*\n\nما هو أسلوب التداول المفضل لديك؟"
             : "📊 *Trading Style*\n\nWhat's your preferred trading style?";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => TradingKeyboard::styleKeyboard($locale),
         ]);
-
-        return null;
     }
 
     // Experience setters
@@ -132,13 +124,11 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "✅ تم تحديث مستوى الخبرة إلى: {$label}"
             : "✅ Experience level updated to: {$label}";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => TradingKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     // Risk setters
@@ -178,13 +168,11 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "✅ تم تحديث مستوى المخاطرة إلى: {$label}"
             : "✅ Risk level updated to: {$label}";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => TradingKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     // Goal setters
@@ -230,13 +218,11 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "✅ تم تحديث الهدف الاستثماري إلى: {$label}"
             : "✅ Investment goal updated to: {$label}";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => TradingKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     // Style setters
@@ -282,12 +268,10 @@ class TradingButtonHandler extends AbstractButtonHandler
             ? "✅ تم تحديث أسلوب التداول إلى: {$label}"
             : "✅ Trading style updated to: {$label}";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => TradingKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 }

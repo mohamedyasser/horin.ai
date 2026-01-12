@@ -66,13 +66,11 @@ class KeyboardButtonHandler extends UpdateHandler
     {
         $response = MainMenuKeyboard::getUnknownInputResponse($user, $locale);
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $response['text'],
             'reply_markup' => $response['reply_markup'],
         ]);
-
-        return null;
     }
 
     private function getLocaleFromTelegram(): string

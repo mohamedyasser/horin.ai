@@ -24,7 +24,7 @@ class ContactHandler extends UpdateHandler
 
         // Verify the contact belongs to the sender
         if ((string) $contact->user_id !== $telegramId) {
-            $this->sendMessage([
+            return $this->sendMessage([
                 'chat_id' => $chatId,
                 'text' => '❌ Please share your own phone number.',
                 'reply_markup' => [
@@ -38,8 +38,6 @@ class ContactHandler extends UpdateHandler
                     'one_time_keyboard' => true,
                 ],
             ]);
-
-            return null;
         }
 
         // Normalize phone number (ensure + prefix)
@@ -98,13 +96,11 @@ class ContactHandler extends UpdateHandler
         // Check if user needs onboarding
         if (! $user->hasCompletedOnboarding()) {
             // Auto-trigger onboarding
-            $this->startOnboarding($chatId, $user);
-        } else {
-            // User already completed onboarding - show welcome back
-            $this->sendWelcomeBack($chatId, $locale);
+            return $this->startOnboarding($chatId, $user);
         }
 
-        return null;
+        // User already completed onboarding - show welcome back
+        return $this->sendWelcomeBack($chatId, $locale);
     }
 
     private function createUserFromTelegram(string $telegramId, string $phone, object $contact, object $from): User
@@ -128,7 +124,7 @@ class ContactHandler extends UpdateHandler
         ]);
     }
 
-    private function startOnboarding(int $chatId, User $user): void
+    private function startOnboarding(int $chatId, User $user): mixed
     {
         $builder = new OnboardingKeyboardBuilder;
         $locale = $user->language ?? 'en';
@@ -139,9 +135,8 @@ class ContactHandler extends UpdateHandler
         if ($currentStep === 'complete') {
             // Already complete somehow
             $user->markOnboardingAsComplete();
-            $this->sendWelcomeBack($chatId, $locale);
 
-            return;
+            return $this->sendWelcomeBack($chatId, $locale);
         }
 
         $message = $builder->getStepMessage($currentStep, $locale);
@@ -157,7 +152,7 @@ class ContactHandler extends UpdateHandler
             default => [],
         };
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'Markdown',
@@ -165,7 +160,7 @@ class ContactHandler extends UpdateHandler
         ]);
     }
 
-    private function sendWelcomeBack(int $chatId, string $locale): void
+    private function sendWelcomeBack(int $chatId, string $locale): mixed
     {
         $telegramId = (string) $this->update->message->from->id;
         $user = User::where('telegram_id', $telegramId)->first();
@@ -174,7 +169,7 @@ class ContactHandler extends UpdateHandler
             ? "🎉 أنت جاهز لتلقي تنبيهات الأسهم!\n\nاختر من القائمة أدناه:"
             : "🎉 You're all set to receive stock alerts!\n\nChoose from the menu below:";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'reply_markup' => DefaultKeyboardBuilder::forUser($user, $locale),

@@ -27,14 +27,12 @@ class MarketsButtonHandler extends AbstractButtonHandler
             ? "🌍 *الدولة*\n\nالدولة الحالية: {$countryName}\n\n⚠️ لتغيير الدولة، يرجى استخدام التطبيق."
             : "🌍 *Country*\n\nCurrent country: {$countryName}\n\n⚠️ To change country, please use the app.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => MarketsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showMarketsInfo(int $chatId, ?User $user, string $locale): mixed
@@ -51,14 +49,12 @@ class MarketsButtonHandler extends AbstractButtonHandler
             ? "🏛️ *الأسواق*\n\nالأسواق المتابعة: {$marketNames}\n\n⚠️ لتغيير الأسواق، يرجى استخدام التطبيق."
             : "🏛️ *Markets*\n\nFollowed markets: {$marketNames}\n\n⚠️ To change markets, please use the app.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => MarketsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 
     public function showSectorsInfo(int $chatId, ?User $user, string $locale): mixed
@@ -75,13 +71,11 @@ class MarketsButtonHandler extends AbstractButtonHandler
             ? "📂 *القطاعات*\n\nالقطاعات المتابعة: {$sectorNames}\n\n⚠️ لتغيير القطاعات، يرجى استخدام التطبيق."
             : "📂 *Sectors*\n\nFollowed sectors: {$sectorNames}\n\n⚠️ To change sectors, please use the app.";
 
-        $this->sendMessage([
+        return $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
             'reply_markup' => MarketsKeyboard::menu($locale),
         ]);
-
-        return null;
     }
 }
