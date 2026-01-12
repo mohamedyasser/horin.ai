@@ -50,9 +50,9 @@ class PhoneVerificationController extends Controller
 
         $locale = $user->language ?? 'en';
         $message = $locale === 'ar'
-            ? "📱 يرجى التحقق من رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه لإكمال التحقق."
-            : "📱 Please verify your phone number to continue.\n\nTap the button below to complete verification.";
-        $buttonText = $locale === 'ar' ? '✅ التحقق الآن' : '✅ Verify Now';
+            ? "📱 يرجى التحقق من رقم هاتفك للمتابعة.\n\nاضغط الزر أدناه لمشاركة رقم هاتفك."
+            : "📱 Please verify your phone number to continue.\n\nTap the button below to share your phone number.";
+        $buttonText = $locale === 'ar' ? '📱 مشاركة رقم الهاتف' : '📱 Share Phone Number';
 
         $bot = new TeleBot(config('telegram.bot_token'));
 
@@ -61,12 +61,14 @@ class PhoneVerificationController extends Controller
             'text' => $message,
             'parse_mode' => 'Markdown',
             'reply_markup' => [
-                'inline_keyboard' => [[
+                'keyboard' => [[
                     [
                         'text' => $buttonText,
-                        'web_app' => ['url' => route('verification.phone')],
+                        'request_contact' => true,
                     ],
                 ]],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => true,
             ],
         ]);
 
