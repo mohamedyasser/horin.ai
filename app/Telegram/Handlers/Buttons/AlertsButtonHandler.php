@@ -322,14 +322,22 @@ class AlertsButtonHandler extends AbstractButtonHandler
         $triggerType = $draft['trigger_type'] ?? 'target_price';
         $value = $draft['parameters']['target_price'] ?? $draft['parameters']['threshold_percent'] ?? 'N/A';
 
+        // Map trigger types to display-friendly labels
+        $triggerTypeLabels = [
+            'target_price' => ['en' => 'Target Price', 'ar' => 'سعر مستهدف'],
+            'daily_change' => ['en' => 'Daily Change', 'ar' => 'تغير يومي'],
+            'breakout' => ['en' => 'Price Breakout', 'ar' => 'اختراق سعر'],
+        ];
+        $triggerTypeLabel = $triggerTypeLabels[$triggerType][$locale] ?? $triggerType;
+
         $valueStr = is_numeric($value) ? number_format($value, 2) : $value;
         if ($triggerType === 'daily_change') {
             $valueStr .= '%';
         }
 
         $text = $locale === 'ar'
-            ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerType}\n🎯 القيمة: {$valueStr}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
-            : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerType}\n🎯 Value: {$valueStr}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+            ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerTypeLabel}\n🎯 القيمة: {$valueStr}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
+            : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerTypeLabel}\n🎯 Value: {$valueStr}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
 
         return $this->sendMessage([
             'chat_id' => $chatId,
