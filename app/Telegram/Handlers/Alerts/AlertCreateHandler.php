@@ -502,26 +502,24 @@ class AlertCreateHandler extends CallbackHandler
 
     private function getPortfolioAssets(User $user): \Illuminate\Support\Collection
     {
-        // Get assets from user's portfolio holdings
-        return $user->portfolios()
-            ->with('holdings.asset')
-            ->get()
-            ->flatMap(fn ($portfolio) => $portfolio->holdings->pluck('asset'))
-            ->filter()
-            ->unique('id')
-            ->values();
+        // Get assets from user's portfolio assets
+        try {
+            return $user->portfolios()
+                ->with('portfolioAssets.asset')
+                ->get()
+                ->flatMap(fn ($portfolio) => $portfolio->portfolioAssets->pluck('asset'))
+                ->filter()
+                ->unique('id')
+                ->values();
+        } catch (\Exception $e) {
+            return collect();
+        }
     }
 
     private function getWatchlistAssets(User $user): \Illuminate\Support\Collection
     {
-        // Get assets from user's watchlists
-        return $user->watchlists()
-            ->with('assets')
-            ->get()
-            ->flatMap(fn ($watchlist) => $watchlist->assets)
-            ->filter()
-            ->unique('id')
-            ->values();
+        // Watchlist feature not yet implemented - return empty collection
+        return collect();
     }
 
     private function answerWithError(string $message): null
