@@ -3,8 +3,8 @@
 namespace App\Telegram\Handlers\Buttons;
 
 use App\Models\User;
+use WeStacks\TeleBot\Objects\Update;
 use WeStacks\TeleBot\TeleBot;
-use WeStacks\TeleBot\Types\Update;
 
 abstract class AbstractButtonHandler implements ButtonHandlerInterface
 {

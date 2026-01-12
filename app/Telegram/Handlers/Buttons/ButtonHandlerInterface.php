@@ -2,8 +2,8 @@
 
 namespace App\Telegram\Handlers\Buttons;
 
+use WeStacks\TeleBot\Objects\Update;
 use WeStacks\TeleBot\TeleBot;
-use WeStacks\TeleBot\Types\Update;
 
 interface ButtonHandlerInterface
 {
