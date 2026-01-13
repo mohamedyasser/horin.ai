@@ -139,6 +139,12 @@ class AlertsListen extends Command
             // Check if we can ping
             $pong = $redis->ping();
             $this->info('✓ PING response: '.($pong === true ? 'PONG' : $pong));
+
+            // Show actual prefix on client
+            if (method_exists($redis, 'getOption')) {
+                $actualPrefix = $redis->getOption(\Redis::OPT_PREFIX);
+                $this->info('✓ Client prefix: '.($actualPrefix === '' || $actualPrefix === false ? '(none)' : "'{$actualPrefix}'"));
+            }
         } catch (\Throwable $e) {
             $this->error('✗ Connection failed: '.$e->getMessage());
         }
@@ -172,6 +178,11 @@ class AlertsListen extends Command
         // Use a dedicated Redis connection for pub/sub
         $redis = Redis::connection('pubsub')->client();
 
+        // Explicitly disable prefix for pub/sub (ML pipeline doesn't use prefixes)
+        if (method_exists($redis, 'setOption')) {
+            $redis->setOption(\Redis::OPT_PREFIX, '');
+        }
+
         // Reset reconnection counter on successful connection
         $this->reconnectAttempts = 0;
 
@@ -179,6 +190,9 @@ class AlertsListen extends Command
         $this->recordMetric('redis.subscriber.connected', 1);
 
         $redis->subscribe($channels, function ($redis, $channel, $message) {
+            if ($this->option('debug')) {
+                $this->line('<fg=cyan>['.now()->format('H:i:s')."]</> Received on <fg=yellow>{$channel}</> (".strlen($message).' bytes)');
+            }
             $this->processMessage($channel, $message);
         });
     }
