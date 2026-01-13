@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\Alert;
 use App\Services\AlertCacheService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -149,5 +150,32 @@ class AlertCacheServiceTest extends TestCase
         $this->assertArrayHasKey('cache_ttl_seconds', $stats);
         $this->assertEquals(2, $stats['assets_with_alerts']);
         $this->assertEquals(60, $stats['cache_ttl_seconds']);
+    }
+
+    #[Test]
+    public function it_hydrates_alerts_with_id_from_cache(): void
+    {
+        $type = 'price';
+        $cachedData = [
+            [
+                'id' => '019bb3c8-1ba7-7278-b2bb-7d73215f4587',
+                'type' => $type,
+                'user_id' => 'user-123',
+                'status' => 'active',
+            ],
+        ];
+
+        Cache::shouldReceive('get')
+            ->with("active_alerts:type:{$type}")
+            ->andReturn($cachedData);
+
+        $result = $this->service->getAlertsByType($type);
+
+        $this->assertCount(1, $result);
+
+        $alert = $result->first();
+        $this->assertInstanceOf(Alert::class, $alert);
+        $this->assertEquals('019bb3c8-1ba7-7278-b2bb-7d73215f4587', $alert->id);
+        $this->assertTrue($alert->exists, 'Hydrated alert should have exists=true');
     }
 }
