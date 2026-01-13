@@ -94,51 +94,93 @@ class AlertsButtonHandler extends AbstractButtonHandler
             $text = $locale === 'ar'
                 ? "📋 *تنبيهاتك*\n\nلا توجد تنبيهات نشطة.\n\nاضغط '➕ تنبيه جديد' لإنشاء تنبيه."
                 : "📋 *Your Alerts*\n\nNo active alerts.\n\nTap '➕ New Alert' to create one.";
-        } else {
-            $triggerLabels = [
-                'target_price' => 'Price',
-                'daily_change' => 'Change',
-                'breakout' => 'Breakout',
-            ];
 
-            $alertLines = $alerts->map(function ($alert) use ($triggerLabels) {
-                // Escape underscores in symbol for Markdown
-                $symbol = str_replace('_', '\\_', $alert->asset?->symbol ?? 'N/A');
-                $direction = $alert->direction ?? 'any';
-                $params = $alert->parameters ?? [];
-                $value = $params['target_price'] ?? $params['threshold_percent'] ?? null;
-
-                $directionIcon = match ($direction) {
-                    'above' => '⬆️',
-                    'below' => '⬇️',
-                    'both' => '↕️',
-                    default => '📊',
-                };
-
-                if ($value !== null) {
-                    $valueStr = is_numeric($value) ? number_format((float) $value, 2) : $value;
-                    if (isset($params['threshold_percent'])) {
-                        $valueStr .= '%';
-                    }
-
-                    return "• {$symbol}: {$directionIcon} {$valueStr}";
-                }
-
-                // Use label instead of raw trigger_type to avoid underscores
-                $triggerLabel = $triggerLabels[$alert->trigger_type] ?? str_replace('_', ' ', $alert->trigger_type);
-
-                return "• {$symbol}: {$directionIcon} {$triggerLabel}";
-            })->join("\n");
-
-            $text = $locale === 'ar'
-                ? "📋 *تنبيهاتك النشطة*\n\n{$alertLines}"
-                : "📋 *Your Active Alerts*\n\n{$alertLines}";
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => AlertsKeyboard::menu($locale),
+            ]);
         }
 
-        return $this->sendMessage([
+        $triggerLabels = [
+            'target_price' => 'Price',
+            'daily_change' => 'Change',
+            'breakout' => 'Breakout',
+        ];
+
+        $alertLines = $alerts->map(function ($alert) use ($triggerLabels) {
+            // Escape underscores in symbol for Markdown
+            $symbol = str_replace('_', '\\_', $alert->asset?->symbol ?? 'N/A');
+            $direction = $alert->direction ?? 'any';
+            $params = $alert->parameters ?? [];
+            $value = $params['target_price'] ?? $params['threshold_percent'] ?? null;
+
+            $directionIcon = match ($direction) {
+                'above' => '⬆️',
+                'below' => '⬇️',
+                'both' => '↕️',
+                default => '📊',
+            };
+
+            if ($value !== null) {
+                $valueStr = is_numeric($value) ? number_format((float) $value, 2) : $value;
+                if (isset($params['threshold_percent'])) {
+                    $valueStr .= '%';
+                }
+
+                return "• {$symbol}: {$directionIcon} {$valueStr}";
+            }
+
+            // Use label instead of raw trigger_type to avoid underscores
+            $triggerLabel = $triggerLabels[$alert->trigger_type] ?? str_replace('_', ' ', $alert->trigger_type);
+
+            return "• {$symbol}: {$directionIcon} {$triggerLabel}";
+        })->join("\n");
+
+        $tapHint = $locale === 'ar'
+            ? "\n\n👆 اضغط على تنبيه لإدارته:"
+            : "\n\n👆 Tap an alert to manage it:";
+
+        $text = $locale === 'ar'
+            ? "📋 *تنبيهاتك النشطة*\n\n{$alertLines}{$tapHint}"
+            : "📋 *Your Active Alerts*\n\n{$alertLines}{$tapHint}";
+
+        // Build inline keyboard with alert buttons
+        $inlineKeyboard = $alerts->map(function ($alert) {
+            $symbol = $alert->asset?->symbol ?? 'N/A';
+            $direction = $alert->direction ?? 'both';
+            $dirIcon = match ($direction) {
+                'above' => '⬆️',
+                'below' => '⬇️',
+                'both' => '↕️',
+                default => '📊',
+            };
+
+            $params = $alert->parameters ?? [];
+            $value = $params['target_price'] ?? $params['threshold_percent'] ?? null;
+            $valueStr = $value !== null ? number_format((float) $value, 2) : '';
+            if (isset($params['threshold_percent']) && $value !== null) {
+                $valueStr .= '%';
+            }
+
+            $buttonText = $valueStr ? "{$symbol} {$dirIcon} {$valueStr}" : "{$symbol} {$dirIcon}";
+
+            return [['text' => $buttonText, 'callback_data' => "alert_manage:{$alert->id}"]];
+        })->toArray();
+
+        // Send message with inline keyboard for alert selection
+        $this->sendMessage([
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
+            'reply_markup' => ['inline_keyboard' => $inlineKeyboard],
+        ]);
+
+        // Also update the reply keyboard for navigation
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $locale === 'ar' ? '⬇️ القائمة' : '⬇️ Menu',
             'reply_markup' => AlertsKeyboard::menu($locale),
         ]);
     }
@@ -533,16 +575,17 @@ class AlertsButtonHandler extends AbstractButtonHandler
             ]);
         }
 
-        $newStatus = ! $alert->is_active;
-        $alert->update(['is_active' => $newStatus]);
+        $isCurrentlyActive = $alert->status === 'active';
+        $newStatus = $isCurrentlyActive ? 'paused' : 'active';
+        $alert->update(['status' => $newStatus]);
 
         Log::info('Alert status toggled via Telegram', [
             'alert_id' => $alert->id,
             'user_id' => $user->id,
-            'is_active' => $newStatus,
+            'status' => $newStatus,
         ]);
 
-        $text = $newStatus
+        $text = $newStatus === 'active'
             ? ($locale === 'ar' ? '✅ تم تفعيل التنبيه' : '✅ Alert resumed')
             : ($locale === 'ar' ? '⏸️ تم إيقاف التنبيه مؤقتاً' : '⏸️ Alert paused');
 

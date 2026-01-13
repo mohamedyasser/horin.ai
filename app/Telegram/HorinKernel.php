@@ -8,9 +8,13 @@ use App\Telegram\Commands\LanguageCommand;
 use App\Telegram\Commands\OnboardingCommand;
 use App\Telegram\Commands\SettingsCommand;
 use App\Telegram\Commands\StartCommand;
+use App\Telegram\Handlers\AcknowledgeCallbackHandler;
+use App\Telegram\Handlers\AlertManageCallbackHandler;
 use App\Telegram\Handlers\ContactHandler;
 use App\Telegram\Handlers\KeyboardButtonHandler;
+use App\Telegram\Handlers\LanguageCallbackHandler;
 use App\Telegram\Handlers\OnboardingTextHandler;
+use App\Telegram\Handlers\SnoozeCallbackHandler;
 use App\Telegram\Handlers\TextInputHandler;
 use WeStacks\TeleBot\Kernel;
 
@@ -30,6 +34,12 @@ class HorinKernel extends Kernel
             SettingsCommand::class,
             LanguageCommand::class,
             OnboardingCommand::class,
+
+            // Callback handlers (for inline keyboard buttons)
+            LanguageCallbackHandler::class,
+            AlertManageCallbackHandler::class,
+            SnoozeCallbackHandler::class,
+            AcknowledgeCallbackHandler::class,
 
             // Onboarding text handler (for button presses during onboarding)
             OnboardingTextHandler::class,
