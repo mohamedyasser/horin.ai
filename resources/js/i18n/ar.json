@@ -32,7 +32,15 @@
         "view": "عرض",
         "actions": "الإجراءات",
         "min_abbr": "د",
-        "currency": "ج.م"
+        "currency": "ج.م",
+        "saving": "جاري الحفظ...",
+        "hour": "ساعة",
+        "hours": "ساعات",
+        "day": "يوم",
+        "days": "أيام",
+        "week": "أسبوع",
+        "weeks": "أسابيع",
+        "minutes": "دقائق"
     },
     "auth": {
         "login": {
@@ -1229,6 +1237,7 @@
             "market_hours_only": "ساعات السوق فقط",
             "market_hours_hint": "تفعيل التنبيه فقط خلال ساعات التداول",
             "delivery_channels": "قنوات الإشعارات",
+            "delivery_channels_hint": "اختر كيف تريد تلقي إشعارات التنبيهات",
             "channels": "القنوات",
             "triggered_count": "عدد التفعيلات",
             "gap_threshold": "حد الفجوة %",
@@ -1237,7 +1246,9 @@
             "52week_hint": "تفعيل عند وصول السعر لمستوى 52 أسبوع جديد",
             "threshold": "العتبة",
             "min_score": "الحد الأدنى للنقاط",
-            "prediction_direction": "اتجاه التنبؤ"
+            "prediction_direction": "اتجاه التنبؤ",
+            "anomaly_types": "أنواع الشذوذ",
+            "confirmation": "نوع التأكيد"
         },
         "direction": {
             "above": "أعلى من",
@@ -1290,6 +1301,38 @@
         "snoozed_message": "تم تأجيل التنبيه حتى {until}",
         "unsnoozed": "تم إلغاء تأجيل التنبيه",
         "backtest_started": "بدأ الاختبار الخلفي. ستتوفر النتائج قريباً.",
+        "activity": "النشاط",
+        "details": "التفاصيل",
+        "configuration": "الإعدادات",
+        "expires": "ينتهي",
+        "backtest": {
+            "title": "نتائج الاختبار الخلفي",
+            "description": "شاهد كيف كان سيؤدي هذا التنبيه تاريخياً",
+            "run": "تشغيل الاختبار",
+            "run_hint": "اختبر هذا التنبيه على البيانات التاريخية",
+            "running": "جاري تشغيل الاختبار...",
+            "lookback": "فترة المراجعة",
+            "triggers": "التفعيلات",
+            "win_rate": "معدل النجاح",
+            "avg_1d": "متوسط العائد (يوم)",
+            "avg_1w": "متوسط العائد (أسبوع)",
+            "performance": "الأداء",
+            "completed_at": "اكتمل في",
+            "recent_triggers": "التفعيلات الأخيرة",
+            "no_results": "لا توجد نتائج بعد",
+            "no_triggers": "لم يتم العثور على تفعيلات",
+            "no_data": "لا توجد بيانات متاحة",
+            "rating": {
+                "good": "جيد",
+                "moderate": "متوسط",
+                "poor": "ضعيف"
+            }
+        },
+        "confirmation": {
+            "instant": "فوري",
+            "sustained": "مستدام",
+            "closing": "سعر الإغلاق"
+        },
         "acknowledged": "تم الإقرار بالتنبيه",
         "stats": {
             "active": "التنبيهات النشطة",
@@ -1313,6 +1356,15 @@
             "1d": "تأجيل ليوم واحد",
             "until_market_close": "تأجيل حتى إغلاق السوق",
             "until_market_open": "تأجيل حتى افتتاح السوق"
+        },
+        "escalation": {
+            "title": "تفعيل التصعيد",
+            "description": "تصعيد التنبيهات غير المقروءة إلى قنوات إضافية",
+            "level": "المستوى",
+            "after": "بعد",
+            "via": "عبر",
+            "add_level": "إضافة مستوى تصعيد",
+            "minutes": "دقائق"
         },
         "params": {
             "target": "المستهدف",

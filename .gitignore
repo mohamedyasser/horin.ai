@@ -31,3 +31,4 @@ rr
 .worktrees/
 db.sh
 supabase.sh
+package-lock.json

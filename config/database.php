@@ -192,13 +192,14 @@ return [
         |
         */
         'pubsub' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
-            'database' => env('REDIS_DB', '0'),
+            'url' => env('REDIS_PUBSUB_URL', env('REDIS_URL')),
+            'host' => env('REDIS_PUBSUB_HOST', env('REDIS_HOST', '127.0.0.1')),
+            'username' => env('REDIS_PUBSUB_USERNAME', env('REDIS_USERNAME')),
+            'password' => env('REDIS_PUBSUB_PASSWORD', env('REDIS_PASSWORD')),
+            'port' => env('REDIS_PUBSUB_PORT', env('REDIS_PORT', '6379')),
+            'database' => env('REDIS_PUBSUB_DB', env('REDIS_DB', '0')),
             'read_timeout' => -1, // Infinite timeout for pub/sub
+            'prefix' => '', // No prefix for pub/sub channels
         ],
 
     ],

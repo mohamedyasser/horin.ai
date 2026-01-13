@@ -47,16 +47,16 @@ class ProcessIntelligenceAlerts implements ShouldQueue
             return;
         }
 
-        // Quick check: does this asset have any alerts?
-        if (! $cacheService->hasActiveAlerts($assetId)) {
-            return;
-        }
-
         // Determine alert type from channel
         $alertType = $this->getAlertTypeFromChannel($this->channel);
 
-        // Get matching alerts
+        // Get matching alerts (includes both asset-specific and scope-based alerts)
         $alerts = $this->getMatchingAlerts($cacheService, $alertType, $assetId, $scopeResolver);
+
+        // Quick check: no alerts to process
+        if ($alerts->isEmpty()) {
+            return;
+        }
 
         $triggeredCount = 0;
 

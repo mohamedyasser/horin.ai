@@ -32,7 +32,15 @@
         "view": "View",
         "actions": "Actions",
         "min_abbr": "m",
-        "currency": "EGP"
+        "currency": "EGP",
+        "saving": "Saving...",
+        "hour": "hour",
+        "hours": "hours",
+        "day": "day",
+        "days": "days",
+        "week": "week",
+        "weeks": "weeks",
+        "minutes": "minutes"
     },
     "auth": {
         "login": {
@@ -1229,6 +1237,7 @@
             "market_hours_only": "Market Hours Only",
             "market_hours_hint": "Only trigger during trading hours",
             "delivery_channels": "Notification Channels",
+            "delivery_channels_hint": "Select how you want to receive alert notifications",
             "channels": "Channels",
             "triggered_count": "Triggered Count",
             "gap_threshold": "Gap Threshold %",
@@ -1237,7 +1246,9 @@
             "52week_hint": "Trigger when price reaches a new 52-week extreme",
             "threshold": "Threshold",
             "min_score": "Min Score",
-            "prediction_direction": "Prediction Direction"
+            "prediction_direction": "Prediction Direction",
+            "anomaly_types": "Anomaly Types",
+            "confirmation": "Confirmation Type"
         },
         "direction": {
             "above": "Above",
@@ -1280,6 +1291,38 @@
         "snoozed_message": "Alert snoozed until {until}",
         "unsnoozed": "Alert unsnoozed",
         "backtest_started": "Backtest started. Results will be available shortly.",
+        "activity": "Activity",
+        "details": "Details",
+        "configuration": "Configuration",
+        "expires": "Expires",
+        "backtest": {
+            "title": "Backtest Results",
+            "description": "See how this alert would have performed historically",
+            "run": "Run Backtest",
+            "run_hint": "Test this alert against historical data",
+            "running": "Running backtest...",
+            "lookback": "Lookback Period",
+            "triggers": "Triggers",
+            "win_rate": "Win Rate",
+            "avg_1d": "Avg Return (1D)",
+            "avg_1w": "Avg Return (1W)",
+            "performance": "Performance",
+            "completed_at": "Completed at",
+            "recent_triggers": "Recent Triggers",
+            "no_results": "No results yet",
+            "no_triggers": "No triggers found",
+            "no_data": "No data available",
+            "rating": {
+                "good": "Good",
+                "moderate": "Moderate",
+                "poor": "Poor"
+            }
+        },
+        "confirmation": {
+            "instant": "Instant",
+            "sustained": "Sustained",
+            "closing": "Closing Price"
+        },
         "acknowledged": "Alert acknowledged",
         "stats": {
             "active": "Active Alerts",
@@ -1313,6 +1356,15 @@
             "1d": "Snooze for 1 day",
             "until_market_close": "Snooze until market close",
             "until_market_open": "Snooze until market open"
+        },
+        "escalation": {
+            "title": "Enable Escalation",
+            "description": "Escalate unacknowledged alerts to additional channels",
+            "level": "Level",
+            "after": "After",
+            "via": "Via",
+            "add_level": "Add Escalation Level",
+            "minutes": "minutes"
         },
         "params": {
             "target": "Target",

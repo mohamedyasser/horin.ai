@@ -14,7 +14,8 @@ class AlertsListen extends Command
 {
     protected $signature = 'alerts:listen
         {--channels=* : Specific channels to listen to (default: all)}
-        {--dry-run : Process messages without dispatching jobs}';
+        {--dry-run : Process messages without dispatching jobs}
+        {--debug : Show connection details and first few messages}';
 
     protected $description = 'Listen to Redis channels for ML pipeline signals and dispatch alert processing jobs';
 
@@ -78,6 +79,11 @@ class AlertsListen extends Command
     {
         $this->info('Starting Alert Listener...');
 
+        // Debug mode: show connection details
+        if ($this->option('debug')) {
+            $this->showDebugInfo();
+        }
+
         // Register signal handlers for graceful shutdown
         $this->registerSignalHandlers();
 
@@ -102,6 +108,40 @@ class AlertsListen extends Command
         $this->info('Alert Listener stopped gracefully');
 
         return Command::SUCCESS;
+    }
+
+    private function showDebugInfo(): void
+    {
+        $config = config('database.redis.pubsub');
+        $options = config('database.redis.options');
+
+        $this->info('=== Redis Connection Debug ===');
+        $this->table(
+            ['Setting', 'Value'],
+            [
+                ['Host', $config['host'] ?? 'not set'],
+                ['Port', $config['port'] ?? 'not set'],
+                ['Database', $config['database'] ?? 'not set'],
+                ['Password', $config['password'] ? 'SET (hidden)' : 'NOT SET'],
+                ['Prefix (from options)', $options['prefix'] ?? 'not set'],
+                ['Read Timeout', $config['read_timeout'] ?? 'not set'],
+            ]
+        );
+
+        // Test connection
+        try {
+            $redis = Redis::connection('pubsub')->client();
+            $info = $redis->info('server');
+            $this->info('✓ Connected to Redis '.($info['redis_version'] ?? 'unknown version'));
+
+            // Check if we can ping
+            $pong = $redis->ping();
+            $this->info('✓ PING response: '.($pong === true ? 'PONG' : $pong));
+        } catch (\Throwable $e) {
+            $this->error('✗ Connection failed: '.$e->getMessage());
+        }
+
+        $this->newLine();
     }
 
     private function registerSignalHandlers(): void
