@@ -27,4 +27,15 @@ class UpdateAlertPreferencesRequest extends FormRequest
             'smart_defaults_enabled' => ['nullable', 'boolean'],
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            // Convert empty strings to null for time fields
+            'quiet_hours_start' => $this->quiet_hours_start ?: null,
+            'quiet_hours_end' => $this->quiet_hours_end ?: null,
+            // Strip seconds from time fields if present (database returns H:i:s)
+            'digest_time' => $this->digest_time ? substr($this->digest_time, 0, 5) : null,
+        ]);
+    }
 }
