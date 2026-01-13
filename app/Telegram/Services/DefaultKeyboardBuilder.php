@@ -169,4 +169,24 @@ class DefaultKeyboardBuilder
     {
         return AlertsKeyboard::assetSearchKeyboard($locale);
     }
+
+    public static function anomalyTypeKeyboard(string $locale): array
+    {
+        return AlertsKeyboard::anomalyTypeKeyboard($locale);
+    }
+
+    public static function patternTypeKeyboard(string $locale): array
+    {
+        return AlertsKeyboard::patternTypeKeyboard($locale);
+    }
+
+    public static function recommendationTypeKeyboard(string $locale): array
+    {
+        return AlertsKeyboard::recommendationTypeKeyboard($locale);
+    }
+
+    public static function confidenceLevelKeyboard(string $locale): array
+    {
+        return AlertsKeyboard::confidenceLevelKeyboard($locale);
+    }
 }

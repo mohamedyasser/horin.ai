@@ -47,6 +47,54 @@ class ButtonRegistry
         '📈 تنبيه إشارة' => 'alert_type_signal',
         '🔮 Prediction Alert' => 'alert_type_prediction',
         '🔮 تنبيه توقع' => 'alert_type_prediction',
+        '⚠️ Anomaly Alert' => 'alert_type_anomaly',
+        '⚠️ تنبيه شذوذ' => 'alert_type_anomaly',
+        '📊 Pattern Alert' => 'alert_type_pattern',
+        '📊 تنبيه نمط' => 'alert_type_pattern',
+        '💡 Recommendation' => 'alert_type_recommendation',
+        '💡 تنبيه توصية' => 'alert_type_recommendation',
+
+        // Anomaly type buttons
+        '📊 Volume Anomaly' => 'anomaly_volume',
+        '📊 حجم غير طبيعي' => 'anomaly_volume',
+        '💰 Price Anomaly' => 'anomaly_price',
+        '💰 سعر غير طبيعي' => 'anomaly_price',
+        '📈 Volatility Anomaly' => 'anomaly_volatility',
+        '📈 تقلب غير طبيعي' => 'anomaly_volatility',
+        '🔄 All Types' => 'anomaly_all',
+        '🔄 جميع الأنواع' => 'anomaly_all',
+
+        // Pattern type buttons
+        '📈 Head & Shoulders' => 'pattern_head_shoulders',
+        '📈 رأس وكتفين' => 'pattern_head_shoulders',
+        '📊 Double Top/Bottom' => 'pattern_double',
+        '📊 قمة/قاع مزدوج' => 'pattern_double',
+        '🔺 Triangle' => 'pattern_triangle',
+        '🔺 مثلث' => 'pattern_triangle',
+        '📉 Flag/Pennant' => 'pattern_flag',
+        '📉 علم/راية' => 'pattern_flag',
+        '🔄 All Patterns' => 'pattern_all',
+        '🔄 جميع الأنماط' => 'pattern_all',
+
+        // Recommendation type buttons
+        '🚀 Strong Buy' => 'rec_strong_buy',
+        '🚀 شراء قوي' => 'rec_strong_buy',
+        '📈 Buy' => 'rec_buy',
+        '📈 شراء' => 'rec_buy',
+        '📉 Sell' => 'rec_sell',
+        '📉 بيع' => 'rec_sell',
+        '🔻 Strong Sell' => 'rec_strong_sell',
+        '🔻 بيع قوي' => 'rec_strong_sell',
+        '🔄 Any Change' => 'rec_any_change',
+        '🔄 أي تغيير' => 'rec_any_change',
+
+        // Confidence level buttons
+        '🎯 High (80%+)' => 'confidence_high',
+        '🎯 عالي (80%+)' => 'confidence_high',
+        '📊 Medium (60%+)' => 'confidence_medium',
+        '📊 متوسط (60%+)' => 'confidence_medium',
+        '📉 Low (40%+)' => 'confidence_low',
+        '📉 منخفض (40%+)' => 'confidence_low',
 
         // Back button
         '◀️ Back' => 'back',
@@ -254,6 +302,35 @@ class ButtonRegistry
         'alert_type_price' => [AlertsButtonHandler::class, 'selectAlertTypePrice'],
         'alert_type_signal' => [AlertsButtonHandler::class, 'selectAlertTypeSignal'],
         'alert_type_prediction' => [AlertsButtonHandler::class, 'selectAlertTypePrediction'],
+        'alert_type_anomaly' => [AlertsButtonHandler::class, 'selectAlertTypeAnomaly'],
+        'alert_type_pattern' => [AlertsButtonHandler::class, 'selectAlertTypePattern'],
+        'alert_type_recommendation' => [AlertsButtonHandler::class, 'selectAlertTypeRecommendation'],
+
+        // Anomaly type actions
+        'anomaly_volume' => [AlertsButtonHandler::class, 'setAnomalyVolume'],
+        'anomaly_price' => [AlertsButtonHandler::class, 'setAnomalyPrice'],
+        'anomaly_volatility' => [AlertsButtonHandler::class, 'setAnomalyVolatility'],
+        'anomaly_all' => [AlertsButtonHandler::class, 'setAnomalyAll'],
+
+        // Pattern type actions
+        'pattern_head_shoulders' => [AlertsButtonHandler::class, 'setPatternHeadShoulders'],
+        'pattern_double' => [AlertsButtonHandler::class, 'setPatternDouble'],
+        'pattern_triangle' => [AlertsButtonHandler::class, 'setPatternTriangle'],
+        'pattern_flag' => [AlertsButtonHandler::class, 'setPatternFlag'],
+        'pattern_all' => [AlertsButtonHandler::class, 'setPatternAll'],
+
+        // Recommendation type actions
+        'rec_strong_buy' => [AlertsButtonHandler::class, 'setRecStrongBuy'],
+        'rec_buy' => [AlertsButtonHandler::class, 'setRecBuy'],
+        'rec_sell' => [AlertsButtonHandler::class, 'setRecSell'],
+        'rec_strong_sell' => [AlertsButtonHandler::class, 'setRecStrongSell'],
+        'rec_any_change' => [AlertsButtonHandler::class, 'setRecAnyChange'],
+
+        // Confidence level actions
+        'confidence_high' => [AlertsButtonHandler::class, 'setConfidenceHigh'],
+        'confidence_medium' => [AlertsButtonHandler::class, 'setConfidenceMedium'],
+        'confidence_low' => [AlertsButtonHandler::class, 'setConfidenceLow'],
+
         'alert_trigger_target_price' => [AlertsButtonHandler::class, 'setTriggerTargetPrice'],
         'alert_trigger_daily_change' => [AlertsButtonHandler::class, 'setTriggerDailyChange'],
         'alert_trigger_breakout' => [AlertsButtonHandler::class, 'setTriggerBreakout'],

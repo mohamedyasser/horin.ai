@@ -23,6 +23,9 @@ class AlertsButtonHandler extends AbstractButtonHandler
             'alert_type_price',
             'alert_type_signal',
             'alert_type_prediction',
+            'alert_type_anomaly',
+            'alert_type_pattern',
+            'alert_type_recommendation',
             'alert_trigger_target_price',
             'alert_trigger_daily_change',
             'alert_trigger_breakout',
@@ -41,6 +44,27 @@ class AlertsButtonHandler extends AbstractButtonHandler
             'snooze_1d',
             'snooze_market_close',
             'alert_search_asset',
+            // Anomaly types
+            'anomaly_volume',
+            'anomaly_price',
+            'anomaly_volatility',
+            'anomaly_all',
+            // Pattern types
+            'pattern_head_shoulders',
+            'pattern_double',
+            'pattern_triangle',
+            'pattern_flag',
+            'pattern_all',
+            // Recommendation types
+            'rec_strong_buy',
+            'rec_buy',
+            'rec_sell',
+            'rec_strong_sell',
+            'rec_any_change',
+            // Confidence levels
+            'confidence_high',
+            'confidence_medium',
+            'confidence_low',
         ];
     }
 
@@ -240,6 +264,64 @@ class AlertsButtonHandler extends AbstractButtonHandler
         return $this->selectAlertType($chatId, $user, $locale, 'prediction');
     }
 
+    public function selectAlertTypeAnomaly(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->selectAIAlertType($chatId, $user, $locale, 'anomaly');
+    }
+
+    public function selectAlertTypePattern(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->selectAIAlertType($chatId, $user, $locale, 'pattern');
+    }
+
+    public function selectAlertTypeRecommendation(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->selectAIAlertType($chatId, $user, $locale, 'recommendation');
+    }
+
+    private function selectAIAlertType(int $chatId, ?User $user, string $locale, string $type): mixed
+    {
+        if (! $user) {
+            $text = $locale === 'ar'
+                ? '❌ يرجى التسجيل أولاً باستخدام /start'
+                : '❌ Please register first using /start';
+
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+            ]);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['type'] = $type;
+        $draft['trigger_type'] = $type;
+        $draft['step'] = 'asset';
+        $user->update([
+            'telegram_alert_draft' => $draft,
+            'telegram_awaiting_input' => 'alert_asset_search',
+        ]);
+
+        $typeLabels = [
+            'anomaly' => ['en' => 'Anomaly Alert', 'ar' => 'تنبيه شذوذ', 'icon' => '⚠️'],
+            'pattern' => ['en' => 'Pattern Alert', 'ar' => 'تنبيه نمط', 'icon' => '📊'],
+            'recommendation' => ['en' => 'Recommendation Alert', 'ar' => 'تنبيه توصية', 'icon' => '💡'],
+        ];
+
+        $typeLabel = $typeLabels[$type][$locale] ?? $type;
+        $typeIcon = $typeLabels[$type]['icon'] ?? '📊';
+
+        $text = $locale === 'ar'
+            ? "{$typeIcon} *{$typeLabel}*\n\n🔍 أدخل رمز أو اسم الأصل للبحث:"
+            : "{$typeIcon} *{$typeLabel}*\n\n🔍 Enter asset symbol or name to search:";
+
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => AlertsKeyboard::cancelKeyboard($locale),
+        ]);
+    }
+
     private function selectAlertType(int $chatId, ?User $user, string $locale, string $type): mixed
     {
         if (! $user) {
@@ -296,6 +378,237 @@ class AlertsButtonHandler extends AbstractButtonHandler
     public function setTriggerBreakout(int $chatId, ?User $user, string $locale): mixed
     {
         return $this->setAlertTriggerType($chatId, $user, $locale, 'breakout');
+    }
+
+    // Anomaly type setters
+    public function setAnomalyVolume(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setAnomalyType($chatId, $user, $locale, 'volume');
+    }
+
+    public function setAnomalyPrice(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setAnomalyType($chatId, $user, $locale, 'price');
+    }
+
+    public function setAnomalyVolatility(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setAnomalyType($chatId, $user, $locale, 'volatility');
+    }
+
+    public function setAnomalyAll(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setAnomalyType($chatId, $user, $locale, 'all');
+    }
+
+    private function setAnomalyType(int $chatId, ?User $user, string $locale, string $anomalyType): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['parameters']['anomaly_type'] = $anomalyType;
+        $draft['step'] = 'confidence';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $labels = [
+            'volume' => ['en' => 'Volume Anomaly', 'ar' => 'حجم غير طبيعي'],
+            'price' => ['en' => 'Price Anomaly', 'ar' => 'سعر غير طبيعي'],
+            'volatility' => ['en' => 'Volatility Anomaly', 'ar' => 'تقلب غير طبيعي'],
+            'all' => ['en' => 'All Types', 'ar' => 'جميع الأنواع'],
+        ];
+
+        $label = $labels[$anomalyType][$locale] ?? $anomalyType;
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
+
+        $text = $locale === 'ar'
+            ? "⚠️ *تنبيه شذوذ*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$label}\n\n🎯 اختر مستوى الثقة المطلوب:"
+            : "⚠️ *Anomaly Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$label}\n\n🎯 Select minimum confidence level:";
+
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => AlertsKeyboard::confidenceLevelKeyboard($locale),
+        ]);
+    }
+
+    // Pattern type setters
+    public function setPatternHeadShoulders(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setPatternType($chatId, $user, $locale, 'head_shoulders');
+    }
+
+    public function setPatternDouble(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setPatternType($chatId, $user, $locale, 'double_top_bottom');
+    }
+
+    public function setPatternTriangle(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setPatternType($chatId, $user, $locale, 'triangle');
+    }
+
+    public function setPatternFlag(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setPatternType($chatId, $user, $locale, 'flag_pennant');
+    }
+
+    public function setPatternAll(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setPatternType($chatId, $user, $locale, 'all');
+    }
+
+    private function setPatternType(int $chatId, ?User $user, string $locale, string $patternType): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['parameters']['pattern_type'] = $patternType;
+        $draft['step'] = 'confidence';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $labels = [
+            'head_shoulders' => ['en' => 'Head & Shoulders', 'ar' => 'رأس وكتفين'],
+            'double_top_bottom' => ['en' => 'Double Top/Bottom', 'ar' => 'قمة/قاع مزدوج'],
+            'triangle' => ['en' => 'Triangle', 'ar' => 'مثلث'],
+            'flag_pennant' => ['en' => 'Flag/Pennant', 'ar' => 'علم/راية'],
+            'all' => ['en' => 'All Patterns', 'ar' => 'جميع الأنماط'],
+        ];
+
+        $label = $labels[$patternType][$locale] ?? $patternType;
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
+
+        $text = $locale === 'ar'
+            ? "📊 *تنبيه نمط*\n\n📊 الأصل: {$symbol}\n📈 النمط: {$label}\n\n🎯 اختر مستوى الثقة المطلوب:"
+            : "📊 *Pattern Alert*\n\n📊 Asset: {$symbol}\n📈 Pattern: {$label}\n\n🎯 Select minimum confidence level:";
+
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => AlertsKeyboard::confidenceLevelKeyboard($locale),
+        ]);
+    }
+
+    // Recommendation type setters
+    public function setRecStrongBuy(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setRecommendationType($chatId, $user, $locale, 'strong_buy');
+    }
+
+    public function setRecBuy(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setRecommendationType($chatId, $user, $locale, 'buy');
+    }
+
+    public function setRecSell(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setRecommendationType($chatId, $user, $locale, 'sell');
+    }
+
+    public function setRecStrongSell(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setRecommendationType($chatId, $user, $locale, 'strong_sell');
+    }
+
+    public function setRecAnyChange(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setRecommendationType($chatId, $user, $locale, 'any');
+    }
+
+    private function setRecommendationType(int $chatId, ?User $user, string $locale, string $recType): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['parameters']['recommendation_type'] = $recType;
+        $draft['step'] = 'direction';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $labels = [
+            'strong_buy' => ['en' => 'Strong Buy', 'ar' => 'شراء قوي'],
+            'buy' => ['en' => 'Buy', 'ar' => 'شراء'],
+            'sell' => ['en' => 'Sell', 'ar' => 'بيع'],
+            'strong_sell' => ['en' => 'Strong Sell', 'ar' => 'بيع قوي'],
+            'any' => ['en' => 'Any Change', 'ar' => 'أي تغيير'],
+        ];
+
+        $label = $labels[$recType][$locale] ?? $recType;
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
+
+        $text = $locale === 'ar'
+            ? "💡 *تنبيه توصية*\n\n📊 الأصل: {$symbol}\n📈 التوصية: {$label}\n\n🎯 اختر اتجاه السعر:"
+            : "💡 *Recommendation Alert*\n\n📊 Asset: {$symbol}\n📈 Recommendation: {$label}\n\n🎯 Select price direction:";
+
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => AlertsKeyboard::alertDirectionKeyboard($locale),
+        ]);
+    }
+
+    // Confidence level setters
+    public function setConfidenceHigh(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setConfidenceLevel($chatId, $user, $locale, 80);
+    }
+
+    public function setConfidenceMedium(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setConfidenceLevel($chatId, $user, $locale, 60);
+    }
+
+    public function setConfidenceLow(int $chatId, ?User $user, string $locale): mixed
+    {
+        return $this->setConfidenceLevel($chatId, $user, $locale, 40);
+    }
+
+    private function setConfidenceLevel(int $chatId, ?User $user, string $locale, int $confidenceLevel): mixed
+    {
+        if (! $user) {
+            return $this->goBackToMainMenu($chatId, $user, $locale);
+        }
+
+        $draft = $user->telegram_alert_draft ?? [];
+        $draft['parameters']['min_confidence'] = $confidenceLevel;
+        $draft['step'] = 'direction';
+        $user->update(['telegram_alert_draft' => $draft]);
+
+        $labels = [
+            80 => ['en' => 'High (80%+)', 'ar' => 'عالي (80%+)'],
+            60 => ['en' => 'Medium (60%+)', 'ar' => 'متوسط (60%+)'],
+            40 => ['en' => 'Low (40%+)', 'ar' => 'منخفض (40%+)'],
+        ];
+
+        $label = $labels[$confidenceLevel][$locale] ?? "{$confidenceLevel}%";
+        $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
+        $alertType = $draft['type'] ?? 'anomaly';
+
+        $typeLabels = [
+            'anomaly' => ['en' => 'Anomaly Alert', 'ar' => 'تنبيه شذوذ', 'icon' => '⚠️'],
+            'pattern' => ['en' => 'Pattern Alert', 'ar' => 'تنبيه نمط', 'icon' => '📊'],
+        ];
+
+        $typeLabel = $typeLabels[$alertType][$locale] ?? $alertType;
+        $typeIcon = $typeLabels[$alertType]['icon'] ?? '📊';
+
+        $text = $locale === 'ar'
+            ? "{$typeIcon} *{$typeLabel}*\n\n📊 الأصل: {$symbol}\n🎯 الثقة: {$label}\n\n⬆️ اختر اتجاه السعر:"
+            : "{$typeIcon} *{$typeLabel}*\n\n📊 Asset: {$symbol}\n🎯 Confidence: {$label}\n\n⬆️ Select price direction:";
+
+        return $this->sendMessage([
+            'chat_id' => $chatId,
+            'text' => $text,
+            'parse_mode' => 'Markdown',
+            'reply_markup' => AlertsKeyboard::alertDirectionKeyboard($locale),
+        ]);
     }
 
     private function setAlertTriggerType(int $chatId, ?User $user, string $locale, string $triggerType): mixed
@@ -392,24 +705,82 @@ class AlertsButtonHandler extends AbstractButtonHandler
         // Escape underscores for Markdown
         $symbol = str_replace('_', '\\_', $draft['asset_symbol'] ?? 'N/A');
         $triggerType = $draft['trigger_type'] ?? 'target_price';
-        $value = $draft['parameters']['target_price'] ?? $draft['parameters']['threshold_percent'] ?? 'N/A';
+        $alertType = $draft['type'] ?? 'price';
+        $params = $draft['parameters'] ?? [];
 
         // Map trigger types to display-friendly labels
         $triggerTypeLabels = [
             'target_price' => ['en' => 'Target Price', 'ar' => 'سعر مستهدف'],
             'daily_change' => ['en' => 'Daily Change', 'ar' => 'تغير يومي'],
             'breakout' => ['en' => 'Price Breakout', 'ar' => 'اختراق سعر'],
+            'signal' => ['en' => 'Signal Alert', 'ar' => 'تنبيه إشارة'],
+            'prediction' => ['en' => 'Prediction Alert', 'ar' => 'تنبيه توقع'],
+            'anomaly' => ['en' => 'Anomaly Alert', 'ar' => 'تنبيه شذوذ'],
+            'pattern' => ['en' => 'Pattern Alert', 'ar' => 'تنبيه نمط'],
+            'recommendation' => ['en' => 'Recommendation Alert', 'ar' => 'تنبيه توصية'],
         ];
         $triggerTypeLabel = $triggerTypeLabels[$triggerType][$locale] ?? $triggerType;
 
-        $valueStr = is_numeric($value) ? number_format($value, 2) : $value;
-        if ($triggerType === 'daily_change') {
-            $valueStr .= '%';
-        }
+        // Build confirmation message based on alert type
+        if (in_array($alertType, ['anomaly', 'pattern'])) {
+            // Anomaly/Pattern alerts have confidence parameter
+            $confidence = $params['min_confidence'] ?? 60;
+            $subType = $params['anomaly_type'] ?? $params['pattern_type'] ?? 'all';
 
-        $text = $locale === 'ar'
-            ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerTypeLabel}\n🎯 القيمة: {$valueStr}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
-            : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerTypeLabel}\n🎯 Value: {$valueStr}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+            $subTypeLabels = [
+                // Anomaly types
+                'volume' => ['en' => 'Volume', 'ar' => 'حجم'],
+                'price' => ['en' => 'Price', 'ar' => 'سعر'],
+                'volatility' => ['en' => 'Volatility', 'ar' => 'تقلب'],
+                // Pattern types
+                'head_shoulders' => ['en' => 'Head & Shoulders', 'ar' => 'رأس وكتفين'],
+                'double_top_bottom' => ['en' => 'Double Top/Bottom', 'ar' => 'قمة/قاع مزدوج'],
+                'triangle' => ['en' => 'Triangle', 'ar' => 'مثلث'],
+                'flag_pennant' => ['en' => 'Flag/Pennant', 'ar' => 'علم/راية'],
+                'all' => ['en' => 'All', 'ar' => 'الكل'],
+            ];
+            $subTypeLabel = $subTypeLabels[$subType][$locale] ?? $subType;
+
+            $text = $locale === 'ar'
+                ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerTypeLabel}\n🔎 التفاصيل: {$subTypeLabel}\n🎯 الثقة: {$confidence}%+\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
+                : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerTypeLabel}\n🔎 Details: {$subTypeLabel}\n🎯 Confidence: {$confidence}%+\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+        } elseif ($alertType === 'recommendation') {
+            // Recommendation alerts have recommendation type
+            $recType = $params['recommendation_type'] ?? 'any';
+
+            $recTypeLabels = [
+                'strong_buy' => ['en' => 'Strong Buy', 'ar' => 'شراء قوي'],
+                'buy' => ['en' => 'Buy', 'ar' => 'شراء'],
+                'sell' => ['en' => 'Sell', 'ar' => 'بيع'],
+                'strong_sell' => ['en' => 'Strong Sell', 'ar' => 'بيع قوي'],
+                'any' => ['en' => 'Any Change', 'ar' => 'أي تغيير'],
+            ];
+            $recTypeLabel = $recTypeLabels[$recType][$locale] ?? $recType;
+
+            $text = $locale === 'ar'
+                ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerTypeLabel}\n💡 التوصية: {$recTypeLabel}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
+                : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerTypeLabel}\n💡 Recommendation: {$recTypeLabel}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+        } elseif ($alertType === 'signal' || $alertType === 'prediction') {
+            // Signal/Prediction alerts don't have value parameters
+            $text = $locale === 'ar'
+                ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerTypeLabel}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
+                : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerTypeLabel}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+        } else {
+            // Price alerts have value parameters
+            $value = $params['target_price']
+                ?? $params['level']
+                ?? $params['threshold_percent']
+                ?? 'N/A';
+
+            $valueStr = is_numeric($value) ? number_format($value, 2) : $value;
+            if ($triggerType === 'daily_change') {
+                $valueStr .= '%';
+            }
+
+            $text = $locale === 'ar'
+                ? "✅ *تأكيد التنبيه*\n\n📊 الأصل: {$symbol}\n📈 النوع: {$triggerTypeLabel}\n🎯 القيمة: {$valueStr}\n{$dirIcon} الاتجاه: {$dirLabel}\n\nهل تريد إنشاء هذا التنبيه؟"
+                : "✅ *Confirm Alert*\n\n📊 Asset: {$symbol}\n📈 Type: {$triggerTypeLabel}\n🎯 Value: {$valueStr}\n{$dirIcon} Direction: {$dirLabel}\n\nCreate this alert?";
+        }
 
         return $this->sendMessage([
             'chat_id' => $chatId,

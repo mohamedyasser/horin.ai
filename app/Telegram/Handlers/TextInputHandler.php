@@ -274,12 +274,11 @@ class TextInputHandler extends UpdateHandler
 
         // Select the asset
         $selectedAsset = $searchResults[$selectedIndex];
+        $alertType = $draft['type'] ?? 'price';
 
         $draft['asset_id'] = $selectedAsset['id'];
         $draft['asset_symbol'] = $selectedAsset['symbol'];
-        $draft['step'] = 'trigger';
         unset($draft['search_results']);
-        $user->update(['telegram_alert_draft' => $draft]);
 
         Log::info('Asset selected for alert via Telegram', [
             'user_id' => $user->id,
@@ -291,18 +290,88 @@ class TextInputHandler extends UpdateHandler
         $symbol = str_replace('_', '\\_', $selectedAsset['symbol']);
         $name = str_replace('_', '\\_', $selectedAsset['name']);
 
-        $text = $locale === 'ar'
-            ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\nاختر نوع التنبيه:"
-            : "✅ *Selected: {$symbol}*\n{$name}\n\nSelect alert trigger type:";
+        // Different flow based on alert type
+        if ($alertType === 'signal' || $alertType === 'prediction') {
+            // Signal/Prediction: skip to direction selection
+            $draft['trigger_type'] = $alertType;
+            $draft['step'] = 'direction';
+            $user->update(['telegram_alert_draft' => $draft]);
 
-        $alertType = $draft['type'] ?? 'price';
+            $typeLabel = $alertType === 'signal'
+                ? ($locale === 'ar' ? 'تنبيه إشارة' : 'Signal Alert')
+                : ($locale === 'ar' ? 'تنبيه توقع' : 'Prediction Alert');
 
-        return $this->sendMessage([
-            'chat_id' => $chatId,
-            'text' => $text,
-            'parse_mode' => 'Markdown',
-            'reply_markup' => DefaultKeyboardBuilder::alertTriggerKeyboard($alertType, $locale),
-        ]);
+            $text = $locale === 'ar'
+                ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\n📊 النوع: {$typeLabel}\n\nمتى يتم تنبيهك؟"
+                : "✅ *Selected: {$symbol}*\n{$name}\n\n📊 Type: {$typeLabel}\n\nWhen should we alert you?";
+
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::alertDirectionKeyboard($locale),
+            ]);
+        } elseif ($alertType === 'anomaly') {
+            // Anomaly: show anomaly type selection
+            $draft['step'] = 'anomaly_type';
+            $user->update(['telegram_alert_draft' => $draft]);
+
+            $text = $locale === 'ar'
+                ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\n⚠️ *تنبيه شذوذ*\n\nاختر نوع الشذوذ:"
+                : "✅ *Selected: {$symbol}*\n{$name}\n\n⚠️ *Anomaly Alert*\n\nSelect anomaly type:";
+
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::anomalyTypeKeyboard($locale),
+            ]);
+        } elseif ($alertType === 'pattern') {
+            // Pattern: show pattern type selection
+            $draft['step'] = 'pattern_type';
+            $user->update(['telegram_alert_draft' => $draft]);
+
+            $text = $locale === 'ar'
+                ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\n📊 *تنبيه نمط*\n\nاختر نوع النمط:"
+                : "✅ *Selected: {$symbol}*\n{$name}\n\n📊 *Pattern Alert*\n\nSelect pattern type:";
+
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::patternTypeKeyboard($locale),
+            ]);
+        } elseif ($alertType === 'recommendation') {
+            // Recommendation: show recommendation type selection
+            $draft['step'] = 'recommendation_type';
+            $user->update(['telegram_alert_draft' => $draft]);
+
+            $text = $locale === 'ar'
+                ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\n💡 *تنبيه توصية*\n\nاختر نوع التوصية:"
+                : "✅ *Selected: {$symbol}*\n{$name}\n\n💡 *Recommendation Alert*\n\nSelect recommendation type:";
+
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::recommendationTypeKeyboard($locale),
+            ]);
+        } else {
+            // Price alert: show trigger type selection
+            $draft['step'] = 'trigger';
+            $user->update(['telegram_alert_draft' => $draft]);
+
+            $text = $locale === 'ar'
+                ? "✅ *تم اختيار: {$symbol}*\n{$name}\n\nاختر نوع التنبيه:"
+                : "✅ *Selected: {$symbol}*\n{$name}\n\nSelect alert trigger type:";
+
+            return $this->sendMessage([
+                'chat_id' => $chatId,
+                'text' => $text,
+                'parse_mode' => 'Markdown',
+                'reply_markup' => DefaultKeyboardBuilder::alertTriggerKeyboard($alertType, $locale),
+            ]);
+        }
     }
 
     private function handleAlertTargetPrice(User $user, string $input, int $chatId, string $locale): mixed
@@ -325,11 +394,18 @@ class TextInputHandler extends UpdateHandler
             ]);
         }
 
-        // Update draft with target price
+        // Update draft with price value
         $draft = $user->telegram_alert_draft ?? [];
         $draft['step'] = 'direction';
         $draft['parameters'] = $draft['parameters'] ?? [];
-        $draft['parameters']['target_price'] = $price;
+
+        // Use correct parameter name based on trigger type
+        $triggerType = $draft['trigger_type'] ?? 'target_price';
+        if ($triggerType === 'breakout') {
+            $draft['parameters']['level'] = $price;
+        } else {
+            $draft['parameters']['target_price'] = $price;
+        }
         $user->update(['telegram_alert_draft' => $draft]);
 
         // Show direction selector - escape underscores for Markdown

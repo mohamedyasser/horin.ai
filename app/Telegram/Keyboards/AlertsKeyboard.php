@@ -40,9 +40,9 @@ class AlertsKeyboard
         if ($locale === 'ar') {
             return [
                 'keyboard' => [
-                    [['text' => '💰 تنبيه السعر']],
-                    [['text' => '📈 تنبيه إشارة']],
-                    [['text' => '🔮 تنبيه توقع']],
+                    [['text' => '💰 تنبيه السعر'], ['text' => '📈 تنبيه إشارة']],
+                    [['text' => '🔮 تنبيه توقع'], ['text' => '⚠️ تنبيه شذوذ']],
+                    [['text' => '📊 تنبيه نمط'], ['text' => '💡 تنبيه توصية']],
                     [['text' => '◀️ رجوع']],
                 ],
                 'resize_keyboard' => true,
@@ -52,9 +52,9 @@ class AlertsKeyboard
 
         return [
             'keyboard' => [
-                [['text' => '💰 Price Alert']],
-                [['text' => '📈 Signal Alert']],
-                [['text' => '🔮 Prediction Alert']],
+                [['text' => '💰 Price Alert'], ['text' => '📈 Signal Alert']],
+                [['text' => '🔮 Prediction Alert'], ['text' => '⚠️ Anomaly Alert']],
+                [['text' => '📊 Pattern Alert'], ['text' => '💡 Recommendation']],
                 [['text' => '◀️ Back']],
             ],
             'resize_keyboard' => true,
@@ -67,7 +67,8 @@ class AlertsKeyboard
      */
     public static function alertTriggerKeyboard(string $alertType, string $locale): array
     {
-        if ($alertType === 'signal' || $alertType === 'prediction') {
+        // AI-based alerts skip to direction selection
+        if (in_array($alertType, ['signal', 'prediction', 'anomaly', 'pattern', 'recommendation'])) {
             return self::alertDirectionKeyboard($locale);
         }
 
@@ -89,6 +90,122 @@ class AlertsKeyboard
                 [['text' => '🎯 Target Price']],
                 [['text' => '📊 Daily Change']],
                 [['text' => '📈 Price Breakout']],
+                [['text' => '❌ Cancel']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Anomaly type selection keyboard.
+     */
+    public static function anomalyTypeKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '📊 حجم غير طبيعي'], ['text' => '💰 سعر غير طبيعي']],
+                    [['text' => '📈 تقلب غير طبيعي'], ['text' => '🔄 جميع الأنواع']],
+                    [['text' => '❌ إلغاء']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '📊 Volume Anomaly'], ['text' => '💰 Price Anomaly']],
+                [['text' => '📈 Volatility Anomaly'], ['text' => '🔄 All Types']],
+                [['text' => '❌ Cancel']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Pattern type selection keyboard.
+     */
+    public static function patternTypeKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '📈 رأس وكتفين'], ['text' => '📊 قمة/قاع مزدوج']],
+                    [['text' => '🔺 مثلث'], ['text' => '📉 علم/راية']],
+                    [['text' => '🔄 جميع الأنماط']],
+                    [['text' => '❌ إلغاء']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '📈 Head & Shoulders'], ['text' => '📊 Double Top/Bottom']],
+                [['text' => '🔺 Triangle'], ['text' => '📉 Flag/Pennant']],
+                [['text' => '🔄 All Patterns']],
+                [['text' => '❌ Cancel']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Recommendation type selection keyboard.
+     */
+    public static function recommendationTypeKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '🚀 شراء قوي'], ['text' => '📈 شراء']],
+                    [['text' => '📉 بيع'], ['text' => '🔻 بيع قوي']],
+                    [['text' => '🔄 أي تغيير']],
+                    [['text' => '❌ إلغاء']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '🚀 Strong Buy'], ['text' => '📈 Buy']],
+                [['text' => '📉 Sell'], ['text' => '🔻 Strong Sell']],
+                [['text' => '🔄 Any Change']],
+                [['text' => '❌ Cancel']],
+            ],
+            'resize_keyboard' => true,
+            'one_time_keyboard' => false,
+        ];
+    }
+
+    /**
+     * Confidence level selection keyboard.
+     */
+    public static function confidenceLevelKeyboard(string $locale): array
+    {
+        if ($locale === 'ar') {
+            return [
+                'keyboard' => [
+                    [['text' => '🎯 عالي (80%+)'], ['text' => '📊 متوسط (60%+)']],
+                    [['text' => '📉 منخفض (40%+)']],
+                    [['text' => '❌ إلغاء']],
+                ],
+                'resize_keyboard' => true,
+                'one_time_keyboard' => false,
+            ];
+        }
+
+        return [
+            'keyboard' => [
+                [['text' => '🎯 High (80%+)'], ['text' => '📊 Medium (60%+)']],
+                [['text' => '📉 Low (40%+)']],
                 [['text' => '❌ Cancel']],
             ],
             'resize_keyboard' => true,
