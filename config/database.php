@@ -199,7 +199,9 @@ return [
             'port' => env('REDIS_PUBSUB_PORT', env('REDIS_PORT', '6379')),
             'database' => env('REDIS_PUBSUB_DB', env('REDIS_DB', '0')),
             'read_timeout' => -1, // Infinite timeout for pub/sub
-            'prefix' => '', // No prefix for pub/sub channels
+            'options' => [
+                'prefix' => '', // No prefix for pub/sub channels (override global)
+            ],
         ],
 
     ],
