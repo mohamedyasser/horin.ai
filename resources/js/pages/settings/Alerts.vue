@@ -108,8 +108,8 @@ const submit = () => {
                             </div>
                             <Checkbox
                                 :id="`channel-${channel.value}`"
-                                :checked="form.default_channels.includes(channel.value)"
-                                @update:checked="toggleChannel(channel.value, $event)"
+                                :model-value="form.default_channels.includes(channel.value)"
+                                @update:model-value="toggleChannel(channel.value, $event)"
                             />
                         </div>
                         <InputError :message="form.errors.default_channels" />
@@ -219,8 +219,8 @@ const submit = () => {
                             <Label for="digest_enabled">{{ t('alerts.preferences.digest.enabled') }}</Label>
                             <Checkbox
                                 id="digest_enabled"
-                                :checked="form.digest_enabled"
-                                @update:checked="form.digest_enabled = $event"
+                                :model-value="form.digest_enabled"
+                                @update:model-value="form.digest_enabled = $event"
                             />
                         </div>
                         <div v-if="form.digest_enabled" class="space-y-2">
@@ -248,8 +248,8 @@ const submit = () => {
                             <Label for="smart_defaults_enabled">{{ t('alerts.preferences.smart_defaults.enabled') }}</Label>
                             <Checkbox
                                 id="smart_defaults_enabled"
-                                :checked="form.smart_defaults_enabled"
-                                @update:checked="form.smart_defaults_enabled = $event"
+                                :model-value="form.smart_defaults_enabled"
+                                @update:model-value="form.smart_defaults_enabled = $event"
                             />
                         </div>
                     </CardContent>
