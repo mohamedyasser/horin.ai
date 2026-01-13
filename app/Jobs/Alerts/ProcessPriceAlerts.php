@@ -3,6 +3,7 @@
 namespace App\Jobs\Alerts;
 
 use App\Models\Alert;
+use App\Models\Asset;
 use App\Models\LatestAssetPrice;
 use App\Services\AlertCacheService;
 use App\Services\AlertMatcher;
@@ -44,10 +45,12 @@ class ProcessPriceAlerts implements ShouldQueue
             return;
         }
 
-        // Batch fetch latest prices
-        $prices = LatestAssetPrice::whereIn('asset_id', $assetIds)
+        // Batch fetch latest prices via Asset relationship (view uses pid, not asset_id)
+        $prices = Asset::whereIn('id', $assetIds)
+            ->with('cachedPrice')
             ->get()
-            ->keyBy('asset_id');
+            ->filter(fn ($asset) => $asset->cachedPrice !== null)
+            ->mapWithKeys(fn ($asset) => [$asset->id => $asset->cachedPrice]);
 
         $triggeredCount = 0;
 
