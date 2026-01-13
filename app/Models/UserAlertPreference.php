@@ -16,20 +16,6 @@ class UserAlertPreference extends Model
 
     protected $keyType = 'string';
 
-    protected static function booted(): void
-    {
-        static::creating(function (UserAlertPreference $preference) {
-            // PostgreSQL requires explicit boolean casting
-            // Convert to string 'true'/'false' which PostgreSQL accepts
-            if (isset($preference->attributes['digest_enabled'])) {
-                $preference->attributes['digest_enabled'] = $preference->attributes['digest_enabled'] ? 'true' : 'false';
-            }
-            if (isset($preference->attributes['smart_defaults_enabled'])) {
-                $preference->attributes['smart_defaults_enabled'] = $preference->attributes['smart_defaults_enabled'] ? 'true' : 'false';
-            }
-        });
-    }
-
     protected $fillable = [
         'user_id',
         'default_channels',
