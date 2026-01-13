@@ -59,7 +59,7 @@ class AlertCacheService
         $cached = Cache::get("active_alerts:asset:{$assetId}");
 
         if ($cached) {
-            return collect($cached)->map(fn ($data) => new Alert($data));
+            return collect($cached)->map(fn ($data) => $this->hydrateAlert($data));
         }
 
         $alerts = Alert::active()
@@ -81,7 +81,7 @@ class AlertCacheService
         $cached = Cache::get("active_alerts:type:{$type}");
 
         if ($cached) {
-            return collect($cached)->map(fn ($data) => new Alert($data));
+            return collect($cached)->map(fn ($data) => $this->hydrateAlert($data));
         }
 
         $alerts = Alert::active()
@@ -181,5 +181,19 @@ class AlertCacheService
             'assets_with_alerts' => count($assetIds),
             'cache_ttl_seconds' => self::CACHE_TTL,
         ];
+    }
+
+    /**
+     * Hydrate an Alert model from cached array data.
+     *
+     * Uses forceFill to bypass mass assignment protection (needed for 'id')
+     * and sets exists=true so Laravel treats it as a persisted record.
+     */
+    private function hydrateAlert(array $data): Alert
+    {
+        $alert = (new Alert)->forceFill($data);
+        $alert->exists = true;
+
+        return $alert;
     }
 }
