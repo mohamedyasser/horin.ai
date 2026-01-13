@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Telegram\Commands\LanguageCommand;
 use App\Telegram\Commands\SettingsCommand;
 use App\Telegram\Keyboards\AlertsKeyboard;
+use App\Telegram\Keyboards\MarketsKeyboard;
 use App\Telegram\Keyboards\SettingsKeyboard;
 use App\Telegram\Keyboards\TradingKeyboard;
 
@@ -53,7 +54,7 @@ class SettingsButtonHandler extends AbstractButtonHandler
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => SettingsKeyboard::menu($locale),
+            'reply_markup' => SettingsKeyboard::profileKeyboard($locale),
         ]);
     }
 
@@ -117,7 +118,7 @@ class SettingsButtonHandler extends AbstractButtonHandler
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => SettingsKeyboard::menu($locale),
+            'reply_markup' => MarketsKeyboard::menu($locale),
         ]);
     }
 
@@ -134,7 +135,7 @@ class SettingsButtonHandler extends AbstractButtonHandler
             'chat_id' => $chatId,
             'text' => $text,
             'parse_mode' => 'Markdown',
-            'reply_markup' => SettingsKeyboard::menu($locale),
+            'reply_markup' => SettingsKeyboard::alertPreferencesKeyboard($locale),
         ]);
     }
 
