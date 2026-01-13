@@ -18,6 +18,11 @@ class AlertPreferencesController extends Controller
     {
         $preferences = UserAlertPreference::where('user_id', $request->user()->id)->first();
 
+        \Log::info('Alert preferences edit - loaded from DB', [
+            'user_id' => $request->user()->id,
+            'preferences' => $preferences?->toArray(),
+        ]);
+
         if (! $preferences) {
             $preferences = new UserAlertPreference;
             $preferences->user_id = $request->user()->id;
