@@ -54,5 +54,79 @@ class StoreAlertRequest extends FormRequest
         if ($this->scope === 'single_asset' && ! $this->asset_id) {
             $this->merge(['asset_id' => null]);
         }
+
+        // Ensure parameters has default values based on alert type
+        $this->ensureDefaultParameters();
+    }
+
+    /**
+     * Ensure default parameters are set for each alert type.
+     */
+    private function ensureDefaultParameters(): void
+    {
+        $type = $this->type;
+        $triggerType = $this->trigger_type;
+        $parameters = $this->parameters ?? [];
+
+        // Set default parameters based on alert type
+        $defaults = match ($type) {
+            'prediction' => [
+                'prediction_type' => $parameters['prediction_type'] ?? 'any',
+                'min_confidence' => $parameters['min_confidence'] ?? 70,
+                'horizon' => $parameters['horizon'] ?? 'short',
+            ],
+            'signal' => [
+                'signal_types' => $parameters['signal_types'] ?? ['buy', 'sell'],
+                'min_strength' => $parameters['min_strength'] ?? 60,
+                'indicators' => $parameters['indicators'] ?? [],
+            ],
+            'anomaly' => [
+                'anomaly_types' => $parameters['anomaly_types'] ?? ['volume', 'price', 'volatility'],
+                'severity' => $parameters['severity'] ?? 'medium',
+            ],
+            'pattern' => [
+                'patterns' => $parameters['patterns'] ?? [],
+                'pattern_status' => $parameters['pattern_status'] ?? 'confirmed',
+                'min_confidence' => $parameters['min_confidence'] ?? 70,
+            ],
+            'recommendation' => [
+                'recommendations' => $parameters['recommendations'] ?? ['buy', 'sell', 'hold'],
+                'trigger_on' => $parameters['trigger_on'] ?? 'any',
+            ],
+            'price' => match ($triggerType) {
+                'target_price' => [
+                    'target_price' => $parameters['target_price'] ?? 0,
+                ],
+                'zone' => [
+                    'zone_low' => $parameters['zone_low'] ?? 0,
+                    'zone_high' => $parameters['zone_high'] ?? 0,
+                ],
+                'daily_change' => [
+                    'threshold_percent' => $parameters['threshold_percent'] ?? 5,
+                ],
+                'breakout' => [
+                    'level' => $parameters['level'] ?? 0,
+                    'tolerance_percent' => $parameters['tolerance_percent'] ?? 0.5,
+                ],
+                'gap' => [
+                    'gap_threshold' => $parameters['gap_threshold'] ?? 2,
+                    'from_reference' => $parameters['from_reference'] ?? 'previous_close',
+                ],
+                '52week' => [
+                    '52week_type' => $parameters['52week_type'] ?? 'both',
+                ],
+                'entry_return' => [
+                    'entry_price' => $parameters['entry_price'] ?? 0,
+                    'threshold_percent' => $parameters['threshold_percent'] ?? 5,
+                ],
+                default => $parameters,
+            },
+            default => $parameters,
+        };
+
+        // Merge defaults with provided parameters, keeping user values
+        $this->merge([
+            'parameters' => array_merge($defaults, $parameters),
+        ]);
     }
 }

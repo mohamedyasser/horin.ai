@@ -99,6 +99,11 @@ class AlertController extends Controller
         $data = $request->validated();
         $data['user_id'] = $request->user()->id;
 
+        // Ensure parameters is never null (fallback safety)
+        if (! isset($data['parameters']) || $data['parameters'] === null) {
+            $data['parameters'] = [];
+        }
+
         if (! isset($data['priority'])) {
             $data['priority'] = $this->inferPriority($data);
         }
