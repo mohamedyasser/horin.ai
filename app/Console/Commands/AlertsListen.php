@@ -113,7 +113,8 @@ class AlertsListen extends Command
     private function showDebugInfo(): void
     {
         $config = config('database.redis.pubsub');
-        $options = config('database.redis.options');
+        $globalOptions = config('database.redis.options');
+        $connectionPrefix = $config['options']['prefix'] ?? $globalOptions['prefix'] ?? 'not set';
 
         $this->info('=== Redis Connection Debug ===');
         $this->table(
@@ -123,7 +124,8 @@ class AlertsListen extends Command
                 ['Port', $config['port'] ?? 'not set'],
                 ['Database', $config['database'] ?? 'not set'],
                 ['Password', $config['password'] ? 'SET (hidden)' : 'NOT SET'],
-                ['Prefix (from options)', $options['prefix'] ?? 'not set'],
+                ['Global Prefix', $globalOptions['prefix'] ?? 'not set'],
+                ['Connection Prefix', $connectionPrefix === '' ? '(none)' : $connectionPrefix],
                 ['Read Timeout', $config['read_timeout'] ?? 'not set'],
             ]
         );
