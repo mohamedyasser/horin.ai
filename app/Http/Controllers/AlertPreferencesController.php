@@ -42,10 +42,23 @@ class AlertPreferencesController extends Controller
      */
     public function update(UpdateAlertPreferencesRequest $request): RedirectResponse
     {
-        UserAlertPreference::updateOrCreate(
+        $validated = $request->validated();
+
+        \Log::info('Alert preferences update', [
+            'user_id' => $request->user()->id,
+            'validated' => $validated,
+        ]);
+
+        $preference = UserAlertPreference::updateOrCreate(
             ['user_id' => $request->user()->id],
-            $request->validated()
+            $validated
         );
+
+        \Log::info('Alert preferences saved', [
+            'wasRecentlyCreated' => $preference->wasRecentlyCreated,
+            'wasChanged' => $preference->wasChanged(),
+            'preference' => $preference->toArray(),
+        ]);
 
         return back()->with('success', __('settings.alerts_updated'));
     }

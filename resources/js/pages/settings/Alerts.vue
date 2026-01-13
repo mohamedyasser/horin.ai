@@ -29,15 +29,15 @@ const breadcrumbs: BreadcrumbItemType[] = [
 ];
 
 const form = useForm({
-    default_channels: props.preferences.default_channels || ['in_app'],
-    quiet_hours_start: props.preferences.quiet_hours_start || '',
-    quiet_hours_end: props.preferences.quiet_hours_end || '',
-    timezone: props.preferences.timezone || 'Africa/Cairo',
-    max_alerts_per_hour: props.preferences.max_alerts_per_hour || 10,
-    max_alerts_per_day: props.preferences.max_alerts_per_day || 50,
-    digest_enabled: props.preferences.digest_enabled || false,
-    digest_time: props.preferences.digest_time || '18:00',
-    smart_defaults_enabled: props.preferences.smart_defaults_enabled || true,
+    default_channels: props.preferences.default_channels ?? ['in_app'],
+    quiet_hours_start: props.preferences.quiet_hours_start ?? '',
+    quiet_hours_end: props.preferences.quiet_hours_end ?? '',
+    timezone: props.preferences.timezone ?? 'Africa/Cairo',
+    max_alerts_per_hour: props.preferences.max_alerts_per_hour ?? 10,
+    max_alerts_per_day: props.preferences.max_alerts_per_day ?? 50,
+    digest_enabled: props.preferences.digest_enabled ?? false,
+    digest_time: props.preferences.digest_time ?? '18:00',
+    smart_defaults_enabled: props.preferences.smart_defaults_enabled ?? true,
 });
 
 const channelOptions = [
