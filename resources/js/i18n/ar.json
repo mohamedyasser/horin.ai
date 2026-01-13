@@ -1263,6 +1263,7 @@
             "medium": "متوسط",
             "low": "منخفض"
         },
+        "trigger_preview": "معاينة التنبيه",
         "validation": {
             "asset_required": "يرجى اختيار أصل للتنبيه"
         },

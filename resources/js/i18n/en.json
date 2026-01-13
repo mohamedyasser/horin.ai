@@ -1263,6 +1263,7 @@
             "medium": "Medium",
             "low": "Low"
         },
+        "trigger_preview": "Trigger Preview",
         "validation": {
             "asset_required": "Please select an asset for this alert"
         },

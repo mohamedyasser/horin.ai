@@ -13,6 +13,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    Stepper,
+    StepperDescription,
+    StepperIndicator,
+    StepperItem,
+    StepperSeparator,
+    StepperTitle,
+    StepperTrigger,
+} from '@/components/ui/stepper';
 import AssetSelector from '@/components/AssetSelector.vue';
 import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
 import CompoundAlertBuilder from '@/components/alerts/CompoundAlertBuilder.vue';
@@ -26,6 +35,14 @@ import {
     Shapes,
     ArrowLeft,
     Save,
+    ChevronRight,
+    ChevronLeft,
+    Check,
+    Zap,
+    Target,
+    Settings2,
+    Bell,
+    SlidersHorizontal,
 } from 'lucide-vue-next';
 
 const { t, locale } = useI18n();
@@ -61,6 +78,18 @@ interface Props {
 const props = defineProps<Props>();
 
 const { alertTypeLabels, triggerTypeLabels, getDefaultParameters } = useAlerts();
+
+// Stepper state
+const currentStep = ref(1);
+
+// Steps definition
+const steps = [
+    { step: 1, title: 'alerts.steps.type', description: 'alerts.steps.type_description', icon: Zap },
+    { step: 2, title: 'alerts.steps.trigger', description: 'alerts.steps.trigger_description', icon: Target },
+    { step: 3, title: 'alerts.steps.parameters', description: 'alerts.steps.parameters_description', icon: Settings2 },
+    { step: 4, title: 'alerts.steps.delivery', description: 'alerts.steps.delivery_description', icon: Bell },
+    { step: 5, title: 'alerts.steps.options', description: 'alerts.steps.options_description', icon: SlidersHorizontal },
+];
 
 // Form state using Inertia useForm for validation handling
 const form = useForm({
@@ -141,6 +170,30 @@ const getTypeIcon = (type: AlertType) => {
     }
 };
 
+// Step validation
+const canProceed = computed(() => {
+    switch (currentStep.value) {
+        case 1: return !!form.type;
+        case 2: return !!form.trigger_type;
+        case 3: return !!form.asset_id || form.scope !== 'single_asset';
+        case 4: return form.delivery_config.channels && form.delivery_config.channels.length > 0;
+        case 5: return true;
+        default: return true;
+    }
+});
+
+const nextStep = () => {
+    if (currentStep.value < steps.length && canProceed.value) {
+        currentStep.value++;
+    }
+};
+
+const prevStep = () => {
+    if (currentStep.value > 1) {
+        currentStep.value--;
+    }
+};
+
 const handleSubmit = () => {
     form.post('/alerts');
 };
@@ -171,13 +224,73 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                 </div>
             </div>
 
-            <div class="grid gap-6 lg:grid-cols-3">
-                <!-- Main Form -->
-                <div class="space-y-6 lg:col-span-2">
-                    <!-- Step 1: Select Alert Type -->
-                    <Card>
+            <div class="grid gap-6 lg:grid-cols-4">
+                <!-- Stepper Sidebar -->
+                <div class="lg:col-span-1">
+                    <Card class="sticky top-6">
+                        <CardContent class="p-4">
+                            <Stepper
+                                v-model="currentStep"
+                                orientation="vertical"
+                                class="w-full flex-col"
+                            >
+                                <StepperItem
+                                    v-for="step in steps"
+                                    :key="step.step"
+                                    v-slot="{ state }"
+                                    :step="step.step"
+                                    class="relative flex w-full items-start gap-4"
+                                >
+                                    <StepperTrigger as-child>
+                                        <Button
+                                            :variant="state === 'active' ? 'default' : state === 'completed' ? 'outline' : 'ghost'"
+                                            size="icon"
+                                            class="z-10 shrink-0 rounded-full"
+                                            :class="{
+                                                'bg-primary text-primary-foreground': state === 'active',
+                                                'border-primary text-primary': state === 'completed',
+                                            }"
+                                        >
+                                            <Check v-if="state === 'completed'" class="size-4" />
+                                            <StepperIndicator v-else>
+                                                <component :is="step.icon" class="size-4" />
+                                            </StepperIndicator>
+                                        </Button>
+                                    </StepperTrigger>
+
+                                    <div class="flex flex-col gap-1 py-2">
+                                        <StepperTitle
+                                            :class="{
+                                                'font-semibold text-foreground': state === 'active',
+                                                'text-muted-foreground': state !== 'active',
+                                            }"
+                                        >
+                                            {{ t(step.title) }}
+                                        </StepperTitle>
+                                        <StepperDescription class="text-xs text-muted-foreground sr-only md:not-sr-only">
+                                            {{ t(step.description) }}
+                                        </StepperDescription>
+                                    </div>
+
+                                    <StepperSeparator
+                                        v-if="step.step < steps.length"
+                                        class="absolute start-[18px] top-[40px] block h-[calc(100%-16px)] w-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary"
+                                    />
+                                </StepperItem>
+                            </Stepper>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <!-- Main Form Content -->
+                <div class="space-y-6 lg:col-span-3">
+                    <!-- Step 1: Alert Type -->
+                    <Card v-show="currentStep === 1">
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.type') }}</CardTitle>
+                            <CardTitle class="flex items-center gap-2">
+                                <Zap class="size-5" />
+                                {{ t('alerts.steps.type') }}
+                            </CardTitle>
                             <CardDescription>{{ t('alerts.steps.type_description') }}</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -186,11 +299,22 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     v-for="type in alertTypesList"
                                     :key="type"
                                     type="button"
-                                    class="flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-colors hover:border-primary/50"
-                                    :class="{ 'border-primary bg-primary/5': form.type === type, 'border-border': form.type !== type }"
+                                    class="flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all hover:border-primary/50 hover:bg-accent/50"
+                                    :class="{
+                                        'border-primary bg-primary/5 shadow-sm': form.type === type,
+                                        'border-border': form.type !== type,
+                                    }"
                                     @click="handleTypeChange(type)"
                                 >
-                                    <component :is="getTypeIcon(type)" class="size-6" />
+                                    <div
+                                        class="flex size-12 items-center justify-center rounded-full"
+                                        :class="{
+                                            'bg-primary/10 text-primary': form.type === type,
+                                            'bg-muted text-muted-foreground': form.type !== type,
+                                        }"
+                                    >
+                                        <component :is="getTypeIcon(type)" class="size-6" />
+                                    </div>
                                     <span class="text-sm font-medium">
                                         {{ locale === 'ar' ? alertTypeLabels[type].ar : alertTypeLabels[type].en }}
                                     </span>
@@ -199,17 +323,20 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                         </CardContent>
                     </Card>
 
-                    <!-- Step 2: Select Trigger -->
-                    <Card>
+                    <!-- Step 2: Trigger Condition -->
+                    <Card v-show="currentStep === 2">
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.trigger') }}</CardTitle>
+                            <CardTitle class="flex items-center gap-2">
+                                <Target class="size-5" />
+                                {{ t('alerts.steps.trigger') }}
+                            </CardTitle>
                             <CardDescription>{{ t('alerts.steps.trigger_description') }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="grid gap-2">
                                 <Label>{{ t('alerts.fields.trigger_type') }}</Label>
                                 <Select v-model="form.trigger_type">
-                                    <SelectTrigger>
+                                    <SelectTrigger class="w-full">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -224,13 +351,24 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 </Select>
                                 <p v-if="form.errors.trigger_type" class="text-sm text-destructive">{{ form.errors.trigger_type }}</p>
                             </div>
+
+                            <!-- Trigger-specific quick preview -->
+                            <div class="rounded-lg border bg-muted/30 p-4">
+                                <h4 class="mb-2 text-sm font-medium">{{ t('alerts.trigger_preview') }}</h4>
+                                <p class="text-sm text-muted-foreground">
+                                    {{ locale === 'ar' ? triggerTypeLabels[form.trigger_type]?.ar : triggerTypeLabels[form.trigger_type]?.en }}
+                                </p>
+                            </div>
                         </CardContent>
                     </Card>
 
-                    <!-- Step 3: Configure Parameters -->
-                    <Card>
+                    <!-- Step 3: Alert Settings -->
+                    <Card v-show="currentStep === 3">
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.parameters') }}</CardTitle>
+                            <CardTitle class="flex items-center gap-2">
+                                <Settings2 class="size-5" />
+                                {{ t('alerts.steps.parameters') }}
+                            </CardTitle>
                             <CardDescription>{{ t('alerts.steps.parameters_description') }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
@@ -441,10 +579,34 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                         </CardContent>
                     </Card>
 
-                    <!-- Step 4: Advanced Options -->
-                    <Card>
+                    <!-- Step 4: Delivery Settings -->
+                    <Card v-show="currentStep === 4">
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.options') }}</CardTitle>
+                            <CardTitle class="flex items-center gap-2">
+                                <Bell class="size-5" />
+                                {{ t('alerts.steps.delivery') }}
+                            </CardTitle>
+                            <CardDescription>{{ t('alerts.steps.delivery_description') }}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DeliveryConfig
+                                :delivery-config="form.delivery_config"
+                                :escalation-config="form.escalation_config"
+                                :priority="form.priority"
+                                @update:delivery-config="form.delivery_config = $event"
+                                @update:escalation-config="form.escalation_config = $event"
+                                @update:priority="form.priority = $event"
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <!-- Step 5: Advanced Options -->
+                    <Card v-show="currentStep === 5">
+                        <CardHeader>
+                            <CardTitle class="flex items-center gap-2">
+                                <SlidersHorizontal class="size-5" />
+                                {{ t('alerts.steps.options') }}
+                            </CardTitle>
                             <CardDescription>{{ t('alerts.steps.options_description') }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
@@ -488,65 +650,37 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                 </div>
                                 <Switch v-model:checked="form.market_hours_only" />
                             </div>
-                        </CardContent>
-                    </Card>
 
-                    <!-- Step 5: Delivery Configuration -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.delivery') }}</CardTitle>
-                            <CardDescription>{{ t('alerts.steps.delivery_description') }}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <DeliveryConfig
-                                :delivery-config="form.delivery_config"
-                                :escalation-config="form.escalation_config"
-                                :priority="form.priority"
-                                @update:delivery-config="form.delivery_config = $event"
-                                @update:escalation-config="form.escalation_config = $event"
-                                @update:priority="form.priority = $event"
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <!-- Sidebar Summary -->
-                <div class="space-y-6">
-                    <Card class="sticky top-6">
-                        <CardHeader>
-                            <CardTitle>{{ t('alerts.summary') }}</CardTitle>
-                        </CardHeader>
-                        <CardContent class="space-y-4">
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ t('alerts.fields.type') }}</span>
-                                    <span class="font-medium">
-                                        {{ locale === 'ar' ? alertTypeLabels[form.type].ar : alertTypeLabels[form.type].en }}
-                                    </span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ t('alerts.fields.trigger') }}</span>
-                                    <span class="font-medium">
-                                        {{ locale === 'ar' ? triggerTypeLabels[form.trigger_type]?.ar : triggerTypeLabels[form.trigger_type]?.en }}
-                                    </span>
-                                </div>
-                                <div v-if="selectedAssetInfo" class="flex justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ t('alerts.fields.asset') }}</span>
-                                    <span class="font-medium">{{ selectedAssetInfo.symbol }}</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ t('alerts.fields.priority') }}</span>
-                                    <span class="font-medium">{{ t(`alerts.priority.${form.priority}`) }}</span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-muted-foreground">{{ t('alerts.fields.channels') }}</span>
-                                    <span class="font-medium">{{ form.delivery_config.channels?.length || 0 }}</span>
+                            <!-- Summary before submit -->
+                            <div class="rounded-lg border bg-muted/30 p-4">
+                                <h4 class="mb-3 font-medium">{{ t('alerts.summary') }}</h4>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-muted-foreground">{{ t('alerts.fields.type') }}</span>
+                                        <span class="font-medium">
+                                            {{ locale === 'ar' ? alertTypeLabels[form.type].ar : alertTypeLabels[form.type].en }}
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-muted-foreground">{{ t('alerts.fields.trigger') }}</span>
+                                        <span class="font-medium">
+                                            {{ locale === 'ar' ? triggerTypeLabels[form.trigger_type]?.ar : triggerTypeLabels[form.trigger_type]?.en }}
+                                        </span>
+                                    </div>
+                                    <div v-if="selectedAssetInfo" class="flex justify-between text-sm">
+                                        <span class="text-muted-foreground">{{ t('alerts.fields.asset') }}</span>
+                                        <span class="font-medium">{{ selectedAssetInfo.symbol }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-muted-foreground">{{ t('alerts.fields.priority') }}</span>
+                                        <span class="font-medium">{{ t(`alerts.priority.${form.priority}`) }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-muted-foreground">{{ t('alerts.fields.channels') }}</span>
+                                        <span class="font-medium">{{ form.delivery_config.channels?.length || 0 }}</span>
+                                    </div>
                                 </div>
                             </div>
-
-                            <Alert v-if="!form.asset_id && form.scope === 'single_asset'" variant="destructive">
-                                <AlertDescription>{{ t('alerts.validation.asset_required') }}</AlertDescription>
-                            </Alert>
 
                             <!-- Server Validation Errors -->
                             <Alert v-if="form.hasErrors" variant="destructive">
@@ -556,17 +690,43 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     </ul>
                                 </AlertDescription>
                             </Alert>
-
-                            <Button
-                                class="w-full"
-                                :disabled="(!form.asset_id && form.scope === 'single_asset') || form.processing"
-                                @click="handleSubmit"
-                            >
-                                <Save class="me-2 size-4" />
-                                {{ form.processing ? t('common.saving') : t('alerts.create_alert') }}
-                            </Button>
                         </CardContent>
                     </Card>
+
+                    <!-- Navigation Buttons -->
+                    <div class="flex items-center justify-between">
+                        <Button
+                            variant="outline"
+                            :disabled="currentStep === 1"
+                            @click="prevStep"
+                        >
+                            <ChevronLeft class="me-2 size-4 rtl:rotate-180" />
+                            {{ t('common.previous') }}
+                        </Button>
+
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-muted-foreground">
+                                {{ currentStep }} / {{ steps.length }}
+                            </span>
+                        </div>
+
+                        <Button
+                            v-if="currentStep < steps.length"
+                            :disabled="!canProceed"
+                            @click="nextStep"
+                        >
+                            {{ t('common.next') }}
+                            <ChevronRight class="ms-2 size-4 rtl:rotate-180" />
+                        </Button>
+                        <Button
+                            v-else
+                            :disabled="(!form.asset_id && form.scope === 'single_asset') || form.processing"
+                            @click="handleSubmit"
+                        >
+                            <Save class="me-2 size-4" />
+                            {{ form.processing ? t('common.saving') : t('alerts.create_alert') }}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
