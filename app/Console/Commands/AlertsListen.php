@@ -247,12 +247,6 @@ class AlertsListen extends Command
             $latencyMs = (microtime(true) - $startTime) * 1000;
             $this->recordMetric('alerts.listener.dispatch_ms', $latencyMs, ['channel' => $channel]);
 
-            Log::debug('Alert processing job dispatched', [
-                'channel' => $channel,
-                'pid' => $pid,
-                'latency_ms' => round($latencyMs, 2),
-            ]);
-
         } catch (\Throwable $e) {
             Log::error('Error processing message', [
                 'channel' => $channel,
