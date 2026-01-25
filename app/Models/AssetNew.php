@@ -10,35 +10,43 @@ class AssetNew extends Model
         'title',
         'content',
         'description',
-        'link',
         'resource_id',
-        'language',
         'image_url',
-        'small_image_url',
         'score',
         'sentiment',
         'reason',
-        'negative_aspects',
-        'positive_aspects',
+        'risks',
+        'opportunities',
         'asset_id',
         'market_id',
         'country_id',
-        'images',
         'category',
         'date',
         'sector_id',
         'is_rewritten',
         'source',
-        'actions',
+        'action',
         'slug',
         'meta_tags',
+        'affected_sectors',
         'meta_description',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'risks' => 'array',
+            'opportunities' => 'array',
+            'meta_tags' => 'array',
+            'affected_sectors' => 'array',
+            'is_rewritten' => 'boolean',
+            'date' => 'datetime',
+        ];
+    }
 
     protected $hidden = [
         'source',
         'resource_id',
-        'link',
     ];
 
     /**

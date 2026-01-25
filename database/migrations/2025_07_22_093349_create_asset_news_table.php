@@ -21,8 +21,8 @@ return new class extends Migration
             $table->smallInteger('score')->nullable();
             $table->text('sentiment')->nullable();
             $table->text('reason')->nullable();
-            $table->jsonb('negative_aspects')->nullable();
-            $table->jsonb('positive_aspects')->nullable();
+            $table->jsonb('risks')->nullable();
+            $table->jsonb('opportunities')->nullable();
             $table->uuid('asset_id')->nullable();
             $table->uuid('market_id')->nullable();
             $table->uuid('country_id')->nullable();
@@ -31,9 +31,10 @@ return new class extends Migration
             $table->uuid('sector_id')->nullable();
             $table->boolean('is_rewritten')->default(false);
             $table->string('source');
-            $table->jsonb('actions')->nullable();
+            $table->string('action')->nullable();
             $table->string('slug')->nullable();
             $table->jsonb('meta_tags')->nullable();
+            $table->jsonb('affected_sectors')->nullable();
             $table->text('meta_description')->nullable();
 
             $table->timestamps();
