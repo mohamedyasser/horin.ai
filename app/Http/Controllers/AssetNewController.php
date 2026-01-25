@@ -44,7 +44,7 @@ class AssetNewController extends Controller
         return Inertia::render('news/Index', [
             'featured' => $featured ? new AssetNewResource($featured) : null,
             'news' => [
-                'data' => AssetNewCollectionResource::collection($news),
+                'data' => AssetNewCollectionResource::collection($news)->resolve(),
                 'meta' => PaginationHelper::meta($news),
             ],
             'filters' => $filters,
@@ -98,8 +98,8 @@ class AssetNewController extends Controller
 
         return Inertia::render('news/Show', [
             'news' => new AssetNewResource($assetNew),
-            'relatedNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($relatedNews)),
-            'similarNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($similarNews)),
+            'relatedNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($relatedNews)->resolve()),
+            'similarNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($similarNews)->resolve()),
         ]);
     }
 
