@@ -74,6 +74,14 @@ class Market extends Model
         return $this->hasMany(Asset::class);
     }
 
+    /**
+     * Get the news articles for the market.
+     */
+    public function assetNews(): HasMany
+    {
+        return $this->hasMany(AssetNew::class);
+    }
+
     public function getNameAttribute()
     {
         return app()->getLocale() === 'ar'

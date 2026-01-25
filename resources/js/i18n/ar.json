@@ -1490,5 +1490,65 @@
         },
         "view_alert": "عرض التنبيه",
         "acknowledge": "إقرار"
+    },
+    "news": {
+        "title": "أخبار السوق",
+        "subtitle": "أخبار وتحليلات بالذكاء الاصطناعي لأسواق الشرق الأوسط",
+        "metaDescription": "ابقَ على اطلاع بأخبار السوق المحللة بالذكاء الاصطناعي وتحليل المشاعر وتوصيات التداول لأسهم الشرق الأوسط.",
+        "searchPlaceholder": "ابحث في الأخبار بالعنوان أو الكلمة المفتاحية",
+        "latestNews": "آخر الأخبار",
+        "filterNews": "تصفية الأخبار",
+        "sentiment": {
+            "label": "المشاعر",
+            "positive": "إيجابي",
+            "negative": "سلبي",
+            "neutral": "محايد"
+        },
+        "action": {
+            "label": "الإجراء",
+            "buy": "شراء",
+            "sell": "بيع",
+            "watch": "مراقبة"
+        },
+        "allSentiments": "جميع المشاعر",
+        "allActions": "جميع الإجراءات",
+        "allCategories": "جميع الفئات",
+        "category": "الفئة",
+        "readMore": "اقرأ المزيد",
+        "noResults": "لم يتم العثور على أخبار",
+        "noResultsDescription": "جرب تعديل الفلاتر أو مصطلحات البحث للعثور على المزيد من الأخبار.",
+        "clearFilters": "مسح الفلاتر",
+        "featured": "مميز",
+        "score": "التقييم",
+        "risks": "المخاطر",
+        "opportunities": "الفرص",
+        "affectedSectors": "القطاعات المتأثرة",
+        "relatedAsset": "الأصل ذو الصلة",
+        "publishedAt": "تاريخ النشر",
+        "bookmark": {
+            "add": "حفظ",
+            "remove": "إزالة من المحفوظات",
+            "added": "تم حفظ الخبر",
+            "removed": "تم إزالة الخبر من المحفوظات"
+        },
+        "rating": {
+            "helpful": "مفيد",
+            "notHelpful": "غير مفيد",
+            "thanks": "شكراً على ملاحظاتك"
+        },
+        "comments": {
+            "title": "التعليقات",
+            "placeholder": "اكتب تعليقاً...",
+            "submit": "نشر التعليق",
+            "empty": "لا توجد تعليقات بعد",
+            "emptyDescription": "كن أول من يشارك رأيه حول هذا الخبر.",
+            "loginRequired": "سجل الدخول للتعليق",
+            "deleted": "تم حذف التعليق"
+        },
+        "share": {
+            "title": "مشاركة",
+            "copy": "نسخ الرابط",
+            "copied": "تم نسخ الرابط"
+        }
     }
 }

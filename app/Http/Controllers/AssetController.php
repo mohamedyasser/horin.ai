@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AssetNewCollectionResource;
 use App\Models\Asset;
+use App\Models\AssetNew;
 use App\Models\AssetPrice;
 use App\Models\InstantIndicator;
 use App\Models\LatestAnomaly;
@@ -67,6 +69,7 @@ class AssetController extends Controller
             'activeSignals' => Inertia::defer(fn () => $this->getActiveSignals($asset)),
             'detectedPatterns' => Inertia::defer(fn () => $this->getDetectedPatterns($asset)),
             'anomalies' => Inertia::defer(fn () => $this->getAnomalies($asset)),
+            'relatedNews' => Inertia::defer(fn () => $this->getRelatedNews($asset)),
         ]);
     }
 
@@ -399,5 +402,19 @@ class AssetController extends Controller
                 'extra' => $anomaly->extra,
             ])
             ->toArray();
+    }
+
+    private function getRelatedNews(Asset $asset): array
+    {
+        $news = AssetNew::query()
+            ->where('asset_id', $asset->id)
+            ->where('is_rewritten', true)
+            ->whereNotNull('image_url')
+            ->orderByDesc('created_at')
+            ->limit(4)
+            ->with(['market'])
+            ->get();
+
+        return AssetNewCollectionResource::collection($news)->resolve();
     }
 }

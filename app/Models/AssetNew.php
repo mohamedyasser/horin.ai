@@ -2,10 +2,30 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AssetNew extends Model
 {
+    use HasFactory, HasUuids;
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the auto-incrementing ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+
     protected $fillable = [
         'title',
         'content',
@@ -52,7 +72,7 @@ class AssetNew extends Model
     /**
      * Get the asset that the post is related to.
      */
-    public function asset()
+    public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
     }
@@ -60,7 +80,7 @@ class AssetNew extends Model
     /**
      * Get the sector that the post is related to.
      */
-    public function sector()
+    public function sector(): BelongsTo
     {
         return $this->belongsTo(Sector::class);
     }
@@ -68,7 +88,7 @@ class AssetNew extends Model
     /**
      * Get the market that the post is related to.
      */
-    public function market()
+    public function market(): BelongsTo
     {
         return $this->belongsTo(Market::class);
     }
@@ -76,15 +96,39 @@ class AssetNew extends Model
     /**
      * Get the country that the post is related to.
      */
-    public function country()
+    public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
     }
 
     /**
+     * Get the bookmarks for this news article.
+     */
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(NewsBookmark::class);
+    }
+
+    /**
+     * Get the ratings for this news article.
+     */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(NewsRating::class);
+    }
+
+    /**
+     * Get the comments for this news article.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(NewsComment::class);
+    }
+
+    /**
      * Get the impact level based on the score.
      */
-    public function getImpactLevelAttribute()
+    public function getImpactLevelAttribute(): ?string
     {
         if (! $this->score) {
             return null;

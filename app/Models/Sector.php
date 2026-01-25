@@ -45,6 +45,14 @@ class Sector extends Model
     }
 
     /**
+     * Get the news articles for the sector.
+     */
+    public function assetNews(): HasMany
+    {
+        return $this->hasMany(AssetNew::class);
+    }
+
+    /**
      * Get the user sector interests for this sector.
      */
     public function userSectors(): HasMany

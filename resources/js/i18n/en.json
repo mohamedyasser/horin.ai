@@ -1490,5 +1490,65 @@
         },
         "view_alert": "View Alert",
         "acknowledge": "Acknowledge"
+    },
+    "news": {
+        "title": "Market News",
+        "subtitle": "AI-analyzed news and insights for Middle East markets",
+        "metaDescription": "Stay informed with AI-analyzed market news, sentiment analysis, and trading recommendations for Middle East stocks.",
+        "searchPlaceholder": "Search news by title or keyword",
+        "latestNews": "Latest News",
+        "filterNews": "Filter News",
+        "sentiment": {
+            "label": "Sentiment",
+            "positive": "Positive",
+            "negative": "Negative",
+            "neutral": "Neutral"
+        },
+        "action": {
+            "label": "Action",
+            "buy": "Buy",
+            "sell": "Sell",
+            "watch": "Watch"
+        },
+        "allSentiments": "All Sentiments",
+        "allActions": "All Actions",
+        "allCategories": "All Categories",
+        "category": "Category",
+        "readMore": "Read More",
+        "noResults": "No news found",
+        "noResultsDescription": "Try adjusting your filters or search terms to find more news.",
+        "clearFilters": "Clear Filters",
+        "featured": "Featured",
+        "score": "Score",
+        "risks": "Risks",
+        "opportunities": "Opportunities",
+        "affectedSectors": "Affected Sectors",
+        "relatedAsset": "Related Asset",
+        "publishedAt": "Published",
+        "bookmark": {
+            "add": "Bookmark",
+            "remove": "Remove Bookmark",
+            "added": "News bookmarked",
+            "removed": "Bookmark removed"
+        },
+        "rating": {
+            "helpful": "Helpful",
+            "notHelpful": "Not Helpful",
+            "thanks": "Thanks for your feedback"
+        },
+        "comments": {
+            "title": "Comments",
+            "placeholder": "Write a comment...",
+            "submit": "Post Comment",
+            "empty": "No comments yet",
+            "emptyDescription": "Be the first to share your thoughts on this news.",
+            "loginRequired": "Login to comment",
+            "deleted": "Comment deleted"
+        },
+        "share": {
+            "title": "Share",
+            "copy": "Copy Link",
+            "copied": "Link copied to clipboard"
+        }
     }
 }

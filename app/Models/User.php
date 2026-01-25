@@ -203,6 +203,46 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the news bookmarks for the user.
+     */
+    public function newsBookmarks(): HasMany
+    {
+        return $this->hasMany(NewsBookmark::class);
+    }
+
+    /**
+     * Get the news ratings for the user.
+     */
+    public function newsRatings(): HasMany
+    {
+        return $this->hasMany(NewsRating::class);
+    }
+
+    /**
+     * Get the news comments for the user.
+     */
+    public function newsComments(): HasMany
+    {
+        return $this->hasMany(NewsComment::class);
+    }
+
+    /**
+     * Get the news interactions for the user.
+     */
+    public function newsInteractions(): HasMany
+    {
+        return $this->hasMany(UserNewsInteraction::class);
+    }
+
+    /**
+     * Get the bookmarked news articles for the user (direct relationship).
+     */
+    public function bookmarkedNews()
+    {
+        return $this->belongsToMany(AssetNew::class, 'news_bookmarks');
+    }
+
+    /**
      * Get or create alert preferences for the user.
      */
     public function getAlertPreferences(): UserAlertPreference

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\Api\NewsInteractionController;
 use App\Http\Controllers\Api\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,4 +24,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Quick alert count for mobile/widgets
     Route::get('alerts/active-count', [AlertController::class, 'activeCount']);
+
+    // News interactions
+    Route::post('news/{assetNew}/bookmark', [NewsInteractionController::class, 'toggleBookmark']);
+    Route::post('news/{assetNew}/rate', [NewsInteractionController::class, 'rate']);
+
+    // News comments
+    Route::get('news/{assetNew}/comments', [NewsInteractionController::class, 'getComments']);
+    Route::post('news/{assetNew}/comments', [NewsInteractionController::class, 'storeComment']);
+    Route::delete('news/{assetNew}/comments/{comment}', [NewsInteractionController::class, 'deleteComment']);
 });

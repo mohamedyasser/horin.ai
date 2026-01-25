@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetNewController;
 use App\Http\Controllers\Auth\TelegramAuthController;
 use App\Http\Controllers\Auth\TelegramMiniAppAuthController;
 use App\Http\Controllers\Auth\TelegramWebhookController;
@@ -96,6 +97,10 @@ Route::prefix('{locale}')
 
         // Assets
         Route::get('assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
+
+        // News
+        Route::get('news', [AssetNewController::class, 'index'])->name('news.index');
+        Route::get('news/{assetNew:slug}', [AssetNewController::class, 'show'])->name('news.show');
 
         // Info pages
         Route::get('about', function () {

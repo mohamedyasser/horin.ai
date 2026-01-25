@@ -70,6 +70,14 @@ class Country extends Model
     }
 
     /**
+     * Get the news articles for the country.
+     */
+    public function assetNews(): HasMany
+    {
+        return $this->hasMany(AssetNew::class);
+    }
+
+    /**
      * Build a list of countries keyed by id for select components.
      */
     public static function selectOptions(): array
