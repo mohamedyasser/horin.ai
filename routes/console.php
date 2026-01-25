@@ -163,4 +163,5 @@ Schedule::job(new CleanupBacktestResults(
 Schedule::command('alerts:health-check')
     ->everyFiveMinutes()
     ->withoutOverlapping()
+    ->runInBackground()
     ->name('alert-health-check');
