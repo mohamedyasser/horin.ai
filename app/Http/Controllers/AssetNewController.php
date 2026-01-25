@@ -179,21 +179,34 @@ class AssetNewController extends Controller
         return [
             'markets' => Market::query()
                 ->whereHas('assetNews')
-                ->select(['id', 'code', 'name'])
                 ->orderBy('code')
                 ->get()
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'code' => $m->code,
+                    'name' => $m->name,
+                ])
                 ->toArray(),
             'sectors' => Sector::query()
                 ->whereHas('assetNews')
-                ->select(['id', 'name'])
-                ->orderBy('name')
                 ->get()
+                ->map(fn ($s) => [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                ])
+                ->sortBy('name')
+                ->values()
                 ->toArray(),
             'countries' => Country::query()
                 ->whereHas('assetNews')
-                ->select(['id', 'name', 'code'])
-                ->orderBy('name')
                 ->get()
+                ->map(fn ($c) => [
+                    'id' => $c->id,
+                    'code' => $c->code,
+                    'name' => $c->name,
+                ])
+                ->sortBy('name')
+                ->values()
                 ->toArray(),
             'categories' => AssetNew::query()
                 ->where('is_rewritten', true)

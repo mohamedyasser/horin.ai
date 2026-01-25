@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AssetNewCollectionResource;
 use App\Models\Asset;
+use App\Models\AssetNew;
 use App\Models\Country;
 use App\Models\LatestPrediction;
 use App\Models\LatestRecommendation;
@@ -82,6 +84,7 @@ class HomeController extends Controller
             'topBuySignals' => Inertia::defer(fn () => $this->getTopBuySignals()),
             'topSellSignals' => Inertia::defer(fn () => $this->getTopSellSignals()),
             'recentRecommendations' => Inertia::defer(fn () => $this->getRecentRecommendations()),
+            'featuredNews' => Inertia::defer(fn () => $this->getFeaturedNews()),
         ]);
     }
 
@@ -385,5 +388,19 @@ class HomeController extends Controller
             ])
             ->values()
             ->toArray();
+    }
+
+    private function getFeaturedNews(): array
+    {
+        $news = AssetNew::query()
+            ->where('is_rewritten', true)
+            ->whereNotNull('image_url')
+            ->orderByDesc('score')
+            ->orderByDesc('created_at')
+            ->limit(6)
+            ->with(['asset', 'market'])
+            ->get();
+
+        return AssetNewCollectionResource::collection($news)->resolve();
     }
 }

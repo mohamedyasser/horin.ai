@@ -39,6 +39,7 @@ import {
 import { useServerSearch } from '@/composables/useServerSearch';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import RecommendationsTable from '@/components/RecommendationsTable.vue';
+import NewsCard from '@/components/news/NewsCard.vue';
 import type {
     HomeStats,
     MarketPreview,
@@ -48,6 +49,7 @@ import type {
     RecentPrediction,
     Recommendation,
 } from '@/types';
+import type { AssetNewListItem } from '@/types/news';
 
 const { t, locale } = useI18n();
 const { formatGain, getConfidenceColor } = usePredictionFormatters();
@@ -82,6 +84,7 @@ interface Props {
     topBuySignals?: Recommendation[];
     topSellSignals?: Recommendation[];
     recentRecommendations?: Recommendation[];
+    featuredNews?: AssetNewListItem[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -102,7 +105,7 @@ const selectedMarket = ref<string | null>(props.filters?.market ?? null);
 const selectedSector = ref<string | null>(props.filters?.sector ?? null);
 const selectedCountry = ref<string | null>(props.filters?.country ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
-const activeTab = ref<'recommendations' | 'predictions'>('predictions');
+const activeTab = ref<'recommendations' | 'predictions' | 'news'>('predictions');
 
 // Computed - options for searchable selects
 const marketOptions = computed(() =>
@@ -170,6 +173,7 @@ const featuredRecommendations = computed(() => props.featuredRecommendations?.da
 const topBuySignals = computed(() => props.topBuySignals ?? []);
 const topSellSignals = computed(() => props.topSellSignals ?? []);
 const recentRecommendationsData = computed(() => props.recentRecommendations ?? []);
+const featuredNews = computed(() => props.featuredNews ?? []);
 
 // Sort predictions client-side (sorting doesn't require server round-trip)
 const sortedPredictions = computed(() => {
@@ -256,6 +260,14 @@ const sortedPredictions = computed(() => {
                         >
                             {{ t('home.predictions') }}
                             <span v-if="activeTab === 'predictions'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
+                        </button>
+                        <button
+                            class="relative px-4 py-2 text-sm font-medium transition-colors"
+                            :class="activeTab === 'news' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+                            @click="activeTab = 'news'"
+                        >
+                            {{ t('news.title') }}
+                            <span v-if="activeTab === 'news'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
                         </button>
                     </div>
 
@@ -471,6 +483,45 @@ const sortedPredictions = computed(() => {
                     <div v-if="activeTab === 'predictions'" class="mt-4 text-center text-sm text-muted-foreground">
                         {{ t('home.showingPredictions', { count: sortedPredictions.length }) }}
                     </div>
+
+                    <!-- News Grid -->
+                    <Deferred v-if="activeTab === 'news'" data="featuredNews">
+                        <template #fallback>
+                            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                <div v-for="i in 6" :key="i" class="animate-pulse">
+                                    <div class="h-64 bg-muted rounded-lg"></div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div v-if="featuredNews.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                            <NewsCard
+                                v-for="item in featuredNews"
+                                :key="item.id"
+                                :news="item"
+                            />
+                        </div>
+
+                        <!-- Empty State -->
+                        <div
+                            v-else
+                            class="flex flex-col items-center justify-center py-12 text-center"
+                        >
+                            <Search class="size-12 text-muted-foreground/50" />
+                            <p class="mt-4 text-muted-foreground">
+                                {{ t('news.noResults') }}
+                            </p>
+                        </div>
+
+                        <!-- View All Link -->
+                        <div class="mt-6 text-center">
+                            <Button as-child variant="outline">
+                                <LocalizedLink href="/news">
+                                    {{ t('common.more') }}
+                                </LocalizedLink>
+                            </Button>
+                        </div>
+                    </Deferred>
                 </div>
 
                 <!-- Sidebar -->
