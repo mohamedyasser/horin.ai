@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('posts', function (Blueprint $table) {
+        Schema::create('asset_news', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title');
             $table->text('content')->nullable();
             $table->text('description')->nullable();
-            $table->text('link');
             $table->string('resource_id')->unique();
-            $table->string('language');
             $table->string('image_url')->nullable();
-            $table->string('small_image_url')->nullable();
             $table->smallInteger('score')->nullable();
             $table->text('sentiment')->nullable();
             $table->text('reason')->nullable();
@@ -29,7 +26,6 @@ return new class extends Migration
             $table->uuid('asset_id')->nullable();
             $table->uuid('market_id')->nullable();
             $table->uuid('country_id')->nullable();
-            $table->json('images')->nullable();
             $table->string('category')->nullable();
             $table->timestamp('date')->nullable();
             $table->uuid('sector_id')->nullable();
@@ -42,10 +38,9 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['language', 'created_at']);
-            $table->index(['language', 'is_rewritten', 'image_url', 'created_at']);
+            $table->index(['created_at']);
+            $table->index(['is_rewritten', 'image_url', 'created_at']);
             $table->index(['asset_id', 'created_at']);
-            $table->index(['asset_id', 'language', 'created_at']);
             $table->unique(['resource_id', 'source']);
         });
     }
@@ -55,6 +50,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('posts');
+        Schema::dropIfExists('asset_news');
     }
 };
