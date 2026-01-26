@@ -108,7 +108,7 @@ const scoreColor = computed(() => {
                     <Button as-child class="w-fit">
                         <LocalizedLink :href="`/news/${news.slug}`">
                             {{ t('news.readMore') }}
-                            <ArrowRight class="ms-2 size-4" />
+                            <ArrowRight class="ms-2 size-4 rtl:-scale-x-100" />
                         </LocalizedLink>
                     </Button>
                 </div>

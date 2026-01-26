@@ -148,7 +148,7 @@ const copyLink = async () => {
         <section class="border-b border-border/40 bg-muted/30">
             <div class="mx-auto max-w-4xl px-4 py-4">
                 <LocalizedLink href="/news" class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <ChevronLeft class="me-1 size-4" />
+                    <ChevronLeft class="me-1 size-4 rtl:-scale-x-100" />
                     {{ t('common.previous') }}
                 </LocalizedLink>
             </div>

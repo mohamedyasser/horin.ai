@@ -42,7 +42,7 @@ const gridClass = {
             <Button v-if="showViewAll" variant="ghost" size="sm" as-child>
                 <LocalizedLink :href="viewAllHref">
                     {{ t('common.more') }}
-                    <ArrowRight class="ms-1 size-4" />
+                    <ArrowRight class="ms-1 size-4 rtl:-scale-x-100" />
                 </LocalizedLink>
             </Button>
         </div>
