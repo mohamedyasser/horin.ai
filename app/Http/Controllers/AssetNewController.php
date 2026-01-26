@@ -41,7 +41,7 @@ class AssetNewController extends Controller
         $news = $newsQuery->paginate($perPage);
 
         return Inertia::render('news/Index', [
-            'featured' => $featured ? new AssetNewResource($featured) : null,
+            'featured' => $featured ? (new AssetNewResource($featured))->resolve() : null,
             'news' => [
                 'data' => AssetNewCollectionResource::collection($news)->resolve(),
                 'meta' => PaginationHelper::meta($news),
