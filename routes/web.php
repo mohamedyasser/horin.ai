@@ -98,9 +98,22 @@ Route::prefix('{locale}')
         // Assets
         Route::get('assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
 
-        // News
-        Route::get('news', [AssetNewController::class, 'index'])->name('news.index');
-        Route::get('news/{assetNew:slug}', [AssetNewController::class, 'show'])->name('news.show');
+        // News (Arabic only - redirect English to Arabic)
+        // News (Arabic only - redirect English to Arabic)
+        Route::get('news', function (string $locale) {
+            if ($locale === 'en') {
+                return redirect('/ar/news');
+            }
+
+            return app(AssetNewController::class)->index($locale, app(\App\Http\Requests\NewsFilterRequest::class));
+        })->name('news.index');
+        Route::get('news/{assetNew:slug}', function (string $locale, \App\Models\AssetNew $assetNew) {
+            if ($locale === 'en') {
+                return redirect("/ar/news/{$assetNew->slug}");
+            }
+
+            return app(AssetNewController::class)->show($locale, $assetNew);
+        })->name('news.show');
 
         // Info pages
         Route::get('about', function () {

@@ -55,7 +55,7 @@ const navigateToAsset = (symbol: string) => {
                     <ClickableTableRow
                         v-for="rec in recommendations"
                         :key="rec.id"
-                        :aria-label="`View details for ${rec.asset?.symbol}`"
+                        :aria-label="`${t('common.viewDetailsFor')} ${rec.asset?.symbol}`"
                         class="border-border/50"
                         @click="navigateToAsset(rec.asset?.symbol ?? '')"
                     >

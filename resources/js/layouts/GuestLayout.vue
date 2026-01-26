@@ -85,6 +85,7 @@ withDefaults(defineProps<Props>(), {
                             {{ t('search.title') }}
                         </LocalizedLink>
                         <LocalizedLink
+                            v-if="locale === 'ar'"
                             href="/news"
                             class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
                         >
@@ -172,6 +173,7 @@ withDefaults(defineProps<Props>(), {
                         {{ t('search.title') }}
                     </LocalizedLink>
                     <LocalizedLink
+                        v-if="locale === 'ar'"
                         href="/news"
                         class="flex items-center rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                         @click="mobileMenuOpen = false"

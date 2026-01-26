@@ -416,7 +416,7 @@ const sortedPredictions = computed(() => {
                                         <ClickableTableRow
                                             v-for="prediction in sortedPredictions"
                                             :key="prediction.id"
-                                            :aria-label="`View details for ${prediction.asset.symbol} - ${prediction.asset.name}`"
+                                            :aria-label="`${t('common.viewDetailsFor')} ${prediction.asset.symbol} - ${prediction.asset.name}`"
                                             @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
                                         >
                                             <td class="px-4 py-3">

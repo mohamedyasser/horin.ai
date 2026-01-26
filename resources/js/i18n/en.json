@@ -40,7 +40,9 @@
         "days": "days",
         "week": "week",
         "weeks": "weeks",
-        "minutes": "minutes"
+        "minutes": "minutes",
+        "viewDetailsFor": "View details for",
+        "breadcrumb": "Breadcrumb"
     },
     "auth": {
         "login": {

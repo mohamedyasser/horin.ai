@@ -40,7 +40,9 @@
         "days": "أيام",
         "week": "أسبوع",
         "weeks": "أسابيع",
-        "minutes": "دقائق"
+        "minutes": "دقائق",
+        "viewDetailsFor": "عرض تفاصيل",
+        "breadcrumb": "مسار التنقل"
     },
     "auth": {
         "login": {

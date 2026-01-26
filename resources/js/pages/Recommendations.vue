@@ -472,7 +472,7 @@ const goToPage = (page: number) => {
                                         <ClickableTableRow
                                             v-for="item in sortedRecommendations"
                                             :key="item.id"
-                                            :aria-label="`View details for ${item.asset.symbol} - ${item.asset.name}`"
+                                            :aria-label="`${t('common.viewDetailsFor')} ${item.asset.symbol} - ${item.asset.name}`"
                                             @click="router.visit(`/${locale}/assets/${item.asset.symbol}`)"
                                         >
                                             <td class="px-4 py-3">
