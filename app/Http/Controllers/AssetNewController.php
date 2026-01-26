@@ -96,7 +96,7 @@ class AssetNewController extends Controller
             ->get();
 
         return Inertia::render('news/Show', [
-            'news' => new AssetNewResource($assetNew),
+            'news' => (new AssetNewResource($assetNew))->resolve(),
             'relatedNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($relatedNews)->resolve()),
             'similarNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($similarNews)->resolve()),
         ]);
