@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\NewsFilterRequest;
-use App\Http\Resources\AssetNewCollectionResource;
-use App\Http\Resources\AssetNewResource;
 use App\Models\AssetNew;
 use App\Models\Country;
 use App\Models\Market;
@@ -41,9 +39,9 @@ class AssetNewController extends Controller
         $news = $newsQuery->paginate($perPage);
 
         return Inertia::render('news/Index', [
-            'featured' => $featured ? (new AssetNewResource($featured))->resolve() : null,
+            'featured' => $featured ? $this->formatNewsItem($featured) : null,
             'news' => [
-                'data' => AssetNewCollectionResource::collection($news)->resolve(),
+                'data' => $news->map(fn ($item) => $this->formatNewsListItem($item))->values()->toArray(),
                 'meta' => PaginationHelper::meta($news),
             ],
             'filters' => $filters,
@@ -96,9 +94,9 @@ class AssetNewController extends Controller
             ->get();
 
         return Inertia::render('news/Show', [
-            'news' => (new AssetNewResource($assetNew))->resolve(),
-            'relatedNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($relatedNews)->resolve()),
-            'similarNews' => Inertia::defer(fn () => AssetNewCollectionResource::collection($similarNews)->resolve()),
+            'news' => $this->formatNewsItem($assetNew),
+            'relatedNews' => Inertia::defer(fn () => $relatedNews->map(fn ($item) => $this->formatNewsListItem($item))->values()->toArray()),
+            'similarNews' => Inertia::defer(fn () => $similarNews->map(fn ($item) => $this->formatNewsListItem($item))->values()->toArray()),
         ]);
     }
 
@@ -215,6 +213,87 @@ class AssetNewController extends Controller
                 ->sort()
                 ->values()
                 ->toArray(),
+        ];
+    }
+
+    private function formatNewsListItem(AssetNew $news): array
+    {
+        $cdnUrl = config('services.cdn.news');
+
+        return [
+            'id' => $news->id,
+            'title' => $news->title,
+            'slug' => $news->slug,
+            'description' => \Illuminate\Support\Str::limit($news->description, 200),
+            'image_url' => $news->image_url ? "{$cdnUrl}/{$news->image_url}" : null,
+            'score' => $news->score,
+            'sentiment' => $news->sentiment,
+            'action' => $news->action,
+            'category' => $news->category,
+            'date' => $news->date?->toISOString(),
+            'created_at' => $news->created_at->toISOString(),
+            'asset' => $news->relationLoaded('asset') && $news->asset ? [
+                'id' => $news->asset->id,
+                'symbol' => $news->asset->symbol,
+                'name' => $news->asset->name,
+            ] : null,
+            'market' => $news->relationLoaded('market') && $news->market ? [
+                'id' => $news->market->id,
+                'code' => $news->market->code,
+            ] : null,
+            'bookmarked' => false,
+        ];
+    }
+
+    private function formatNewsItem(AssetNew $news): array
+    {
+        $cdnUrl = config('services.cdn.news');
+
+        return [
+            'id' => $news->id,
+            'title' => $news->title,
+            'slug' => $news->slug,
+            'description' => $news->description,
+            'content' => $news->content,
+            'image_url' => $news->image_url ? "{$cdnUrl}/{$news->image_url}" : null,
+            'score' => $news->score,
+            'sentiment' => $news->sentiment,
+            'action' => $news->action,
+            'category' => $news->category,
+            'date' => $news->date?->toISOString(),
+            'created_at' => $news->created_at->toISOString(),
+            'risks' => $news->risks ?? [],
+            'opportunities' => $news->opportunities ?? [],
+            'affected_sectors' => $news->affected_sectors ?? [],
+            'meta_tags' => $news->meta_tags ?? [],
+            'meta_description' => $news->meta_description,
+            'asset' => $news->relationLoaded('asset') && $news->asset ? [
+                'id' => $news->asset->id,
+                'symbol' => $news->asset->symbol,
+                'name' => $news->asset->name,
+                'name_ar' => $news->asset->name_ar,
+            ] : null,
+            'market' => $news->relationLoaded('market') && $news->market ? [
+                'id' => $news->market->id,
+                'code' => $news->market->code,
+                'name' => $news->market->name,
+            ] : null,
+            'sector' => $news->relationLoaded('sector') && $news->sector ? [
+                'id' => $news->sector->id,
+                'name' => $news->sector->name,
+            ] : null,
+            'country' => $news->relationLoaded('country') && $news->country ? [
+                'id' => $news->country->id,
+                'name' => $news->country->name,
+                'code' => $news->country->code,
+            ] : null,
+            'bookmarked' => false,
+            'user_rating' => null,
+            'ratings_summary' => [
+                'helpful_count' => 0,
+                'not_helpful_count' => 0,
+            ],
+            'comments_count' => 0,
         ];
     }
 }

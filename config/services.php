@@ -36,7 +36,7 @@ return [
     ],
 
     'cdn' => [
-        'news' => env('NEWS_CDN_URL', 'https://cdn.horin.ai/news'),
+        'news' => env('NEWS_CDN_URL', 'https://cdn.horin.ai/'),
     ],
 
 ];
