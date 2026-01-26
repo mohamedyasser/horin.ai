@@ -4,13 +4,13 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class AssetNewResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         $user = $request->user();
+        $cdnUrl = config('services.cdn.news');
 
         return [
             'id' => $this->id,
@@ -18,7 +18,7 @@ class AssetNewResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'content' => $this->content,
-            'image_url' => $this->image_url ? Storage::url($this->image_url) : null,
+            'image_url' => $this->image_url ? "{$cdnUrl}/{$this->image_url}" : null,
             'score' => $this->score,
             'sentiment' => $this->sentiment,
             'action' => $this->action,

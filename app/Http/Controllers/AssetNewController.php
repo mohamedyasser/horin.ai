@@ -21,11 +21,10 @@ class AssetNewController extends Controller
         $filters = $request->validated();
         $perPage = $filters['per_page'] ?? 12;
 
-        // Get featured news (highest score from last 7 days)
+        // Get featured news (highest score)
         $featured = AssetNew::query()
             ->where('is_rewritten', true)
             ->whereNotNull('image_url')
-            ->where('created_at', '>=', now()->subDays(7))
             ->orderByDesc('score')
             ->orderByDesc('created_at')
             ->with(['asset', 'market', 'sector', 'country'])
