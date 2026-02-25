@@ -102,7 +102,9 @@ const rightNavItems: NavItem[] = [
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" class="w-[300px] p-6">
-                            <SheetTitle class="sr-only">{{ t('common.navigationMenu') }}</SheetTitle>
+                            <SheetTitle class="sr-only">{{
+                                t('common.navigationMenu')
+                            }}</SheetTitle>
                             <SheetHeader class="flex justify-start text-start">
                                 <AppLogoIcon
                                     class="size-6 fill-current text-black dark:text-white"
@@ -149,7 +151,10 @@ const rightNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link :href="auth.user ? dashboard() : home()" class="flex items-center gap-x-2">
+                <Link
+                    :href="auth.user ? dashboard() : home()"
+                    class="flex items-center gap-x-2"
+                >
                     <AppLogo />
                 </Link>
 
@@ -181,7 +186,7 @@ const rightNavItems: NavItem[] = [
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 start-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="absolute start-0 bottom-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>

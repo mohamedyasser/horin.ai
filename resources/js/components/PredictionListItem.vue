@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue';
-import LocalizedLink from '@/components/LocalizedLink.vue';
 import AssetDisplay from '@/components/AssetDisplay.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
+import type { HTMLAttributes } from 'vue';
 
 interface Props {
     symbol: string;
@@ -17,7 +17,7 @@ const props = defineProps<Props>();
     <LocalizedLink
         :href="href"
         :class="[
-            'flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors',
+            '-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30',
             props.class,
         ]"
     >

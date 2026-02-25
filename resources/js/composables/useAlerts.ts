@@ -1,6 +1,11 @@
-import { ref } from 'vue';
+import type {
+    Alert,
+    AlertParameters,
+    AlertTriggerType,
+    AlertType,
+} from '@/types/alerts';
 import { router } from '@inertiajs/vue3';
-import type { Alert, AlertType, AlertTriggerType, AlertParameters } from '@/types/alerts';
+import { ref } from 'vue';
 
 export function useAlerts() {
     const isSubmitting = ref(false);
@@ -15,7 +20,10 @@ export function useAlerts() {
         recommendation: { en: 'Recommendation', ar: 'توصية' },
     };
 
-    const triggerTypeLabels: Record<AlertTriggerType, { en: string; ar: string }> = {
+    const triggerTypeLabels: Record<
+        AlertTriggerType,
+        { en: string; ar: string }
+    > = {
         target_price: { en: 'Target Price', ar: 'السعر المستهدف' },
         breakout: { en: 'Breakout', ar: 'اختراق' },
         zone: { en: 'Support/Resistance Zone', ar: 'منطقة الدعم/المقاومة' },
@@ -92,20 +100,58 @@ export function useAlerts() {
         router.post(`/alerts/${alertId}/duplicate`);
     };
 
-    const getDefaultParameters = (triggerType: AlertTriggerType): AlertParameters => {
+    const getDefaultParameters = (
+        triggerType: AlertTriggerType,
+    ): AlertParameters => {
         const defaults: Record<AlertTriggerType, AlertParameters> = {
             target_price: { target_price: 0, direction: 'above' },
-            breakout: { level: 0, direction: 'above', confirmation: 'sustained', consecutive_ticks: 2 },
-            zone: { zone_low: 0, zone_high: 0, trigger_on: 'enter', cooldown_hours: 4 },
+            breakout: {
+                level: 0,
+                direction: 'above',
+                confirmation: 'sustained',
+                consecutive_ticks: 2,
+            },
+            zone: {
+                zone_low: 0,
+                zone_high: 0,
+                trigger_on: 'enter',
+                cooldown_hours: 4,
+            },
             gap: { gap_threshold_percent: 3, direction: 'both' },
             '52week': { type: 'high', cooldown_hours: 24 },
-            daily_change: { threshold_percent: 5, direction: 'both', from_reference: 'open' },
+            daily_change: {
+                threshold_percent: 5,
+                direction: 'both',
+                from_reference: 'open',
+            },
             entry_return: { entry_price: 0, tolerance_percent: 0.5 },
-            prediction: { prediction_type: 'price_direction', horizon: '1hour', direction: 'up', min_confidence: 0.75 },
-            signal: { indicators: [], signal_types: [], min_strength: 0.7, any_or_all: 'any' },
-            anomaly: { anomaly_types: ['price_spike', 'volume_surge'], min_confidence: 0.8, severity: ['high', 'critical'] },
-            pattern: { patterns: [], pattern_status: 'confirmed', min_confidence: 0.7 },
-            recommendation: { trigger_on: 'change', recommendations: ['strong_buy', 'buy'], min_score: 0.75 },
+            prediction: {
+                prediction_type: 'price_direction',
+                horizon: '1hour',
+                direction: 'up',
+                min_confidence: 0.75,
+            },
+            signal: {
+                indicators: [],
+                signal_types: [],
+                min_strength: 0.7,
+                any_or_all: 'any',
+            },
+            anomaly: {
+                anomaly_types: ['price_spike', 'volume_surge'],
+                min_confidence: 0.8,
+                severity: ['high', 'critical'],
+            },
+            pattern: {
+                patterns: [],
+                pattern_status: 'confirmed',
+                min_confidence: 0.7,
+            },
+            recommendation: {
+                trigger_on: 'change',
+                recommendations: ['strong_buy', 'buy'],
+                min_score: 0.75,
+            },
             compound_intelligence: { conditions: [] },
         };
 

@@ -9,11 +9,11 @@ import {
 } from '@/components/ui/card';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { locale } = useI18n();
-const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
+const currentDir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'));
 
 defineProps<{
     title?: string;
@@ -33,9 +33,7 @@ defineProps<{
                 class="flex items-center gap-2 self-center font-medium"
             >
                 <div class="flex h-9 w-9 items-center justify-center">
-                    <AppLogoIcon
-                        class="size-9 fill-current text-foreground"
-                    />
+                    <AppLogoIcon class="size-9 fill-current text-foreground" />
                 </div>
             </Link>
 

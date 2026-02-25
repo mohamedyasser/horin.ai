@@ -1,21 +1,26 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useRecommendationFormatters } from '@/composables/useRecommendationFormatters';
+import type {
+    Anomaly,
+    PatternDetection,
+    Recommendation,
+    Signal,
+} from '@/types';
 import {
-    TrendingUp,
-    TrendingDown,
-    Minus,
+    Activity,
+    AlertTriangle,
+    BarChart3,
     ChevronDown,
     ChevronUp,
-    AlertTriangle,
-    Activity,
-    BarChart3,
+    Minus,
+    TrendingDown,
+    TrendingUp,
     Zap,
 } from 'lucide-vue-next';
-import { useRecommendationFormatters } from '@/composables/useRecommendationFormatters';
-import type { Recommendation, Signal, PatternDetection, Anomaly } from '@/types';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const {
@@ -44,16 +49,19 @@ const patternsExpanded = ref(true);
 const anomaliesExpanded = ref(true);
 
 const hasAnalysisData = computed(() => {
-    return (props.signals?.length ?? 0) > 0 ||
-           (props.patterns?.pattern_count ?? 0) > 0 ||
-           (props.anomalies?.length ?? 0) > 0;
+    return (
+        (props.signals?.length ?? 0) > 0 ||
+        (props.patterns?.pattern_count ?? 0) > 0 ||
+        (props.anomalies?.length ?? 0) > 0
+    );
 });
 
 const detectedPatternNames = computed(() => {
     if (!props.patterns) return [];
     const names: string[] = [];
     if (props.patterns.has_head_shoulder) names.push('head_shoulder');
-    if (props.patterns.has_multiple_tops_bottoms) names.push('multiple_tops_bottoms');
+    if (props.patterns.has_multiple_tops_bottoms)
+        names.push('multiple_tops_bottoms');
     if (props.patterns.has_triangle) names.push('triangle');
     if (props.patterns.has_wedge) names.push('wedge');
     if (props.patterns.has_channel) names.push('channel');
@@ -77,25 +85,45 @@ const recommendationIsStale = computed(() => {
 </script>
 
 <template>
-    <Card v-if="recommendation" class="border-2" :class="recommendationIsStale ? 'border-yellow-500/50' : 'border-border'">
+    <Card
+        v-if="recommendation"
+        class="border-2"
+        :class="
+            recommendationIsStale
+                ? 'border-muted-foreground/50'
+                : 'border-border'
+        "
+    >
         <CardHeader class="pb-3">
             <div class="flex items-start justify-between">
                 <div class="flex items-center gap-3">
                     <span
                         :class="getActionColor(recommendation.recommendation)"
-                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold"
+                        class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-bold"
                     >
                         <component :is="iconComponent" class="size-4" />
-                        {{ t(`recommendations.actions.${recommendation.recommendation}`) }}
+                        {{
+                            t(
+                                `recommendations.actions.${recommendation.recommendation}`,
+                            )
+                        }}
                     </span>
-                    <span v-if="recommendationIsStale" class="inline-flex items-center gap-1 text-xs text-yellow-600 dark:text-yellow-400">
+                    <span
+                        v-if="recommendationIsStale"
+                        class="inline-flex items-center gap-1 text-xs text-muted-foreground"
+                    >
                         <AlertTriangle class="size-3" />
-                        {{ t('recommendations.updated') }}: {{ formatTimeAgo(recommendation.created_at) }}
+                        {{ t('recommendations.updated') }}:
+                        {{ formatTimeAgo(recommendation.created_at) }}
                     </span>
                 </div>
                 <div class="text-end">
-                    <p class="text-sm text-muted-foreground">{{ t('recommendations.score') }}</p>
-                    <p dir="ltr" class="text-xl font-bold">{{ recommendation.score.toFixed(1) }}</p>
+                    <p class="text-sm text-muted-foreground">
+                        {{ t('recommendations.score') }}
+                    </p>
+                    <p dir="ltr" class="text-xl font-bold tabular-nums">
+                        {{ recommendation.score.toFixed(1) }}
+                    </p>
                 </div>
             </div>
         </CardHeader>
@@ -104,7 +132,8 @@ const recommendationIsStale = computed(() => {
             <!-- Summary Row -->
             <div class="flex items-center justify-between text-sm">
                 <span class="text-muted-foreground">
-                    {{ t('recommendations.updated') }}: {{ formatTimeAgo(recommendation.created_at) }}
+                    {{ t('recommendations.updated') }}:
+                    {{ formatTimeAgo(recommendation.created_at) }}
                 </span>
             </div>
 
@@ -118,11 +147,18 @@ const recommendationIsStale = computed(() => {
             >
                 <ChevronDown v-if="!isExpanded" class="me-1 size-4" />
                 <ChevronUp v-else class="me-1 size-4" />
-                {{ isExpanded ? t('recommendations.hideAnalysis') : t('recommendations.viewAnalysis') }}
+                {{
+                    isExpanded
+                        ? t('recommendations.hideAnalysis')
+                        : t('recommendations.viewAnalysis')
+                }}
             </Button>
 
             <!-- Expanded Analysis -->
-            <div v-if="isExpanded && hasAnalysisData" class="space-y-4 pt-4 border-t border-border">
+            <div
+                v-if="isExpanded && hasAnalysisData"
+                class="space-y-4 border-t border-border pt-4"
+            >
                 <!-- Active Signals -->
                 <div v-if="signals && signals.length > 0">
                     <button
@@ -130,8 +166,10 @@ const recommendationIsStale = computed(() => {
                         @click="signalsExpanded = !signalsExpanded"
                     >
                         <span class="flex items-center gap-2">
-                            <Zap class="size-4 text-yellow-500" />
-                            {{ t('recommendations.activeSignals') }} ({{ signals.length }})
+                            <Zap class="size-4 text-foreground" />
+                            {{ t('recommendations.activeSignals') }} ({{
+                                signals.length
+                            }})
                         </span>
                         <ChevronDown v-if="!signalsExpanded" class="size-4" />
                         <ChevronUp v-else class="size-4" />
@@ -140,10 +178,17 @@ const recommendationIsStale = computed(() => {
                         <div
                             v-for="signal in signals"
                             :key="signal.id"
-                            class="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm"
+                            class="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-sm"
                         >
-                            <span>{{ signal.indicator }} - {{ signal.signal_type }}</span>
-                            <span dir="ltr" :class="getStrengthColor(signal.strength * 100)" class="font-medium">
+                            <span
+                                >{{ signal.indicator }} -
+                                {{ signal.signal_type }}</span
+                            >
+                            <span
+                                dir="ltr"
+                                :class="getStrengthColor(signal.strength * 100)"
+                                class="font-medium tabular-nums"
+                            >
                                 {{ (signal.strength * 100).toFixed(0) }}%
                             </span>
                         </div>
@@ -157,8 +202,10 @@ const recommendationIsStale = computed(() => {
                         @click="patternsExpanded = !patternsExpanded"
                     >
                         <span class="flex items-center gap-2">
-                            <BarChart3 class="size-4 text-blue-500" />
-                            {{ t('recommendations.detectedPatterns') }} ({{ patterns.pattern_count }})
+                            <BarChart3 class="size-4 text-foreground" />
+                            {{ t('recommendations.detectedPatterns') }} ({{
+                                patterns.pattern_count
+                            }})
                         </span>
                         <ChevronDown v-if="!patternsExpanded" class="size-4" />
                         <ChevronUp v-else class="size-4" />
@@ -167,7 +214,7 @@ const recommendationIsStale = computed(() => {
                         <div
                             v-for="pattern in detectedPatternNames"
                             :key="pattern"
-                            class="rounded-lg bg-muted/50 px-3 py-2 text-sm"
+                            class="rounded-md bg-muted/50 px-3 py-2 text-sm"
                         >
                             {{ t(`recommendations.patterns.${pattern}`) }}
                         </div>
@@ -181,8 +228,10 @@ const recommendationIsStale = computed(() => {
                         @click="anomaliesExpanded = !anomaliesExpanded"
                     >
                         <span class="flex items-center gap-2">
-                            <Activity class="size-4 text-orange-500" />
-                            {{ t('recommendations.anomalies') }} ({{ anomalies.length }})
+                            <Activity class="size-4 text-foreground" />
+                            {{ t('recommendations.anomalies') }} ({{
+                                anomalies.length
+                            }})
                         </span>
                         <ChevronDown v-if="!anomaliesExpanded" class="size-4" />
                         <ChevronUp v-else class="size-4" />
@@ -191,11 +240,16 @@ const recommendationIsStale = computed(() => {
                         <div
                             v-for="anomaly in anomalies"
                             :key="anomaly.id"
-                            class="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-sm"
+                            class="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-sm"
                         >
                             <span>{{ anomaly.anomaly_type }}</span>
-                            <span dir="ltr" class="text-muted-foreground">
-                                {{ (anomaly.confidence_score * 100).toFixed(0) }}%
+                            <span
+                                dir="ltr"
+                                class="text-muted-foreground tabular-nums"
+                            >
+                                {{
+                                    (anomaly.confidence_score * 100).toFixed(0)
+                                }}%
                             </span>
                         </div>
                     </div>
@@ -206,7 +260,9 @@ const recommendationIsStale = computed(() => {
 
     <!-- Empty State -->
     <Card v-else class="border-dashed">
-        <CardContent class="flex flex-col items-center justify-center py-8 text-center">
+        <CardContent
+            class="flex flex-col items-center justify-center py-8 text-center"
+        >
             <Activity class="size-12 text-muted-foreground/50" />
             <p class="mt-4 font-medium text-muted-foreground">
                 {{ t('recommendations.noData') }}

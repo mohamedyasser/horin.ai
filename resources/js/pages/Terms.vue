@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import GuestLayout from '@/layouts/GuestLayout.vue';
 
 const { t } = useI18n();
 
@@ -31,7 +31,7 @@ const sections = [
 
 <template>
     <Head :title="t('terms.title')">
-        <meta name="description" :content="t('meta.terms')">
+        <meta name="description" :content="t('meta.terms')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -48,7 +48,7 @@ const sections = [
                     <h2 class="text-lg font-semibold">
                         {{ t(`terms.sections.${section}.title`) }}
                     </h2>
-                    <p class="mt-2 text-muted-foreground leading-relaxed">
+                    <p class="mt-2 leading-relaxed text-muted-foreground">
                         {{ t(`terms.sections.${section}.content`) }}
                     </p>
                 </section>

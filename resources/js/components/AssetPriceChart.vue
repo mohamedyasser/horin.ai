@@ -1,20 +1,4 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { router } from '@inertiajs/vue3';
-import { Loader2, TrendingUp, TrendingDown, ChevronDown, LineChart as LineChartIcon, CandlestickChart as CandleIcon, AreaChart } from 'lucide-vue-next';
-import { use } from 'echarts/core';
-import { CanvasRenderer } from 'echarts/renderers';
-import { CandlestickChart, LineChart, BarChart } from 'echarts/charts';
-import {
-    GridComponent,
-    TooltipComponent,
-    DataZoomComponent,
-    MarkLineComponent,
-    MarkAreaComponent,
-    LegendComponent,
-} from 'echarts/components';
-import VChart from 'vue-echarts';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -22,7 +6,36 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { PriceHistoryPoint, PredictionChartPoint, IndicatorHistoryPoint, ChartPeriod } from '@/types';
+import type {
+    ChartPeriod,
+    IndicatorHistoryPoint,
+    PredictionChartPoint,
+    PriceHistoryPoint,
+} from '@/types';
+import { router } from '@inertiajs/vue3';
+import { BarChart, CandlestickChart, LineChart } from 'echarts/charts';
+import {
+    DataZoomComponent,
+    GridComponent,
+    LegendComponent,
+    MarkAreaComponent,
+    MarkLineComponent,
+    TooltipComponent,
+} from 'echarts/components';
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import {
+    AreaChart,
+    CandlestickChart as CandleIcon,
+    ChevronDown,
+    LineChart as LineChartIcon,
+    Loader2,
+    TrendingDown,
+    TrendingUp,
+} from 'lucide-vue-next';
+import { computed, onUnmounted, ref, watch } from 'vue';
+import VChart from 'vue-echarts';
+import { useI18n } from 'vue-i18n';
 
 use([
     CanvasRenderer,
@@ -67,10 +80,13 @@ const showSMA = ref(false);
 const showRSI = ref(false);
 const showMACD = ref(false);
 
-watch(() => props.chartPeriod, (newPeriod) => {
-    selectedPeriod.value = newPeriod as ChartPeriod;
-    isLoading.value = false;
-});
+watch(
+    () => props.chartPeriod,
+    (newPeriod) => {
+        selectedPeriod.value = newPeriod as ChartPeriod;
+        isLoading.value = false;
+    },
+);
 
 const periodLabels: Record<ChartPeriod, string> = {
     1: '1D',
@@ -95,7 +111,12 @@ const handlePeriodChange = (period: ChartPeriod) => {
 
     router.reload({
         data: { period },
-        only: ['priceHistory', 'predictionChartData', 'indicatorHistory', 'chartPeriod'],
+        only: [
+            'priceHistory',
+            'predictionChartData',
+            'indicatorHistory',
+            'chartPeriod',
+        ],
         preserveState: true,
         preserveScroll: true,
         onFinish: () => {
@@ -116,36 +137,49 @@ const formatDate = (timestamp: number) => {
 // Build timestamps array
 const rawTimestamps = computed(() => {
     const timestamps: number[] = [];
-    props.priceHistory?.forEach(p => timestamps.push(p.timestamp));
-    props.predictionChartData?.filter(p => p.isPrediction).forEach(p => timestamps.push(p.timestamp));
+    props.priceHistory?.forEach((p) => timestamps.push(p.timestamp));
+    props.predictionChartData
+        ?.filter((p) => p.isPrediction)
+        .forEach((p) => timestamps.push(p.timestamp));
     return [...new Set(timestamps)].sort((a, b) => a - b);
 });
 
 const chartCategories = computed(() => rawTimestamps.value.map(formatDate));
 
 // Create timestamp index map for data alignment
-const timestampIndexMap = computed(() => new Map(rawTimestamps.value.map((ts, i) => [ts, i])));
+const timestampIndexMap = computed(
+    () => new Map(rawTimestamps.value.map((ts, i) => [ts, i])),
+);
 
 // Candlestick data: [open, close, low, high] (ECharts OCLH order)
 const candlestickData = computed(() => {
-    return props.priceHistory?.map(p => [p.open, p.close, p.low, p.high]) ?? [];
+    return (
+        props.priceHistory?.map((p) => [p.open, p.close, p.low, p.high]) ?? []
+    );
 });
 
 // Volume data
 const volumeData = computed(() => {
-    return props.priceHistory?.map(p => ({
-        value: p.volume,
-        itemStyle: {
-            color: p.close >= p.open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)',
-        },
-    })) ?? [];
+    return (
+        props.priceHistory?.map((p) => ({
+            value: p.volume,
+            itemStyle: {
+                color:
+                    p.close >= p.open
+                        ? 'rgba(34, 197, 94, 0.5)'
+                        : 'rgba(239, 68, 68, 0.5)',
+            },
+        })) ?? []
+    );
 });
 
 // Prediction line data
 const predictionLineData = computed(() => {
     if (!props.predictionChartData?.length) return [];
 
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
 
     // Connect from last historical price
     const lastHistorical = props.priceHistory?.[props.priceHistory.length - 1];
@@ -155,10 +189,12 @@ const predictionLineData = computed(() => {
     }
 
     // Add prediction points
-    props.predictionChartData.filter(p => p.isPrediction).forEach(p => {
-        const idx = timestampIndexMap.value.get(p.timestamp);
-        if (idx !== undefined) data[idx] = p.price;
-    });
+    props.predictionChartData
+        .filter((p) => p.isPrediction)
+        .forEach((p) => {
+            const idx = timestampIndexMap.value.get(p.timestamp);
+            if (idx !== undefined) data[idx] = p.price;
+        });
 
     return data;
 });
@@ -166,29 +202,39 @@ const predictionLineData = computed(() => {
 // Confidence band
 const upperBandData = computed(() => {
     if (!props.predictionChartData?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.predictionChartData.filter(p => p.isPrediction && p.upperBound).forEach(p => {
-        const idx = timestampIndexMap.value.get(p.timestamp);
-        if (idx !== undefined) data[idx] = p.upperBound;
-    });
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.predictionChartData
+        .filter((p) => p.isPrediction && p.upperBound)
+        .forEach((p) => {
+            const idx = timestampIndexMap.value.get(p.timestamp);
+            if (idx !== undefined) data[idx] = p.upperBound;
+        });
     return data;
 });
 
 const lowerBandData = computed(() => {
     if (!props.predictionChartData?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.predictionChartData.filter(p => p.isPrediction && p.lowerBound).forEach(p => {
-        const idx = timestampIndexMap.value.get(p.timestamp);
-        if (idx !== undefined) data[idx] = p.lowerBound;
-    });
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.predictionChartData
+        .filter((p) => p.isPrediction && p.lowerBound)
+        .forEach((p) => {
+            const idx = timestampIndexMap.value.get(p.timestamp);
+            if (idx !== undefined) data[idx] = p.lowerBound;
+        });
     return data;
 });
 
 // EMA line data
 const emaData = computed(() => {
     if (!props.indicatorHistory?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.indicatorHistory.forEach(ind => {
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.indicatorHistory.forEach((ind) => {
         const idx = timestampIndexMap.value.get(ind.timestamp);
         if (idx !== undefined && ind.ema !== null) data[idx] = ind.ema;
     });
@@ -198,8 +244,10 @@ const emaData = computed(() => {
 // SMA line data
 const smaData = computed(() => {
     if (!props.indicatorHistory?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.indicatorHistory.forEach(ind => {
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.indicatorHistory.forEach((ind) => {
         const idx = timestampIndexMap.value.get(ind.timestamp);
         if (idx !== undefined && ind.sma !== null) data[idx] = ind.sma;
     });
@@ -209,8 +257,10 @@ const smaData = computed(() => {
 // RSI data
 const rsiData = computed(() => {
     if (!props.indicatorHistory?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.indicatorHistory.forEach(ind => {
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.indicatorHistory.forEach((ind) => {
         const idx = timestampIndexMap.value.get(ind.timestamp);
         if (idx !== undefined && ind.rsi !== null) data[idx] = ind.rsi;
     });
@@ -220,35 +270,46 @@ const rsiData = computed(() => {
 // MACD data
 const macdLineData = computed(() => {
     if (!props.indicatorHistory?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.indicatorHistory.forEach(ind => {
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.indicatorHistory.forEach((ind) => {
         const idx = timestampIndexMap.value.get(ind.timestamp);
-        if (idx !== undefined && ind.macd_line !== null) data[idx] = ind.macd_line;
+        if (idx !== undefined && ind.macd_line !== null)
+            data[idx] = ind.macd_line;
     });
     return data;
 });
 
 const macdSignalData = computed(() => {
     if (!props.indicatorHistory?.length) return [];
-    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(null);
-    props.indicatorHistory.forEach(ind => {
+    const data: (number | null)[] = new Array(rawTimestamps.value.length).fill(
+        null,
+    );
+    props.indicatorHistory.forEach((ind) => {
         const idx = timestampIndexMap.value.get(ind.timestamp);
-        if (idx !== undefined && ind.macd_signal !== null) data[idx] = ind.macd_signal;
+        if (idx !== undefined && ind.macd_signal !== null)
+            data[idx] = ind.macd_signal;
     });
     return data;
 });
 
 const macdHistogramData = computed(() => {
     if (!props.indicatorHistory?.length) return [];
-    return props.indicatorHistory.map(ind => ({
+    return props.indicatorHistory.map((ind) => ({
         value: ind.macd_histogram ?? 0,
         itemStyle: {
-            color: (ind.macd_histogram ?? 0) >= 0 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)',
+            color:
+                (ind.macd_histogram ?? 0) >= 0
+                    ? 'rgba(34, 197, 94, 0.7)'
+                    : 'rgba(239, 68, 68, 0.7)',
         },
     }));
 });
 
-const hasPredictions = computed(() => props.predictionChartData?.some(p => p.isPrediction) ?? false);
+const hasPredictions = computed(
+    () => props.predictionChartData?.some((p) => p.isPrediction) ?? false,
+);
 const hasData = computed(() => (props.priceHistory?.length ?? 0) > 0);
 const hasIndicators = computed(() => (props.indicatorHistory?.length ?? 0) > 0);
 const nowMarkerIndex = computed(() => (props.priceHistory?.length ?? 1) - 1);
@@ -257,7 +318,10 @@ const nowMarkerIndex = computed(() => (props.priceHistory?.length ?? 1) - 1);
 const latestOHLC = computed(() => {
     if (!props.priceHistory?.length) return null;
     const latest = props.priceHistory[props.priceHistory.length - 1];
-    const previous = props.priceHistory.length > 1 ? props.priceHistory[props.priceHistory.length - 2] : null;
+    const previous =
+        props.priceHistory.length > 1
+            ? props.priceHistory[props.priceHistory.length - 2]
+            : null;
     const change = previous ? latest.close - previous.close : 0;
     const changePercent = previous ? (change / previous.close) * 100 : 0;
     return {
@@ -274,7 +338,7 @@ const latestOHLC = computed(() => {
 
 // Line chart data - simple close prices
 const lineData = computed(() => {
-    return props.priceHistory?.map(p => p.close) ?? [];
+    return props.priceHistory?.map((p) => p.close) ?? [];
 });
 
 // Area chart data - same as line but styled differently
@@ -290,43 +354,103 @@ const formatPrice = (value: number) => {
 
 // Dynamic grid layout based on visible indicators
 const gridLayout = computed(() => {
-    const grids: { left: string; right: string; top: string; height: string }[] = [];
-    const xAxisConfigs: { type: string; data: string[]; gridIndex: number; show: boolean }[] = [];
-    const yAxisConfigs: { scale: boolean; gridIndex: number; splitLine: object; axisLabel: object; min?: number; max?: number }[] = [];
+    const grids: {
+        left: string;
+        right: string;
+        top: string;
+        height: string;
+    }[] = [];
+    const xAxisConfigs: {
+        type: string;
+        data: string[];
+        gridIndex: number;
+        show: boolean;
+    }[] = [];
+    const yAxisConfigs: {
+        scale: boolean;
+        gridIndex: number;
+        splitLine: object;
+        axisLabel: object;
+        min?: number;
+        max?: number;
+    }[] = [];
 
     let currentTop = 8; // Start at 8%
     const rightMargin = '4%';
     const leftMargin = '12%';
 
     // Main price grid - always shown (55% if no indicators, smaller if indicators shown)
-    const mainHeight = (showRSI.value || showMACD.value) ? 40 : 55;
-    grids.push({ left: leftMargin, right: rightMargin, top: `${currentTop}%`, height: `${mainHeight}%` });
-    xAxisConfigs.push({ type: 'category', data: chartCategories.value, gridIndex: 0, show: false });
+    const mainHeight = showRSI.value || showMACD.value ? 40 : 55;
+    grids.push({
+        left: leftMargin,
+        right: rightMargin,
+        top: `${currentTop}%`,
+        height: `${mainHeight}%`,
+    });
+    xAxisConfigs.push({
+        type: 'category',
+        data: chartCategories.value,
+        gridIndex: 0,
+        show: false,
+    });
     yAxisConfigs.push({
         scale: true,
         gridIndex: 0,
-        splitLine: { lineStyle: { color: 'hsl(var(--border))', type: 'dashed' } },
-        axisLabel: { fontSize: 10, color: 'hsl(var(--muted-foreground))', formatter: (v: number) => formatPrice(v) },
+        splitLine: {
+            lineStyle: { color: 'hsl(var(--border))', type: 'dashed' },
+        },
+        axisLabel: {
+            fontSize: 10,
+            color: 'hsl(var(--muted-foreground))',
+            formatter: (v: number) => formatPrice(v),
+        },
     });
     currentTop += mainHeight + 2;
 
     // Volume grid - always shown (smaller)
-    const volumeHeight = (showRSI.value || showMACD.value) ? 10 : 15;
-    grids.push({ left: leftMargin, right: rightMargin, top: `${currentTop}%`, height: `${volumeHeight}%` });
-    xAxisConfigs.push({ type: 'category', data: chartCategories.value, gridIndex: 1, show: !(showRSI.value || showMACD.value) });
-    yAxisConfigs.push({ scale: true, gridIndex: 1, splitLine: { show: false }, axisLabel: { show: false } });
+    const volumeHeight = showRSI.value || showMACD.value ? 10 : 15;
+    grids.push({
+        left: leftMargin,
+        right: rightMargin,
+        top: `${currentTop}%`,
+        height: `${volumeHeight}%`,
+    });
+    xAxisConfigs.push({
+        type: 'category',
+        data: chartCategories.value,
+        gridIndex: 1,
+        show: !(showRSI.value || showMACD.value),
+    });
+    yAxisConfigs.push({
+        scale: true,
+        gridIndex: 1,
+        splitLine: { show: false },
+        axisLabel: { show: false },
+    });
     currentTop += volumeHeight + 2;
 
     // RSI grid - optional
     if (showRSI.value) {
-        grids.push({ left: leftMargin, right: rightMargin, top: `${currentTop}%`, height: '12%' });
-        xAxisConfigs.push({ type: 'category', data: chartCategories.value, gridIndex: grids.length - 1, show: !showMACD.value });
+        grids.push({
+            left: leftMargin,
+            right: rightMargin,
+            top: `${currentTop}%`,
+            height: '12%',
+        });
+        xAxisConfigs.push({
+            type: 'category',
+            data: chartCategories.value,
+            gridIndex: grids.length - 1,
+            show: !showMACD.value,
+        });
         yAxisConfigs.push({
             scale: false,
             gridIndex: grids.length - 1,
             min: 0,
             max: 100,
-            splitLine: { lineStyle: { color: 'hsl(var(--border))', type: 'dashed' } },
+            splitLine: {
+                lineStyle: { color: 'hsl(var(--border))', type: 'dashed' },
+            },
             axisLabel: { fontSize: 9, color: 'hsl(var(--muted-foreground))' },
         });
         currentTop += 14;
@@ -334,12 +458,24 @@ const gridLayout = computed(() => {
 
     // MACD grid - optional
     if (showMACD.value) {
-        grids.push({ left: leftMargin, right: rightMargin, top: `${currentTop}%`, height: '12%' });
-        xAxisConfigs.push({ type: 'category', data: chartCategories.value, gridIndex: grids.length - 1, show: true });
+        grids.push({
+            left: leftMargin,
+            right: rightMargin,
+            top: `${currentTop}%`,
+            height: '12%',
+        });
+        xAxisConfigs.push({
+            type: 'category',
+            data: chartCategories.value,
+            gridIndex: grids.length - 1,
+            show: true,
+        });
         yAxisConfigs.push({
             scale: true,
             gridIndex: grids.length - 1,
-            splitLine: { lineStyle: { color: 'hsl(var(--border))', type: 'dashed' } },
+            splitLine: {
+                lineStyle: { color: 'hsl(var(--border))', type: 'dashed' },
+            },
             axisLabel: { fontSize: 9, color: 'hsl(var(--muted-foreground))' },
         });
     }
@@ -354,20 +490,28 @@ const chartOption = computed(() => {
     const series: Record<string, unknown>[] = [];
 
     // Main price series - changes based on chart type
-    const priceMarkLine = hasPredictions.value ? {
-        silent: true,
-        symbol: 'none',
-        data: [{
-            xAxis: nowMarkerIndex.value,
-            label: {
-                formatter: locale.value === 'ar' ? 'الآن' : 'Now',
-                position: 'insideEndTop',
-                fontSize: 11,
-                color: 'hsl(var(--muted-foreground))',
-            },
-        }],
-        lineStyle: { type: 'dashed', color: 'hsl(var(--border))', width: 1 },
-    } : undefined;
+    const priceMarkLine = hasPredictions.value
+        ? {
+              silent: true,
+              symbol: 'none',
+              data: [
+                  {
+                      xAxis: nowMarkerIndex.value,
+                      label: {
+                          formatter: locale.value === 'ar' ? 'الآن' : 'Now',
+                          position: 'insideEndTop',
+                          fontSize: 11,
+                          color: 'hsl(var(--muted-foreground))',
+                      },
+                  },
+              ],
+              lineStyle: {
+                  type: 'dashed',
+                  color: 'hsl(var(--border))',
+                  width: 1,
+              },
+          }
+        : undefined;
 
     if (chartType.value === 'candlestick') {
         // Candlestick chart
@@ -399,7 +543,10 @@ const chartOption = computed(() => {
             areaStyle: {
                 color: {
                     type: 'linear',
-                    x: 0, y: 0, x2: 0, y2: 1,
+                    x: 0,
+                    y: 0,
+                    x2: 0,
+                    y2: 1,
                     colorStops: [
                         { offset: 0, color: 'rgba(59, 130, 246, 0.3)' },
                         { offset: 1, color: 'rgba(59, 130, 246, 0.02)' },
@@ -523,8 +670,22 @@ const chartOption = computed(() => {
                 silent: true,
                 symbol: 'none',
                 data: [
-                    { yAxis: 70, lineStyle: { color: '#ef4444', type: 'dashed', width: 1 } },
-                    { yAxis: 30, lineStyle: { color: '#22c55e', type: 'dashed', width: 1 } },
+                    {
+                        yAxis: 70,
+                        lineStyle: {
+                            color: '#ef4444',
+                            type: 'dashed',
+                            width: 1,
+                        },
+                    },
+                    {
+                        yAxis: 30,
+                        lineStyle: {
+                            color: '#22c55e',
+                            type: 'dashed',
+                            width: 1,
+                        },
+                    },
                 ],
                 label: { show: false },
             },
@@ -575,11 +736,13 @@ const chartOption = computed(() => {
         gridIndex: cfg.gridIndex,
         axisLine: { show: false },
         axisTick: { show: false },
-        axisLabel: cfg.show ? {
-            fontSize: 10,
-            color: 'hsl(var(--muted-foreground))',
-            interval: 'auto',
-        } : { show: false },
+        axisLabel: cfg.show
+            ? {
+                  fontSize: 10,
+                  color: 'hsl(var(--muted-foreground))',
+                  interval: 'auto',
+              }
+            : { show: false },
     }));
 
     // Build dataZoom x-axis indices
@@ -597,17 +760,34 @@ const chartOption = computed(() => {
             backgroundColor: 'hsl(var(--background))',
             borderColor: 'hsl(var(--border))',
             textStyle: { color: 'hsl(var(--foreground))', fontSize: 12 },
-            formatter: (params: { seriesName: string; seriesType: string; value: number | number[] | { value: number }; color: string; axisValue: string }[]) => {
+            formatter: (
+                params: {
+                    seriesName: string;
+                    seriesType: string;
+                    value: number | number[] | { value: number };
+                    color: string;
+                    axisValue: string;
+                }[],
+            ) => {
                 if (!params?.length) return '';
 
                 const date = params[0].axisValue;
                 let html = `<div class="font-medium mb-1">${date}</div>`;
 
-                params.forEach(p => {
+                params.forEach((p) => {
                     if (p.value === null || p.value === undefined) return;
-                    if (p.seriesName === 'Lower' || p.seriesName === t('assetDetail.chart.confidenceBand') || p.seriesName === 'Histogram') return;
+                    if (
+                        p.seriesName === 'Lower' ||
+                        p.seriesName ===
+                            t('assetDetail.chart.confidenceBand') ||
+                        p.seriesName === 'Histogram'
+                    )
+                        return;
 
-                    if (p.seriesType === 'candlestick' && Array.isArray(p.value)) {
+                    if (
+                        p.seriesType === 'candlestick' &&
+                        Array.isArray(p.value)
+                    ) {
                         html += `<div class="flex justify-between gap-4">
                             <span style="color:${p.color}">${p.seriesName}</span>
                             <span>O: ${formatPrice(p.value[0])} C: ${formatPrice(p.value[1])}</span>
@@ -616,14 +796,26 @@ const chartOption = computed(() => {
                             <span></span>
                             <span>H: ${formatPrice(p.value[3])} L: ${formatPrice(p.value[2])}</span>
                         </div>`;
-                    } else if (p.seriesType === 'bar' && p.seriesName === t('assetDetail.chart.volume')) {
-                        const vol = typeof p.value === 'object' && 'value' in p.value ? p.value.value : p.value;
+                    } else if (
+                        p.seriesType === 'bar' &&
+                        p.seriesName === t('assetDetail.chart.volume')
+                    ) {
+                        const vol =
+                            typeof p.value === 'object' && 'value' in p.value
+                                ? p.value.value
+                                : p.value;
                         html += `<div class="flex justify-between gap-4">
                             <span style="color:${p.color}">${p.seriesName}</span>
                             <span>${new Intl.NumberFormat().format(vol as number)}</span>
                         </div>`;
                     } else if (typeof p.value === 'number') {
-                        const unit = ['EMA', 'SMA', t('assetDetail.chart.predicted')].includes(p.seriesName) ? ` ${props.currency}` : '';
+                        const unit = [
+                            'EMA',
+                            'SMA',
+                            t('assetDetail.chart.predicted'),
+                        ].includes(p.seriesName)
+                            ? ` ${props.currency}`
+                            : '';
                         html += `<div class="flex justify-between gap-4">
                             <span style="color:${p.color}">${p.seriesName}</span>
                             <span>${p.seriesName === 'RSI' ? p.value.toFixed(1) : formatPrice(p.value)}${unit}</span>
@@ -665,20 +857,32 @@ const chartHeight = computed(() => {
 <template>
     <div class="space-y-3">
         <!-- OHLC Header Stats - Like professional charts -->
-        <div v-if="latestOHLC" class="flex flex-wrap items-center gap-x-6 gap-y-2 px-1">
+        <div
+            v-if="latestOHLC"
+            class="flex flex-wrap items-center gap-x-6 gap-y-2 px-1"
+        >
             <!-- Price change indicator -->
             <div class="flex items-center gap-2">
-                <span class="text-2xl font-semibold">{{ formatPrice(latestOHLC.close) }}</span>
-                <span class="text-sm text-muted-foreground">{{ currency }}</span>
+                <span class="text-2xl font-semibold">{{
+                    formatPrice(latestOHLC.close)
+                }}</span>
+                <span class="text-sm text-muted-foreground">{{
+                    currency
+                }}</span>
                 <span
                     :class="[
-                        'flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded',
-                        latestOHLC.isPositive ? 'text-green-600 bg-green-500/10' : 'text-red-600 bg-red-500/10'
+                        'flex items-center gap-1 rounded px-2 py-0.5 text-sm font-medium',
+                        latestOHLC.isPositive
+                            ? 'bg-gain-muted text-gain'
+                            : 'bg-loss-muted text-loss',
                     ]"
                 >
                     <TrendingUp v-if="latestOHLC.isPositive" class="size-3.5" />
                     <TrendingDown v-else class="size-3.5" />
-                    {{ latestOHLC.isPositive ? '+' : '' }}{{ formatPrice(latestOHLC.change) }} ({{ latestOHLC.changePercent.toFixed(2) }}%)
+                    {{ latestOHLC.isPositive ? '+' : ''
+                    }}{{ formatPrice(latestOHLC.change) }} ({{
+                        latestOHLC.changePercent.toFixed(2)
+                    }}%)
                 </span>
             </div>
             <!-- OHLC values -->
@@ -688,11 +892,11 @@ const chartHeight = computed(() => {
                     <span>{{ formatPrice(latestOHLC.open) }}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <span class="font-medium text-green-600">H</span>
+                    <span class="font-medium text-gain">H</span>
                     <span>{{ formatPrice(latestOHLC.high) }}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <span class="font-medium text-red-600">L</span>
+                    <span class="font-medium text-loss">L</span>
                     <span>{{ formatPrice(latestOHLC.low) }}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
@@ -703,10 +907,12 @@ const chartHeight = computed(() => {
         </div>
 
         <!-- Controls row: Chart type + Indicators + Period selector -->
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+        <div
+            class="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3"
+        >
             <div class="flex items-center gap-2">
                 <!-- Chart Type Selector -->
-                <div class="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                <div class="flex items-center gap-1 rounded-md bg-muted/50 p-1">
                     <Button
                         :variant="chartType === 'line' ? 'secondary' : 'ghost'"
                         size="sm"
@@ -726,7 +932,9 @@ const chartHeight = computed(() => {
                         <AreaChart class="size-4" />
                     </Button>
                     <Button
-                        :variant="chartType === 'candlestick' ? 'secondary' : 'ghost'"
+                        :variant="
+                            chartType === 'candlestick' ? 'secondary' : 'ghost'
+                        "
                         size="sm"
                         class="h-7 w-7 p-0"
                         :title="t('assetDetail.chart.candlestickChart')"
@@ -739,26 +947,62 @@ const chartHeight = computed(() => {
                 <!-- Indicator toggles (dropdown for cleaner UI) -->
                 <DropdownMenu v-if="hasIndicators">
                     <DropdownMenuTrigger as-child>
-                        <Button variant="outline" size="sm" class="h-7 px-3 text-xs gap-1">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="h-7 gap-1 px-3 text-xs"
+                        >
                             {{ t('assetDetail.chart.indicators') }}
                             <ChevronDown class="size-3" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem @click="showEMA = !showEMA" class="gap-2">
-                            <div :class="['w-2 h-2 rounded-full', showEMA ? 'bg-blue-500' : 'bg-muted']" />
+                        <DropdownMenuItem
+                            @click="showEMA = !showEMA"
+                            class="gap-2"
+                        >
+                            <div
+                                :class="[
+                                    'h-2 w-2 rounded-full',
+                                    showEMA ? 'bg-foreground' : 'bg-muted',
+                                ]"
+                            />
                             EMA (12)
                         </DropdownMenuItem>
-                        <DropdownMenuItem @click="showSMA = !showSMA" class="gap-2">
-                            <div :class="['w-2 h-2 rounded-full', showSMA ? 'bg-purple-500' : 'bg-muted']" />
+                        <DropdownMenuItem
+                            @click="showSMA = !showSMA"
+                            class="gap-2"
+                        >
+                            <div
+                                :class="[
+                                    'h-2 w-2 rounded-full',
+                                    showSMA ? 'bg-foreground/60' : 'bg-muted',
+                                ]"
+                            />
                             SMA (20)
                         </DropdownMenuItem>
-                        <DropdownMenuItem @click="showRSI = !showRSI" class="gap-2">
-                            <div :class="['w-2 h-2 rounded-full', showRSI ? 'bg-yellow-500' : 'bg-muted']" />
+                        <DropdownMenuItem
+                            @click="showRSI = !showRSI"
+                            class="gap-2"
+                        >
+                            <div
+                                :class="[
+                                    'h-2 w-2 rounded-full',
+                                    showRSI ? 'bg-foreground/40' : 'bg-muted',
+                                ]"
+                            />
                             RSI (14)
                         </DropdownMenuItem>
-                        <DropdownMenuItem @click="showMACD = !showMACD" class="gap-2">
-                            <div :class="['w-2 h-2 rounded-full', showMACD ? 'bg-blue-500' : 'bg-muted']" />
+                        <DropdownMenuItem
+                            @click="showMACD = !showMACD"
+                            class="gap-2"
+                        >
+                            <div
+                                :class="[
+                                    'h-2 w-2 rounded-full',
+                                    showMACD ? 'bg-foreground/80' : 'bg-muted',
+                                ]"
+                            />
                             MACD
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -766,7 +1010,7 @@ const chartHeight = computed(() => {
             </div>
 
             <!-- Period selector -->
-            <div class="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+            <div class="flex items-center gap-1 rounded-md bg-muted/50 p-1">
                 <Button
                     v-for="period in periods"
                     :key="period"
@@ -786,53 +1030,65 @@ const chartHeight = computed(() => {
             <!-- Loading overlay -->
             <div
                 v-if="isLoading"
-                class="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm rounded-lg"
+                class="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-background/80 backdrop-blur-sm"
             >
                 <div class="flex flex-col items-center gap-2">
-                    <Loader2 class="size-8 animate-spin text-primary" />
-                    <span class="text-sm text-muted-foreground">{{ t('common.loading') }}</span>
+                    <Loader2 class="size-8 animate-spin text-foreground" />
+                    <span class="text-sm text-muted-foreground">{{
+                        t('common.loading')
+                    }}</span>
                 </div>
             </div>
-            <VChart :option="chartOption" autoresize class="w-full h-full" />
+            <VChart :option="chartOption" autoresize class="h-full w-full" />
         </div>
 
         <!-- Empty state -->
-        <div v-else class="flex items-center justify-center h-64 rounded-lg bg-muted/30 border border-dashed border-border">
+        <div
+            v-else
+            class="flex h-64 items-center justify-center rounded-md border border-dashed border-border bg-muted/30"
+        >
             <p class="text-muted-foreground">{{ t('common.noData') }}</p>
         </div>
 
         <!-- Legend - Compact and contextual -->
-        <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div
+            class="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground"
+        >
             <!-- Price legend varies by chart type -->
-            <div v-if="chartType === 'candlestick'" class="flex items-center gap-1.5">
+            <div
+                v-if="chartType === 'candlestick'"
+                class="flex items-center gap-1.5"
+            >
                 <div class="flex items-center gap-0.5">
-                    <span class="w-1.5 h-3 bg-green-500 rounded-sm"></span>
-                    <span class="w-1.5 h-3 bg-red-500 rounded-sm"></span>
+                    <span class="h-3 w-1.5 rounded-sm bg-gain"></span>
+                    <span class="h-3 w-1.5 rounded-sm bg-loss"></span>
                 </div>
                 <span>{{ t('assetDetail.chart.price') }}</span>
             </div>
             <div v-else class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-blue-500 rounded"></span>
+                <span class="h-0.5 w-3 rounded bg-foreground"></span>
                 <span>{{ t('assetDetail.chart.price') }}</span>
             </div>
             <div v-if="hasPredictions" class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 rounded border-t border-dashed border-orange-500"></span>
+                <span
+                    class="h-0.5 w-3 rounded border-t border-dashed border-muted-foreground"
+                ></span>
                 <span>{{ t('assetDetail.chart.predicted') }}</span>
             </div>
             <div v-if="showEMA" class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-blue-500 rounded"></span>
+                <span class="h-0.5 w-3 rounded bg-foreground"></span>
                 <span>EMA</span>
             </div>
             <div v-if="showSMA" class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-purple-500 rounded"></span>
+                <span class="h-0.5 w-3 rounded bg-foreground/60"></span>
                 <span>SMA</span>
             </div>
             <div v-if="showRSI" class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-yellow-500 rounded"></span>
+                <span class="h-0.5 w-3 rounded bg-foreground/40"></span>
                 <span>RSI</span>
             </div>
             <div v-if="showMACD" class="flex items-center gap-1.5">
-                <span class="w-3 h-0.5 bg-blue-500 rounded"></span>
+                <span class="h-0.5 w-3 rounded bg-foreground/80"></span>
                 <span>MACD</span>
             </div>
         </div>

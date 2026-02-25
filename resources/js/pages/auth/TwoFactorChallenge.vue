@@ -56,14 +56,16 @@ const recoveryForm = useForm({
 });
 
 const submitCodeForm = () => {
-    codeForm.transform((data) => ({
-        ...data,
-        code: codeValue.value,
-    })).post('/two-factor-challenge', {
-        onError: () => {
-            code.value = [];
-        },
-    });
+    codeForm
+        .transform((data) => ({
+            ...data,
+            code: codeValue.value,
+        }))
+        .post('/two-factor-challenge', {
+            onError: () => {
+                code.value = [];
+            },
+        });
 };
 
 const submitRecoveryForm = () => {
@@ -80,10 +82,7 @@ const submitRecoveryForm = () => {
 
         <div class="space-y-6">
             <template v-if="!showRecoveryInput">
-                <form
-                    @submit.prevent="submitCodeForm"
-                    class="space-y-4"
-                >
+                <form @submit.prevent="submitCodeForm" class="space-y-4">
                     <div
                         class="flex flex-col items-center justify-center space-y-3 text-center"
                     >
@@ -108,14 +107,20 @@ const submitRecoveryForm = () => {
                         </div>
                         <InputError :message="codeForm.errors.code" />
                     </div>
-                    <Button type="submit" class="w-full" :disabled="codeForm.processing">
+                    <Button
+                        type="submit"
+                        class="w-full"
+                        :disabled="codeForm.processing"
+                    >
                         {{ t('auth.twoFactor.submitButton') }}
                     </Button>
                     <div class="text-center text-sm text-muted-foreground">
                         <button
                             type="button"
                             class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                            @click="() => toggleRecoveryMode(codeForm.clearErrors)"
+                            @click="
+                                () => toggleRecoveryMode(codeForm.clearErrors)
+                            "
                         >
                             {{ authConfigContent.toggleText }}
                         </button>
@@ -124,10 +129,7 @@ const submitRecoveryForm = () => {
             </template>
 
             <template v-else>
-                <form
-                    @submit.prevent="submitRecoveryForm"
-                    class="space-y-4"
-                >
+                <form @submit.prevent="submitRecoveryForm" class="space-y-4">
                     <Input
                         v-model="recoveryForm.recovery_code"
                         type="text"
@@ -136,7 +138,11 @@ const submitRecoveryForm = () => {
                         required
                     />
                     <InputError :message="recoveryForm.errors.recovery_code" />
-                    <Button type="submit" class="w-full" :disabled="recoveryForm.processing">
+                    <Button
+                        type="submit"
+                        class="w-full"
+                        :disabled="recoveryForm.processing"
+                    >
                         {{ t('auth.twoFactor.submitButton') }}
                     </Button>
 
@@ -144,7 +150,10 @@ const submitRecoveryForm = () => {
                         <button
                             type="button"
                             class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
-                            @click="() => toggleRecoveryMode(recoveryForm.clearErrors)"
+                            @click="
+                                () =>
+                                    toggleRecoveryMode(recoveryForm.clearErrors)
+                            "
                         >
                             {{ authConfigContent.toggleText }}
                         </button>

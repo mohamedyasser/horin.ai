@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     currentPage: number;
@@ -46,7 +46,12 @@ const handleNext = () => {
         </Button>
 
         <span class="text-sm text-muted-foreground">
-            {{ t('common.pageIndicator', { current: currentPage, total: lastPage }) }}
+            {{
+                t('common.pageIndicator', {
+                    current: currentPage,
+                    total: lastPage,
+                })
+            }}
         </span>
 
         <Button

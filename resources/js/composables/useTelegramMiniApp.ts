@@ -1,17 +1,17 @@
-import { computed, ref, shallowRef } from 'vue';
 import {
+    backButton,
     init,
     isTMA,
+    mainButton,
+    miniApp,
+    postEvent,
     retrieveLaunchParams,
     retrieveRawInitData,
-    postEvent,
-    miniApp,
     themeParams,
     viewport,
-    backButton,
-    mainButton,
     type User,
 } from '@telegram-apps/sdk';
+import { computed, ref, shallowRef } from 'vue';
 
 interface AuthResponse {
     success: boolean;
@@ -30,7 +30,9 @@ interface AuthResponse {
 const isInitialized = ref(false);
 const isAuthenticating = ref(false);
 const authError = ref<string | null>(null);
-const launchParams = shallowRef<ReturnType<typeof retrieveLaunchParams> | null>(null);
+const launchParams = shallowRef<ReturnType<typeof retrieveLaunchParams> | null>(
+    null,
+);
 
 /**
  * Composable for Telegram Mini App integration using @telegram-apps/sdk.
@@ -133,9 +135,9 @@ export function useTelegramMiniApp() {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
-                    'Authorization': `tma ${rawData}`,
+                    Authorization: `tma ${rawData}`,
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                     'X-Telegram-Mini-App': 'true',
                 },
             });
@@ -149,7 +151,10 @@ export function useTelegramMiniApp() {
 
             return data;
         } catch (error) {
-            authError.value = error instanceof Error ? error.message : 'Authentication failed';
+            authError.value =
+                error instanceof Error
+                    ? error.message
+                    : 'Authentication failed';
             return null;
         } finally {
             isAuthenticating.value = false;
@@ -208,7 +213,9 @@ export function useTelegramMiniApp() {
     /**
      * Trigger haptic feedback.
      */
-    function hapticFeedback(type: 'success' | 'error' | 'warning' | 'light' | 'medium' | 'heavy') {
+    function hapticFeedback(
+        type: 'success' | 'error' | 'warning' | 'light' | 'medium' | 'heavy',
+    ) {
         try {
             if (type === 'success' || type === 'error' || type === 'warning') {
                 postEvent('web_app_trigger_haptic_feedback', {
@@ -252,7 +259,9 @@ const TMA_AUTH_KEY = 'tma_auth_completed';
  * Initialize Mini App and auto-authenticate if needed.
  * Should be called once on app startup.
  */
-export async function initializeTelegramMiniApp(isAuthenticated: boolean): Promise<AuthResponse | null> {
+export async function initializeTelegramMiniApp(
+    isAuthenticated: boolean,
+): Promise<AuthResponse | null> {
     if (typeof window === 'undefined') return null;
 
     const { isMiniApp, initializeSdk, authenticate } = useTelegramMiniApp();

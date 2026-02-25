@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 const { t, locale } = useI18n();
 const confirmationInput = useTemplateRef('confirmationInput');
 
-const confirmationWord = () => locale.value === 'ar' ? 'حذف' : 'DELETE';
+const confirmationWord = () => (locale.value === 'ar' ? 'حذف' : 'DELETE');
 </script>
 
 <template>
@@ -34,17 +34,21 @@ const confirmationWord = () => locale.value === 'ar' ? 'حذف' : 'DELETE';
             :description="t('settings.deleteAccount.description')"
         />
         <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
+            class="space-y-4 rounded-md border border-destructive/20 bg-destructive/5 p-4"
         >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
-                <p class="font-medium">{{ t('settings.deleteAccount.warningTitle') }}</p>
+            <div class="relative space-y-0.5 text-destructive">
+                <p class="font-medium">
+                    {{ t('settings.deleteAccount.warningTitle') }}
+                </p>
                 <p class="text-sm">
                     {{ t('settings.deleteAccount.warningText') }}
                 </p>
             </div>
             <Dialog>
                 <DialogTrigger as-child>
-                    <Button variant="destructive" data-test="delete-user-button"
+                    <Button
+                        variant="destructive"
+                        data-test="delete-user-button"
                         >{{ t('settings.deleteAccount.deleteButton') }}</Button
                     >
                 </DialogTrigger>
@@ -60,15 +64,27 @@ const confirmationWord = () => locale.value === 'ar' ? 'حذف' : 'DELETE';
                         v-slot="{ errors, processing, reset, clearErrors }"
                     >
                         <DialogHeader class="space-y-3">
-                            <DialogTitle>{{ t('settings.deleteAccount.confirmTitle') }}</DialogTitle>
+                            <DialogTitle>{{
+                                t('settings.deleteAccount.confirmTitle')
+                            }}</DialogTitle>
                             <DialogDescription>
-                                {{ t('settings.deleteAccount.confirmDescription', { word: confirmationWord() }) }}
+                                {{
+                                    t(
+                                        'settings.deleteAccount.confirmDescription',
+                                        { word: confirmationWord() },
+                                    )
+                                }}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div class="grid gap-2">
                             <Label for="confirmation">
-                                {{ t('settings.deleteAccount.confirmationLabel', { word: confirmationWord() }) }}
+                                {{
+                                    t(
+                                        'settings.deleteAccount.confirmationLabel',
+                                        { word: confirmationWord() },
+                                    )
+                                }}
                             </Label>
                             <Input
                                 id="confirmation"

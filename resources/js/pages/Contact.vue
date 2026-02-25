@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import GuestLayout from '@/layouts/GuestLayout.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
+import GuestLayout from '@/layouts/GuestLayout.vue';
+import { Head } from '@inertiajs/vue3';
 import { Mail } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -22,7 +22,7 @@ const supportEmail = 'support@horin.com';
 
 <template>
     <Head :title="t('contact.title')">
-        <meta name="description" :content="t('meta.contact')">
+        <meta name="description" :content="t('meta.contact')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -34,7 +34,7 @@ const supportEmail = 'support@horin.com';
             <div class="mt-10 space-y-8">
                 <!-- Email Section -->
                 <section>
-                    <p class="text-muted-foreground leading-relaxed">
+                    <p class="leading-relaxed text-muted-foreground">
                         {{ t('contact.message') }}
                     </p>
 
@@ -52,7 +52,7 @@ const supportEmail = 'support@horin.com';
                     <h2 class="text-lg font-semibold">
                         {{ t('contact.responseTime.title') }}
                     </h2>
-                    <p class="mt-2 text-muted-foreground leading-relaxed">
+                    <p class="mt-2 leading-relaxed text-muted-foreground">
                         {{ t('contact.responseTime.content') }}
                     </p>
                 </section>
@@ -62,7 +62,9 @@ const supportEmail = 'support@horin.com';
                     <h2 class="text-lg font-semibold">
                         {{ t('contact.include.title') }}
                     </h2>
-                    <ul class="mt-2 list-disc list-inside text-muted-foreground leading-relaxed space-y-1">
+                    <ul
+                        class="mt-2 list-inside list-disc space-y-1 leading-relaxed text-muted-foreground"
+                    >
                         <li>{{ t('contact.include.email') }}</li>
                         <li>{{ t('contact.include.page') }}</li>
                         <li>{{ t('contact.include.description') }}</li>
@@ -73,11 +75,17 @@ const supportEmail = 'support@horin.com';
                 <section class="border-t border-border pt-8">
                     <p class="text-sm text-muted-foreground">
                         {{ t('contact.links.text') }}
-                        <LocalizedLink href="/privacy" class="underline hover:text-foreground">
+                        <LocalizedLink
+                            href="/privacy"
+                            class="underline hover:text-foreground"
+                        >
                             {{ t('privacy.title') }}
                         </LocalizedLink>
                         &middot;
-                        <LocalizedLink href="/terms" class="underline hover:text-foreground">
+                        <LocalizedLink
+                            href="/terms"
+                            class="underline hover:text-foreground"
+                        >
                             {{ t('terms.title') }}
                         </LocalizedLink>
                     </p>

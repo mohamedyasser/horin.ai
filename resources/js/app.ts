@@ -2,13 +2,13 @@ import '../css/app.css';
 import './echo';
 
 import { createInertiaApp } from '@inertiajs/vue3';
+import { configureEcho } from '@laravel/echo-vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
 import { initializeTelegramMiniApp } from './composables/useTelegramMiniApp';
 import i18n from './i18n';
-import { configureEcho } from '@laravel/echo-vue';
 
 configureEcho({
     broadcaster: 'reverb',
@@ -25,13 +25,19 @@ createInertiaApp({
         ),
     setup({ el, App, props, plugin }) {
         // Determine locale: localStorage takes priority, then server, then default
-        const storedLocale = typeof window !== 'undefined' ? localStorage.getItem('locale') : null;
-        const serverLocale = props.initialPage.props.locale as string | undefined;
-        const locale = (storedLocale === 'ar' || storedLocale === 'en')
-            ? storedLocale
-            : (serverLocale === 'ar' || serverLocale === 'en')
-                ? serverLocale
-                : 'ar';
+        const storedLocale =
+            typeof window !== 'undefined'
+                ? localStorage.getItem('locale')
+                : null;
+        const serverLocale = props.initialPage.props.locale as
+            | string
+            | undefined;
+        const locale =
+            storedLocale === 'ar' || storedLocale === 'en'
+                ? storedLocale
+                : serverLocale === 'ar' || serverLocale === 'en'
+                  ? serverLocale
+                  : 'ar';
 
         i18n.global.locale.value = locale;
         document.documentElement.lang = locale;

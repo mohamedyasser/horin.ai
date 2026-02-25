@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { locale } = useI18n();
-const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
+const currentDir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'));
 
 defineProps<{
     title?: string;
@@ -21,7 +21,7 @@ defineProps<{
         :dir="currentDir"
         :lang="locale"
     >
-        <div class="absolute top-4 end-4">
+        <div class="absolute end-4 top-4">
             <LanguageSwitcher />
         </div>
         <div class="w-full max-w-sm">

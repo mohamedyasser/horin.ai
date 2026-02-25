@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import LocalizedLink from '@/components/LocalizedLink.vue';
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import GuestLayout from '@/layouts/GuestLayout.vue';
-import LocalizedLink from '@/components/LocalizedLink.vue';
 
 const { t } = useI18n();
 
@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
     <Head :title="t('methodology.title')">
-        <meta name="description" :content="t('meta.methodology')">
+        <meta name="description" :content="t('meta.methodology')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -38,9 +38,24 @@ const props = withDefaults(defineProps<Props>(), {
                         {{ t('methodology.sections.represent.title') }}
                     </h2>
                     <dl class="mt-4 space-y-3">
-                        <div v-for="item in ['meaning', 'scope', 'output']" :key="item">
-                            <dt class="text-sm font-medium">{{ t(`methodology.sections.represent.${item}.label`) }}</dt>
-                            <dd class="mt-1 text-muted-foreground">{{ t(`methodology.sections.represent.${item}.value`) }}</dd>
+                        <div
+                            v-for="item in ['meaning', 'scope', 'output']"
+                            :key="item"
+                        >
+                            <dt class="text-sm font-medium">
+                                {{
+                                    t(
+                                        `methodology.sections.represent.${item}.label`,
+                                    )
+                                }}
+                            </dt>
+                            <dd class="mt-1 text-muted-foreground">
+                                {{
+                                    t(
+                                        `methodology.sections.represent.${item}.value`,
+                                    )
+                                }}
+                            </dd>
                         </div>
                     </dl>
                 </section>
@@ -51,11 +66,36 @@ const props = withDefaults(defineProps<Props>(), {
                         {{ t('methodology.sections.generated.title') }}
                     </h2>
                     <ol class="mt-4 space-y-4">
-                        <li v-for="(step, index) in ['collection', 'extraction', 'evaluation', 'prediction', 'confidence']" :key="step" class="flex gap-4">
-                            <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-foreground">{{ index + 1 }}</span>
+                        <li
+                            v-for="(step, index) in [
+                                'collection',
+                                'extraction',
+                                'evaluation',
+                                'prediction',
+                                'confidence',
+                            ]"
+                            :key="step"
+                            class="flex gap-4"
+                        >
+                            <span
+                                class="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-foreground"
+                                >{{ index + 1 }}</span
+                            >
                             <div>
-                                <p class="font-medium">{{ t(`methodology.sections.generated.steps.${step}.label`) }}</p>
-                                <p class="mt-1 text-sm text-muted-foreground">{{ t(`methodology.sections.generated.steps.${step}.value`) }}</p>
+                                <p class="font-medium">
+                                    {{
+                                        t(
+                                            `methodology.sections.generated.steps.${step}.label`,
+                                        )
+                                    }}
+                                </p>
+                                <p class="mt-1 text-sm text-muted-foreground">
+                                    {{
+                                        t(
+                                            `methodology.sections.generated.steps.${step}.value`,
+                                        )
+                                    }}
+                                </p>
                             </div>
                         </li>
                     </ol>
@@ -66,23 +106,59 @@ const props = withDefaults(defineProps<Props>(), {
                     <h2 class="text-xl font-semibold">
                         {{ t('methodology.sections.horizons.title') }}
                     </h2>
-                    <div class="mt-4 overflow-hidden rounded-md border border-border">
+                    <div
+                        class="mt-4 overflow-hidden rounded-md border border-border"
+                    >
                         <table class="w-full text-sm">
                             <thead class="bg-muted/50">
                                 <tr>
-                                    <th class="px-4 py-2 text-start font-medium">{{ t('methodology.sections.horizons.horizon') }}</th>
-                                    <th class="px-4 py-2 text-start font-medium">{{ t('methodology.sections.horizons.meaning') }}</th>
+                                    <th
+                                        class="px-4 py-2 text-start font-medium"
+                                    >
+                                        {{
+                                            t(
+                                                'methodology.sections.horizons.horizon',
+                                            )
+                                        }}
+                                    </th>
+                                    <th
+                                        class="px-4 py-2 text-start font-medium"
+                                    >
+                                        {{
+                                            t(
+                                                'methodology.sections.horizons.meaning',
+                                            )
+                                        }}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="h in ['short', 'medium', 'long']" :key="h" class="border-t border-border">
-                                    <td class="px-4 py-2 font-medium">{{ t(`methodology.sections.horizons.items.${h}.label`) }}</td>
-                                    <td class="px-4 py-2 text-muted-foreground">{{ t(`methodology.sections.horizons.items.${h}.value`) }}</td>
+                                <tr
+                                    v-for="h in ['short', 'medium', 'long']"
+                                    :key="h"
+                                    class="border-t border-border"
+                                >
+                                    <td class="px-4 py-2 font-medium">
+                                        {{
+                                            t(
+                                                `methodology.sections.horizons.items.${h}.label`,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="px-4 py-2 text-muted-foreground">
+                                        {{
+                                            t(
+                                                `methodology.sections.horizons.items.${h}.value`,
+                                            )
+                                        }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <p class="mt-2 text-sm text-muted-foreground">{{ t('methodology.sections.horizons.note') }}</p>
+                    <p class="mt-2 text-sm text-muted-foreground">
+                        {{ t('methodology.sections.horizons.note') }}
+                    </p>
                 </section>
 
                 <!-- Confidence Score -->
@@ -91,9 +167,24 @@ const props = withDefaults(defineProps<Props>(), {
                         {{ t('methodology.sections.confidence.title') }}
                     </h2>
                     <dl class="mt-4 space-y-3">
-                        <div v-for="item in ['purpose', 'range', 'notGuarantee']" :key="item">
-                            <dt class="text-sm font-medium">{{ t(`methodology.sections.confidence.${item}.label`) }}</dt>
-                            <dd class="mt-1 text-muted-foreground">{{ t(`methodology.sections.confidence.${item}.value`) }}</dd>
+                        <div
+                            v-for="item in ['purpose', 'range', 'notGuarantee']"
+                            :key="item"
+                        >
+                            <dt class="text-sm font-medium">
+                                {{
+                                    t(
+                                        `methodology.sections.confidence.${item}.label`,
+                                    )
+                                }}
+                            </dt>
+                            <dd class="mt-1 text-muted-foreground">
+                                {{
+                                    t(
+                                        `methodology.sections.confidence.${item}.value`,
+                                    )
+                                }}
+                            </dd>
                         </div>
                     </dl>
                 </section>
@@ -103,18 +194,57 @@ const props = withDefaults(defineProps<Props>(), {
                     <h2 class="text-xl font-semibold">
                         {{ t('methodology.sections.factors.title') }}
                     </h2>
-                    <div class="mt-4 overflow-hidden rounded-md border border-border">
+                    <div
+                        class="mt-4 overflow-hidden rounded-md border border-border"
+                    >
                         <table class="w-full text-sm">
                             <thead class="bg-muted/50">
                                 <tr>
-                                    <th class="px-4 py-2 text-start font-medium">{{ t('methodology.sections.factors.factor') }}</th>
-                                    <th class="px-4 py-2 text-start font-medium">{{ t('methodology.sections.factors.effect') }}</th>
+                                    <th
+                                        class="px-4 py-2 text-start font-medium"
+                                    >
+                                        {{
+                                            t(
+                                                'methodology.sections.factors.factor',
+                                            )
+                                        }}
+                                    </th>
+                                    <th
+                                        class="px-4 py-2 text-start font-medium"
+                                    >
+                                        {{
+                                            t(
+                                                'methodology.sections.factors.effect',
+                                            )
+                                        }}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="f in ['news', 'liquidity', 'history', 'instability']" :key="f" class="border-t border-border">
-                                    <td class="px-4 py-2 font-medium">{{ t(`methodology.sections.factors.items.${f}.label`) }}</td>
-                                    <td class="px-4 py-2 text-muted-foreground">{{ t(`methodology.sections.factors.items.${f}.value`) }}</td>
+                                <tr
+                                    v-for="f in [
+                                        'news',
+                                        'liquidity',
+                                        'history',
+                                        'instability',
+                                    ]"
+                                    :key="f"
+                                    class="border-t border-border"
+                                >
+                                    <td class="px-4 py-2 font-medium">
+                                        {{
+                                            t(
+                                                `methodology.sections.factors.items.${f}.label`,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="px-4 py-2 text-muted-foreground">
+                                        {{
+                                            t(
+                                                `methodology.sections.factors.items.${f}.value`,
+                                            )
+                                        }}
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -127,9 +257,28 @@ const props = withDefaults(defineProps<Props>(), {
                         {{ t('methodology.sections.limitations.title') }}
                     </h2>
                     <dl class="mt-4 space-y-3">
-                        <div v-for="item in ['noRealtime', 'noFundamentals', 'notAdvice']" :key="item">
-                            <dt class="text-sm font-medium">{{ t(`methodology.sections.limitations.${item}.label`) }}</dt>
-                            <dd class="mt-1 text-muted-foreground">{{ t(`methodology.sections.limitations.${item}.value`) }}</dd>
+                        <div
+                            v-for="item in [
+                                'noRealtime',
+                                'noFundamentals',
+                                'notAdvice',
+                            ]"
+                            :key="item"
+                        >
+                            <dt class="text-sm font-medium">
+                                {{
+                                    t(
+                                        `methodology.sections.limitations.${item}.label`,
+                                    )
+                                }}
+                            </dt>
+                            <dd class="mt-1 text-muted-foreground">
+                                {{
+                                    t(
+                                        `methodology.sections.limitations.${item}.value`,
+                                    )
+                                }}
+                            </dd>
                         </div>
                     </dl>
                 </section>
@@ -140,9 +289,28 @@ const props = withDefaults(defineProps<Props>(), {
                         {{ t('methodology.sections.updates.title') }}
                     </h2>
                     <dl class="mt-4 space-y-3">
-                        <div v-for="item in ['dataRefresh', 'predictionRefresh', 'variation']" :key="item">
-                            <dt class="text-sm font-medium">{{ t(`methodology.sections.updates.${item}.label`) }}</dt>
-                            <dd class="mt-1 text-muted-foreground">{{ t(`methodology.sections.updates.${item}.value`) }}</dd>
+                        <div
+                            v-for="item in [
+                                'dataRefresh',
+                                'predictionRefresh',
+                                'variation',
+                            ]"
+                            :key="item"
+                        >
+                            <dt class="text-sm font-medium">
+                                {{
+                                    t(
+                                        `methodology.sections.updates.${item}.label`,
+                                    )
+                                }}
+                            </dt>
+                            <dd class="mt-1 text-muted-foreground">
+                                {{
+                                    t(
+                                        `methodology.sections.updates.${item}.value`,
+                                    )
+                                }}
+                            </dd>
                         </div>
                     </dl>
                 </section>
@@ -153,11 +321,34 @@ const props = withDefaults(defineProps<Props>(), {
                         {{ t('methodology.sections.safeUse.title') }}
                     </h2>
                     <ul class="mt-4 space-y-3">
-                        <li v-for="item in ['compare', 'checkConfidence', 'followTrends', 'avoidOverreliance']" :key="item" class="flex gap-3">
-                            <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-foreground"></span>
+                        <li
+                            v-for="item in [
+                                'compare',
+                                'checkConfidence',
+                                'followTrends',
+                                'avoidOverreliance',
+                            ]"
+                            :key="item"
+                            class="flex gap-3"
+                        >
+                            <span
+                                class="mt-1.5 size-1.5 shrink-0 rounded-full bg-foreground"
+                            ></span>
                             <div>
-                                <p class="font-medium">{{ t(`methodology.sections.safeUse.${item}.label`) }}</p>
-                                <p class="text-sm text-muted-foreground">{{ t(`methodology.sections.safeUse.${item}.value`) }}</p>
+                                <p class="font-medium">
+                                    {{
+                                        t(
+                                            `methodology.sections.safeUse.${item}.label`,
+                                        )
+                                    }}
+                                </p>
+                                <p class="text-sm text-muted-foreground">
+                                    {{
+                                        t(
+                                            `methodology.sections.safeUse.${item}.value`,
+                                        )
+                                    }}
+                                </p>
                             </div>
                         </li>
                     </ul>
@@ -170,7 +361,10 @@ const props = withDefaults(defineProps<Props>(), {
                     </h2>
                     <p class="mt-2 text-muted-foreground">
                         {{ t('methodology.sections.contact.content') }}
-                        <LocalizedLink href="/contact" class="underline hover:text-foreground">
+                        <LocalizedLink
+                            href="/contact"
+                            class="underline hover:text-foreground"
+                        >
                             {{ t('contact.title') }}
                         </LocalizedLink>
                     </p>

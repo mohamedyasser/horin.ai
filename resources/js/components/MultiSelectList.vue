@@ -40,7 +40,7 @@ watch(
     (newVal) => {
         localSelected.value = [...newVal];
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 const toggleItem = (id: string, checked: boolean) => {
@@ -69,7 +69,9 @@ const handleSave = () => {
                 <Checkbox
                     :id="`item-${item.id}`"
                     :model-value="localSelected.includes(item.id)"
-                    @update:model-value="(checked: boolean) => toggleItem(item.id, checked)"
+                    @update:model-value="
+                        (checked: boolean) => toggleItem(item.id, checked)
+                    "
                 />
                 <Label
                     :for="`item-${item.id}`"

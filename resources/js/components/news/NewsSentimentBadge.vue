@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
+import type { NewsSentiment } from '@/types/news';
+import { Minus, TrendingDown, TrendingUp } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-vue-next';
-import type { NewsSentiment } from '@/types/news';
 
 interface Props {
     sentiment: NewsSentiment | null;
@@ -45,7 +45,9 @@ const sentimentConfig = computed(() => {
     }
 });
 
-const sizeClass = computed(() => props.size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1');
+const sizeClass = computed(() =>
+    props.size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1',
+);
 </script>
 
 <template>
@@ -57,7 +59,7 @@ const sizeClass = computed(() => props.size === 'sm' ? 'text-xs px-1.5 py-0.5' :
         <component
             :is="sentimentConfig.icon"
             v-if="showIcon"
-            :class="size === 'sm' ? 'size-3 me-1' : 'size-4 me-1'"
+            :class="size === 'sm' ? 'me-1 size-3' : 'me-1 size-4'"
         />
         {{ sentimentConfig.label }}
     </Badge>

@@ -1,23 +1,33 @@
 <script setup lang="ts">
 import { useAppearance } from '@/composables/useAppearance';
 import { Monitor, Moon, Sun } from 'lucide-vue-next';
-import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { appearance, updateAppearance } = useAppearance();
 
 const tabs = computed(() => [
-    { value: 'light' as const, Icon: Sun, label: t('settings.appearance.lightTheme') },
-    { value: 'dark' as const, Icon: Moon, label: t('settings.appearance.darkTheme') },
-    { value: 'system' as const, Icon: Monitor, label: t('settings.appearance.systemTheme') },
+    {
+        value: 'light' as const,
+        Icon: Sun,
+        label: t('settings.appearance.lightTheme'),
+    },
+    {
+        value: 'dark' as const,
+        Icon: Moon,
+        label: t('settings.appearance.darkTheme'),
+    },
+    {
+        value: 'system' as const,
+        Icon: Monitor,
+        label: t('settings.appearance.systemTheme'),
+    },
 ]);
 </script>
 
 <template>
-    <div
-        class="inline-flex gap-1 rounded-md bg-muted p-1"
-    >
+    <div class="inline-flex gap-1 rounded-md bg-muted p-1">
         <button
             v-for="{ value, Icon, label } in tabs"
             :key="value"

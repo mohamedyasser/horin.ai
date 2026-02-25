@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { AlertTriggerType, AlertDirection, AlertParameters } from '@/types/alerts';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import type {
+    AlertDirection,
+    AlertParameters,
+    AlertTriggerType,
+} from '@/types/alerts';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -22,15 +32,27 @@ const emit = defineEmits<{
     'update:direction': [value: AlertDirection];
 }>();
 
-const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cross_down'];
+const directions: AlertDirection[] = [
+    'above',
+    'below',
+    'both',
+    'cross_up',
+    'cross_down',
+];
 
-const updateParameter = <K extends keyof AlertParameters>(key: K, value: AlertParameters[K]) => {
+const updateParameter = <K extends keyof AlertParameters>(
+    key: K,
+    value: AlertParameters[K],
+) => {
     emit('update:parameters', { ...props.parameters, [key]: value });
 };
 
 const percentFromCurrent = computed(() => {
     if (!props.currentPrice || !props.parameters.target_price) return null;
-    const diff = ((props.parameters.target_price - props.currentPrice) / props.currentPrice) * 100;
+    const diff =
+        ((props.parameters.target_price - props.currentPrice) /
+            props.currentPrice) *
+        100;
     return diff.toFixed(2);
 });
 </script>
@@ -47,23 +69,46 @@ const percentFromCurrent = computed(() => {
                         type="number"
                         step="0.01"
                         :placeholder="currentPrice?.toString()"
-                        @update:model-value="updateParameter('target_price', Number($event))"
+                        @update:model-value="
+                            updateParameter('target_price', Number($event))
+                        "
                     />
-                    <p v-if="currentPrice" class="text-xs text-muted-foreground">
-                        {{ t('alerts.current_price') }}: {{ currentPrice }} {{ t('common.currency') }}
-                        <span v-if="percentFromCurrent" class="ms-1" :class="{ 'text-green-600': Number(percentFromCurrent) > 0, 'text-red-600': Number(percentFromCurrent) < 0 }">
-                            ({{ Number(percentFromCurrent) > 0 ? '+' : '' }}{{ percentFromCurrent }}%)
+                    <p
+                        v-if="currentPrice"
+                        class="text-xs text-muted-foreground"
+                    >
+                        {{ t('alerts.current_price') }}: {{ currentPrice }}
+                        {{ t('common.currency') }}
+                        <span
+                            v-if="percentFromCurrent"
+                            class="ms-1"
+                            :class="{
+                                'text-gain': Number(percentFromCurrent) > 0,
+                                'text-loss': Number(percentFromCurrent) < 0,
+                            }"
+                        >
+                            ({{ Number(percentFromCurrent) > 0 ? '+' : ''
+                            }}{{ percentFromCurrent }}%)
                         </span>
                     </p>
                 </div>
                 <div class="grid gap-2">
                     <Label>{{ t('alerts.fields.direction') }}</Label>
-                    <Select :model-value="direction" @update:model-value="emit('update:direction', $event as AlertDirection)">
+                    <Select
+                        :model-value="direction"
+                        @update:model-value="
+                            emit('update:direction', $event as AlertDirection)
+                        "
+                    >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem v-for="dir in directions" :key="dir" :value="dir">
+                            <SelectItem
+                                v-for="dir in directions"
+                                :key="dir"
+                                :value="dir"
+                            >
                                 {{ t(`alerts.direction.${dir}`) }}
                             </SelectItem>
                         </SelectContent>
@@ -81,32 +126,54 @@ const percentFromCurrent = computed(() => {
                         :model-value="parameters.level"
                         type="number"
                         step="0.01"
-                        @update:model-value="updateParameter('level', Number($event))"
+                        @update:model-value="
+                            updateParameter('level', Number($event))
+                        "
                     />
                 </div>
                 <div class="grid gap-2">
                     <Label>{{ t('alerts.fields.direction') }}</Label>
-                    <Select :model-value="direction" @update:model-value="emit('update:direction', $event as AlertDirection)">
+                    <Select
+                        :model-value="direction"
+                        @update:model-value="
+                            emit('update:direction', $event as AlertDirection)
+                        "
+                    >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="above">{{ t('alerts.direction.above') }}</SelectItem>
-                            <SelectItem value="below">{{ t('alerts.direction.below') }}</SelectItem>
+                            <SelectItem value="above">{{
+                                t('alerts.direction.above')
+                            }}</SelectItem>
+                            <SelectItem value="below">{{
+                                t('alerts.direction.below')
+                            }}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
             </div>
             <div class="grid gap-2">
                 <Label>{{ t('alerts.fields.confirmation') }}</Label>
-                <Select :model-value="parameters.confirmation || 'sustained'" @update:model-value="updateParameter('confirmation', $event)">
+                <Select
+                    :model-value="parameters.confirmation || 'sustained'"
+                    @update:model-value="
+                        updateParameter('confirmation', $event)
+                    "
+                >
                     <SelectTrigger>
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="instant">{{ t('alerts.confirmation.instant') }}</SelectItem>
-                        <SelectItem value="sustained">{{ t('alerts.confirmation.sustained') }}</SelectItem>
-                        <SelectItem value="closing">{{ t('alerts.confirmation.closing') }}</SelectItem>
+                        <SelectItem value="instant">{{
+                            t('alerts.confirmation.instant')
+                        }}</SelectItem>
+                        <SelectItem value="sustained">{{
+                            t('alerts.confirmation.sustained')
+                        }}</SelectItem>
+                        <SelectItem value="closing">{{
+                            t('alerts.confirmation.closing')
+                        }}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -121,7 +188,9 @@ const percentFromCurrent = computed(() => {
                         :model-value="parameters.zone_low"
                         type="number"
                         step="0.01"
-                        @update:model-value="updateParameter('zone_low', Number($event))"
+                        @update:model-value="
+                            updateParameter('zone_low', Number($event))
+                        "
                     />
                 </div>
                 <div class="grid gap-2">
@@ -130,19 +199,28 @@ const percentFromCurrent = computed(() => {
                         :model-value="parameters.zone_high"
                         type="number"
                         step="0.01"
-                        @update:model-value="updateParameter('zone_high', Number($event))"
+                        @update:model-value="
+                            updateParameter('zone_high', Number($event))
+                        "
                     />
                 </div>
             </div>
             <div class="grid gap-2">
                 <Label>{{ t('alerts.fields.trigger_on') }}</Label>
-                <Select :model-value="parameters.trigger_on || 'enter'" @update:model-value="updateParameter('trigger_on', $event)">
+                <Select
+                    :model-value="parameters.trigger_on || 'enter'"
+                    @update:model-value="updateParameter('trigger_on', $event)"
+                >
                     <SelectTrigger>
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="enter">{{ t('alerts.trigger_on.enter') }}</SelectItem>
-                        <SelectItem value="exit">{{ t('alerts.trigger_on.exit') }}</SelectItem>
+                        <SelectItem value="enter">{{
+                            t('alerts.trigger_on.enter')
+                        }}</SelectItem>
+                        <SelectItem value="exit">{{
+                            t('alerts.trigger_on.exit')
+                        }}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -158,20 +236,38 @@ const percentFromCurrent = computed(() => {
                         type="number"
                         step="0.5"
                         min="0"
-                        @update:model-value="updateParameter('gap_threshold_percent', Number($event))"
+                        @update:model-value="
+                            updateParameter(
+                                'gap_threshold_percent',
+                                Number($event),
+                            )
+                        "
                     />
-                    <p class="text-xs text-muted-foreground">{{ t('alerts.fields.gap_threshold_hint') }}</p>
+                    <p class="text-xs text-muted-foreground">
+                        {{ t('alerts.fields.gap_threshold_hint') }}
+                    </p>
                 </div>
                 <div class="grid gap-2">
                     <Label>{{ t('alerts.fields.direction') }}</Label>
-                    <Select :model-value="direction" @update:model-value="emit('update:direction', $event as AlertDirection)">
+                    <Select
+                        :model-value="direction"
+                        @update:model-value="
+                            emit('update:direction', $event as AlertDirection)
+                        "
+                    >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="above">{{ t('alerts.direction.gap_up') }}</SelectItem>
-                            <SelectItem value="below">{{ t('alerts.direction.gap_down') }}</SelectItem>
-                            <SelectItem value="both">{{ t('alerts.direction.both') }}</SelectItem>
+                            <SelectItem value="above">{{
+                                t('alerts.direction.gap_up')
+                            }}</SelectItem>
+                            <SelectItem value="below">{{
+                                t('alerts.direction.gap_down')
+                            }}</SelectItem>
+                            <SelectItem value="both">{{
+                                t('alerts.direction.both')
+                            }}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -182,14 +278,23 @@ const percentFromCurrent = computed(() => {
         <template v-else-if="triggerType === '52week'">
             <div class="grid gap-2">
                 <Label>{{ t('alerts.fields.52week_type') }}</Label>
-                <Select :model-value="parameters.type || 'high'" @update:model-value="updateParameter('type', $event)">
+                <Select
+                    :model-value="parameters.type || 'high'"
+                    @update:model-value="updateParameter('type', $event)"
+                >
                     <SelectTrigger>
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="high">{{ t('alerts.52week.high') }}</SelectItem>
-                        <SelectItem value="low">{{ t('alerts.52week.low') }}</SelectItem>
-                        <SelectItem value="both">{{ t('alerts.52week.both') }}</SelectItem>
+                        <SelectItem value="high">{{
+                            t('alerts.52week.high')
+                        }}</SelectItem>
+                        <SelectItem value="low">{{
+                            t('alerts.52week.low')
+                        }}</SelectItem>
+                        <SelectItem value="both">{{
+                            t('alerts.52week.both')
+                        }}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -205,32 +310,54 @@ const percentFromCurrent = computed(() => {
                         type="number"
                         step="0.5"
                         min="0"
-                        @update:model-value="updateParameter('threshold_percent', Number($event))"
+                        @update:model-value="
+                            updateParameter('threshold_percent', Number($event))
+                        "
                     />
                 </div>
                 <div class="grid gap-2">
                     <Label>{{ t('alerts.fields.direction') }}</Label>
-                    <Select :model-value="direction" @update:model-value="emit('update:direction', $event as AlertDirection)">
+                    <Select
+                        :model-value="direction"
+                        @update:model-value="
+                            emit('update:direction', $event as AlertDirection)
+                        "
+                    >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="above">{{ t('alerts.direction.up') }}</SelectItem>
-                            <SelectItem value="below">{{ t('alerts.direction.down') }}</SelectItem>
-                            <SelectItem value="both">{{ t('alerts.direction.both') }}</SelectItem>
+                            <SelectItem value="above">{{
+                                t('alerts.direction.up')
+                            }}</SelectItem>
+                            <SelectItem value="below">{{
+                                t('alerts.direction.down')
+                            }}</SelectItem>
+                            <SelectItem value="both">{{
+                                t('alerts.direction.both')
+                            }}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
             </div>
             <div class="grid gap-2">
                 <Label>{{ t('alerts.fields.from_reference') }}</Label>
-                <Select :model-value="parameters.from_reference || 'open'" @update:model-value="updateParameter('from_reference', $event)">
+                <Select
+                    :model-value="parameters.from_reference || 'open'"
+                    @update:model-value="
+                        updateParameter('from_reference', $event)
+                    "
+                >
                     <SelectTrigger>
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="open">{{ t('alerts.reference.open') }}</SelectItem>
-                        <SelectItem value="previous_close">{{ t('alerts.reference.previous_close') }}</SelectItem>
+                        <SelectItem value="open">{{
+                            t('alerts.reference.open')
+                        }}</SelectItem>
+                        <SelectItem value="previous_close">{{
+                            t('alerts.reference.previous_close')
+                        }}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -245,7 +372,9 @@ const percentFromCurrent = computed(() => {
                         :model-value="parameters.entry_price"
                         type="number"
                         step="0.01"
-                        @update:model-value="updateParameter('entry_price', Number($event))"
+                        @update:model-value="
+                            updateParameter('entry_price', Number($event))
+                        "
                     />
                 </div>
                 <div class="grid gap-2">
@@ -255,7 +384,9 @@ const percentFromCurrent = computed(() => {
                         type="number"
                         step="0.1"
                         min="0"
-                        @update:model-value="updateParameter('tolerance_percent', Number($event))"
+                        @update:model-value="
+                            updateParameter('tolerance_percent', Number($event))
+                        "
                     />
                 </div>
             </div>

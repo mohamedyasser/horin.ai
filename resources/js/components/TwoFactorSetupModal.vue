@@ -2,7 +2,6 @@
 import AlertError from '@/components/AlertError.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import {
     Dialog,
     DialogContent,
@@ -15,6 +14,7 @@ import {
     PinInputGroup,
     PinInputSlot,
 } from '@/components/ui/pin-input';
+import { Spinner } from '@/components/ui/spinner';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import { useForm } from '@inertiajs/vue3';
 import { useClipboard } from '@vueuse/core';
@@ -44,17 +44,19 @@ const confirmForm = useForm({
 });
 
 const submitConfirmForm = () => {
-    confirmForm.transform((data) => ({
-        ...data,
-        code: codeValue.value,
-    })).post('/user/confirmed-two-factor-authentication', {
-        onFinish: () => {
-            code.value = [];
-        },
-        onSuccess: () => {
-            isOpen.value = false;
-        },
-    });
+    confirmForm
+        .transform((data) => ({
+            ...data,
+            code: codeValue.value,
+        }))
+        .post('/user/confirmed-two-factor-authentication', {
+            onFinish: () => {
+                code.value = [];
+            },
+            onSuccess: () => {
+                isOpen.value = false;
+            },
+        });
 };
 
 const modalConfig = computed<{
@@ -237,7 +239,7 @@ watch(
                                     >
                                         <Check
                                             v-if="copied"
-                                            class="w-4 text-green-500"
+                                            class="w-4 text-gain"
                                         />
                                         <Copy v-else class="w-4" />
                                     </button>
@@ -292,7 +294,8 @@ watch(
                                     type="submit"
                                     class="w-auto flex-1"
                                     :disabled="
-                                        confirmForm.processing || codeValue.length < 6
+                                        confirmForm.processing ||
+                                        codeValue.length < 6
                                     "
                                 >
                                     Confirm

@@ -13,14 +13,14 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, Bell } from 'lucide-vue-next';
-import { useI18n } from 'vue-i18n';
+import { Bell, LayoutGrid } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLogo from './AppLogo.vue';
 
 const { t, locale } = useI18n();
 
-const sidebarSide = computed(() => locale.value === 'ar' ? 'right' : 'left');
+const sidebarSide = computed(() => (locale.value === 'ar' ? 'right' : 'left'));
 
 const mainNavItems = computed<NavItem[]>(() => [
     {

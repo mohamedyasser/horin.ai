@@ -1,12 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import type { Alert } from '@/types/alerts';
-import { useAlerts } from '@/composables/useAlerts';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,18 +9,23 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAlerts } from '@/composables/useAlerts';
+import type { Alert } from '@/types/alerts';
+import { Link } from '@inertiajs/vue3';
 import {
+    AlertTriangle,
+    BarChart3,
+    Brain,
     Clock,
     Edit,
-    Trash2,
-    MoreVertical,
-    TrendingUp,
-    Brain,
-    BarChart3,
-    AlertTriangle,
     Lightbulb,
+    MoreVertical,
     Shapes,
+    Trash2,
+    TrendingUp,
 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 
@@ -39,7 +39,8 @@ const emit = defineEmits<{
     delete: [];
 }>();
 
-const { alertTypeLabels, triggerTypeLabels, priorityLabels, statusLabels } = useAlerts();
+const { alertTypeLabels, triggerTypeLabels, priorityLabels, statusLabels } =
+    useAlerts();
 
 const showSnoozeMenu = ref(false);
 
@@ -53,14 +54,21 @@ const triggerLabel = computed(() => {
     return locale.value === 'ar' ? labels?.ar : labels?.en;
 });
 
-const priorityConfig = computed(() => priorityLabels[props.alert.priority] || priorityLabels.medium);
-const statusConfig = computed(() => statusLabels[props.alert.status] || statusLabels.active);
+const priorityConfig = computed(
+    () => priorityLabels[props.alert.priority] || priorityLabels.medium,
+);
+const statusConfig = computed(
+    () => statusLabels[props.alert.status] || statusLabels.active,
+);
 
 const snoozePresets = [
     { value: '1h', label: t('alerts.snooze.1h') },
     { value: '4h', label: t('alerts.snooze.4h') },
     { value: '1d', label: t('alerts.snooze.1d') },
-    { value: 'until_market_close', label: t('alerts.snooze.until_market_close') },
+    {
+        value: 'until_market_close',
+        label: t('alerts.snooze.until_market_close'),
+    },
     { value: 'until_market_open', label: t('alerts.snooze.until_market_open') },
 ];
 
@@ -71,33 +79,50 @@ const handleSnooze = (preset: string) => {
 
 const getTypeIcon = (type: string) => {
     switch (type) {
-        case 'price': return TrendingUp;
-        case 'prediction': return Brain;
-        case 'signal': return BarChart3;
-        case 'anomaly': return AlertTriangle;
-        case 'recommendation': return Lightbulb;
-        case 'pattern': return Shapes;
-        default: return TrendingUp;
+        case 'price':
+            return TrendingUp;
+        case 'prediction':
+            return Brain;
+        case 'signal':
+            return BarChart3;
+        case 'anomaly':
+            return AlertTriangle;
+        case 'recommendation':
+            return Lightbulb;
+        case 'pattern':
+            return Shapes;
+        default:
+            return TrendingUp;
     }
 };
 
 const getStatusVariant = (status: string) => {
     switch (status) {
-        case 'active': return 'default';
-        case 'triggered': return 'secondary';
-        case 'paused': return 'outline';
-        case 'expired': return 'destructive';
-        default: return 'default';
+        case 'active':
+            return 'default';
+        case 'triggered':
+            return 'secondary';
+        case 'paused':
+            return 'outline';
+        case 'expired':
+            return 'destructive';
+        default:
+            return 'default';
     }
 };
 
 const getPriorityVariant = (priority: string) => {
     switch (priority) {
-        case 'critical': return 'destructive';
-        case 'high': return 'default';
-        case 'medium': return 'secondary';
-        case 'low': return 'outline';
-        default: return 'secondary';
+        case 'critical':
+            return 'destructive';
+        case 'high':
+            return 'default';
+        case 'medium':
+            return 'secondary';
+        case 'low':
+            return 'outline';
+        default:
+            return 'secondary';
     }
 };
 
@@ -111,20 +136,36 @@ const TypeIcon = computed(() => getTypeIcon(props.alert.type));
                 <!-- Left: Alert Info -->
                 <div class="flex items-start gap-4">
                     <!-- Icon -->
-                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
-                        <component :is="TypeIcon" class="size-5 text-foreground" />
+                    <div
+                        class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted"
+                    >
+                        <component
+                            :is="TypeIcon"
+                            class="size-5 text-foreground"
+                        />
                     </div>
 
                     <!-- Details -->
                     <div class="space-y-1">
                         <div class="flex flex-wrap items-center gap-2">
                             <h3 class="font-semibold">
-                                {{ alert.asset?.symbol || t('alerts.multiple_assets') }}
+                                {{
+                                    alert.asset?.symbol ||
+                                    t('alerts.multiple_assets')
+                                }}
                             </h3>
                             <Badge :variant="getStatusVariant(alert.status)">
-                                {{ locale === 'ar' ? statusConfig.ar : statusConfig.en }}
+                                {{
+                                    locale === 'ar'
+                                        ? statusConfig.ar
+                                        : statusConfig.en
+                                }}
                             </Badge>
-                            <Badge v-if="alert.is_snoozed" variant="outline" class="bg-muted">
+                            <Badge
+                                v-if="alert.is_snoozed"
+                                variant="outline"
+                                class="bg-muted"
+                            >
                                 {{ t('alerts.snoozed') }}
                             </Badge>
                         </div>
@@ -135,26 +176,54 @@ const TypeIcon = computed(() => getTypeIcon(props.alert.type));
 
                         <!-- Parameters summary -->
                         <div class="text-sm text-foreground/80">
-                            <template v-if="alert.trigger_type === 'target_price'">
-                                {{ t('alerts.params.target') }}: {{ alert.parameters.target_price }} {{ t('common.currency') }}
-                                <span class="text-muted-foreground">({{ alert.parameters.direction }})</span>
+                            <template
+                                v-if="alert.trigger_type === 'target_price'"
+                            >
+                                {{ t('alerts.params.target') }}:
+                                {{ alert.parameters.target_price }}
+                                {{ t('common.currency') }}
+                                <span class="text-muted-foreground"
+                                    >({{ alert.parameters.direction }})</span
+                                >
                             </template>
-                            <template v-else-if="alert.trigger_type === 'daily_change'">
-                                {{ alert.parameters.threshold_percent }}% {{ t('alerts.params.change') }}
+                            <template
+                                v-else-if="
+                                    alert.trigger_type === 'daily_change'
+                                "
+                            >
+                                {{ alert.parameters.threshold_percent }}%
+                                {{ t('alerts.params.change') }}
                             </template>
                             <template v-else-if="alert.trigger_type === 'zone'">
-                                {{ t('alerts.params.zone') }}: {{ alert.parameters.zone_low }} - {{ alert.parameters.zone_high }} {{ t('common.currency') }}
+                                {{ t('alerts.params.zone') }}:
+                                {{ alert.parameters.zone_low }} -
+                                {{ alert.parameters.zone_high }}
+                                {{ t('common.currency') }}
                             </template>
-                            <template v-else-if="alert.scope !== 'single_asset'">
+                            <template
+                                v-else-if="alert.scope !== 'single_asset'"
+                            >
                                 {{ t(`alerts.scope.${alert.scope}`) }}
                             </template>
                         </div>
 
                         <!-- Triggered info -->
-                        <div v-if="alert.triggered_count > 0" class="text-xs text-muted-foreground">
-                            {{ t('alerts.triggered_count', { count: alert.triggered_count }) }}
+                        <div
+                            v-if="alert.triggered_count > 0"
+                            class="text-xs text-muted-foreground"
+                        >
+                            {{
+                                t('alerts.triggered_count', {
+                                    count: alert.triggered_count,
+                                })
+                            }}
                             <span v-if="alert.last_triggered_at">
-                                &bull; {{ t('alerts.last_triggered') }}: {{ new Date(alert.last_triggered_at).toLocaleString(locale) }}
+                                &bull; {{ t('alerts.last_triggered') }}:
+                                {{
+                                    new Date(
+                                        alert.last_triggered_at,
+                                    ).toLocaleString(locale)
+                                }}
                             </span>
                         </div>
                     </div>
@@ -163,8 +232,15 @@ const TypeIcon = computed(() => getTypeIcon(props.alert.type));
                 <!-- Right: Actions -->
                 <div class="flex items-center gap-2">
                     <!-- Priority badge -->
-                    <Badge :variant="getPriorityVariant(alert.priority)" class="hidden sm:inline-flex">
-                        {{ locale === 'ar' ? priorityConfig.ar : priorityConfig.en }}
+                    <Badge
+                        :variant="getPriorityVariant(alert.priority)"
+                        class="hidden sm:inline-flex"
+                    >
+                        {{
+                            locale === 'ar'
+                                ? priorityConfig.ar
+                                : priorityConfig.en
+                        }}
                     </Badge>
 
                     <!-- Actions dropdown -->

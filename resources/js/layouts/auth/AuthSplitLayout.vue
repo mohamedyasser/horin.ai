@@ -2,11 +2,11 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { home } from '@/routes';
 import { Link, usePage } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { locale } = useI18n();
-const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
+const currentDir = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'));
 
 const page = usePage();
 const name = page.props.name;

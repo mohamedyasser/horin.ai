@@ -22,7 +22,8 @@ const onTelegramAuth = (user: Record<string, unknown>) => {
 
 onMounted(() => {
     // Expose callback to global scope for Telegram widget
-    (window as unknown as Record<string, unknown>).onTelegramAuth = onTelegramAuth;
+    (window as unknown as Record<string, unknown>).onTelegramAuth =
+        onTelegramAuth;
 
     // Load Telegram widget script
     const script = document.createElement('script');

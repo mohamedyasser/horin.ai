@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-import { Head, router, Deferred } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import GuestLayout from '@/layouts/GuestLayout.vue';
-import LocalizedLink from '@/components/LocalizedLink.vue';
-import NewsCard from '@/components/news/NewsCard.vue';
-import NewsListItem from '@/components/news/NewsListItem.vue';
-import NewsFeatured from '@/components/news/NewsFeatured.vue';
 import FilterButtonBar from '@/components/FilterButtonBar.vue';
-import { SearchableSelect } from '@/components/ui/combobox';
+import NewsCard from '@/components/news/NewsCard.vue';
+import NewsFeatured from '@/components/news/NewsFeatured.vue';
+import NewsListItem from '@/components/news/NewsListItem.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SearchableSelect } from '@/components/ui/combobox';
 import {
     Dialog,
     DialogContent,
@@ -20,17 +12,29 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useServerSearch } from '@/composables/useServerSearch';
+import GuestLayout from '@/layouts/GuestLayout.vue';
+import type { PaginationMeta } from '@/types';
+import type {
+    AssetNew,
+    AssetNewListItem,
+    NewsFilterOptions,
+    NewsFilters,
+} from '@/types/news';
+import { Deferred, Head, router } from '@inertiajs/vue3';
 import {
-    Search,
-    Loader2,
-    SlidersHorizontal,
     LayoutGrid,
     List,
+    Loader2,
     Newspaper,
+    Search,
+    SlidersHorizontal,
 } from 'lucide-vue-next';
-import { useServerSearch } from '@/composables/useServerSearch';
-import type { AssetNew, AssetNewListItem, NewsFilters, NewsFilterOptions } from '@/types/news';
-import type { PaginationMeta } from '@/types';
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     canLogin: boolean;
@@ -53,7 +57,9 @@ const { t, locale } = useI18n();
 
 // View mode (persisted in localStorage)
 const viewMode = ref<'grid' | 'list'>(
-    (typeof window !== 'undefined' && localStorage.getItem('newsViewMode') as 'grid' | 'list') || 'grid'
+    (typeof window !== 'undefined' &&
+        (localStorage.getItem('newsViewMode') as 'grid' | 'list')) ||
+        'grid',
 );
 
 watch(viewMode, (newMode) => {
@@ -65,7 +71,14 @@ watch(viewMode, (newMode) => {
 // Server-side search
 const { searchQuery, isSearching } = useServerSearch({
     initialValue: props.filters?.search,
-    preserveParams: ['sentiment', 'category', 'action', 'market_id', 'sector_id', 'country_id'],
+    preserveParams: [
+        'sentiment',
+        'category',
+        'action',
+        'market_id',
+        'sector_id',
+        'country_id',
+    ],
     only: ['news', 'featured', 'filters'],
 });
 
@@ -91,15 +104,24 @@ const actionOptions = computed(() => [
 ]);
 
 const marketOptions = computed(() =>
-    (props.filterOptions?.markets ?? []).map((m) => ({ value: m.id, label: `${m.code} - ${m.name}` }))
+    (props.filterOptions?.markets ?? []).map((m) => ({
+        value: m.id,
+        label: `${m.code} - ${m.name}`,
+    })),
 );
 
 const sectorOptions = computed(() =>
-    (props.filterOptions?.sectors ?? []).map((s) => ({ value: s.id, label: s.name }))
+    (props.filterOptions?.sectors ?? []).map((s) => ({
+        value: s.id,
+        label: s.name,
+    })),
 );
 
 const categoryOptions = computed(() =>
-    (props.filterOptions?.categories ?? []).map((c) => ({ value: c, label: c }))
+    (props.filterOptions?.categories ?? []).map((c) => ({
+        value: c,
+        label: c,
+    })),
 );
 
 // Count active filters
@@ -177,7 +199,7 @@ const goToPage = (page: number) => {
 
 <template>
     <Head :title="t('news.title')">
-        <meta name="description" :content="t('news.metaDescription')">
+        <meta name="description" :content="t('news.metaDescription')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -193,8 +215,14 @@ const goToPage = (page: number) => {
 
                 <!-- Search Bar -->
                 <div class="relative mx-auto mt-8 max-w-xl">
-                    <Search v-if="!isSearching" class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-                    <Loader2 v-else class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground animate-spin" />
+                    <Search
+                        v-if="!isSearching"
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <Loader2
+                        v-else
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground"
+                    />
                     <Input
                         v-model="searchQuery"
                         type="text"
@@ -226,7 +254,9 @@ const goToPage = (page: number) => {
 
             <!-- Controls -->
             <div class="mb-6 flex items-center justify-between">
-                <h2 class="text-xl font-semibold">{{ t('news.latestNews') }}</h2>
+                <h2 class="text-xl font-semibold">
+                    {{ t('news.latestNews') }}
+                </h2>
                 <div class="flex items-center gap-2">
                     <!-- Filter Button -->
                     <Dialog v-model:open="filterOpen">
@@ -234,14 +264,19 @@ const goToPage = (page: number) => {
                             <Button variant="outline" size="sm">
                                 <SlidersHorizontal class="me-1 size-4" />
                                 {{ t('home.filters') }}
-                                <span v-if="activeFilterCount > 0" class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                <span
+                                    v-if="activeFilterCount > 0"
+                                    class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground"
+                                >
                                     {{ activeFilterCount }}
                                 </span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent class="sm:max-w-md">
                             <DialogHeader>
-                                <DialogTitle>{{ t('news.filterNews') }}</DialogTitle>
+                                <DialogTitle>{{
+                                    t('news.filterNews')
+                                }}</DialogTitle>
                             </DialogHeader>
                             <Deferred data="filterOptions">
                                 <template #fallback>
@@ -256,18 +291,24 @@ const goToPage = (page: number) => {
                                 <div class="grid gap-4 py-4">
                                     <!-- Sentiment Select -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('news.sentiment.label') }}</Label>
+                                        <Label>{{
+                                            t('news.sentiment.label')
+                                        }}</Label>
                                         <SearchableSelect
                                             v-model="selectedSentiment"
                                             :options="sentimentOptions"
-                                            :placeholder="t('news.allSentiments')"
+                                            :placeholder="
+                                                t('news.allSentiments')
+                                            "
                                             :empty-text="t('home.noResults')"
                                         />
                                     </div>
 
                                     <!-- Action Select -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('news.action.label') }}</Label>
+                                        <Label>{{
+                                            t('news.action.label')
+                                        }}</Label>
                                         <SearchableSelect
                                             v-model="selectedAction"
                                             :options="actionOptions"
@@ -282,29 +323,39 @@ const goToPage = (page: number) => {
                                         <SearchableSelect
                                             v-model="selectedCategory"
                                             :options="categoryOptions"
-                                            :placeholder="t('news.allCategories')"
+                                            :placeholder="
+                                                t('news.allCategories')
+                                            "
                                             :empty-text="t('home.noResults')"
                                         />
                                     </div>
 
                                     <!-- Market Select -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('predictions.market') }}</Label>
+                                        <Label>{{
+                                            t('predictions.market')
+                                        }}</Label>
                                         <SearchableSelect
                                             v-model="selectedMarket"
                                             :options="marketOptions"
-                                            :placeholder="t('predictions.allMarkets')"
+                                            :placeholder="
+                                                t('predictions.allMarkets')
+                                            "
                                             :empty-text="t('home.noResults')"
                                         />
                                     </div>
 
                                     <!-- Sector Select -->
                                     <div class="grid gap-2">
-                                        <Label>{{ t('predictions.sector') }}</Label>
+                                        <Label>{{
+                                            t('predictions.sector')
+                                        }}</Label>
                                         <SearchableSelect
                                             v-model="selectedSector"
                                             :options="sectorOptions"
-                                            :placeholder="t('predictions.allSectors')"
+                                            :placeholder="
+                                                t('predictions.allSectors')
+                                            "
                                             :empty-text="t('home.noResults')"
                                         />
                                     </div>
@@ -346,9 +397,11 @@ const goToPage = (page: number) => {
             <!-- News Grid/List -->
             <div
                 v-if="newsList.length > 0"
-                :class="viewMode === 'grid'
-                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-                    : 'space-y-4'"
+                :class="
+                    viewMode === 'grid'
+                        ? 'grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'
+                        : 'space-y-4'
+                "
             >
                 <template v-for="item in newsList" :key="item.id">
                     <NewsCard v-if="viewMode === 'grid'" :news="item" />
@@ -362,15 +415,22 @@ const goToPage = (page: number) => {
                 class="flex flex-col items-center justify-center py-16 text-center"
             >
                 <Newspaper class="size-16 text-muted-foreground/30" />
-                <h3 class="mt-4 text-lg font-semibold">{{ t('news.noResults') }}</h3>
-                <p class="mt-2 text-muted-foreground">{{ t('news.noResultsDescription') }}</p>
+                <h3 class="mt-4 text-lg font-semibold">
+                    {{ t('news.noResults') }}
+                </h3>
+                <p class="mt-2 text-muted-foreground">
+                    {{ t('news.noResultsDescription') }}
+                </p>
                 <Button variant="outline" class="mt-4" @click="clearFilters">
                     {{ t('news.clearFilters') }}
                 </Button>
             </div>
 
             <!-- Pagination -->
-            <div v-if="newsMeta && newsMeta.lastPage > 1" class="mt-8 flex items-center justify-center gap-2">
+            <div
+                v-if="newsMeta && newsMeta.lastPage > 1"
+                class="mt-8 flex items-center justify-center gap-2"
+            >
                 <Button
                     variant="outline"
                     size="sm"
@@ -379,7 +439,10 @@ const goToPage = (page: number) => {
                 >
                     {{ t('common.previous') }}
                 </Button>
-                <span dir="ltr" class="text-sm tabular-nums text-muted-foreground">
+                <span
+                    dir="ltr"
+                    class="text-sm text-muted-foreground tabular-nums"
+                >
                     {{ newsMeta.currentPage }} / {{ newsMeta.lastPage }}
                 </span>
                 <Button

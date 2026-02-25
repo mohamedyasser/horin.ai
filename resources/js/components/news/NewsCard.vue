@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import LocalizedLink from '@/components/LocalizedLink.vue';
+import { Card, CardContent } from '@/components/ui/card';
+import type { AssetNewListItem } from '@/types/news';
+import { Building2, Calendar } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import LocalizedLink from '@/components/LocalizedLink.vue';
-import NewsSentimentBadge from './NewsSentimentBadge.vue';
 import NewsActionBadge from './NewsActionBadge.vue';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Building2 } from 'lucide-vue-next';
-import type { AssetNewListItem } from '@/types/news';
+import NewsSentimentBadge from './NewsSentimentBadge.vue';
 
 interface Props {
     news: AssetNewListItem;
@@ -34,8 +34,10 @@ const scoreColor = computed(() => {
 </script>
 
 <template>
-    <LocalizedLink :href="`/news/${news.slug}`" class="block group">
-        <Card class="h-full overflow-hidden border border-border rounded-md hover:bg-muted/30 cursor-pointer transition-colors duration-200">
+    <LocalizedLink :href="`/news/${news.slug}`" class="group block">
+        <Card
+            class="h-full cursor-pointer overflow-hidden rounded-md border border-border transition-colors duration-200 hover:bg-muted/30"
+        >
             <!-- Image -->
             <div class="relative aspect-video">
                 <img
@@ -44,7 +46,10 @@ const scoreColor = computed(() => {
                     :alt="news.title"
                     class="h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
-                <div v-else class="flex h-full w-full items-center justify-center bg-muted">
+                <div
+                    v-else
+                    class="flex h-full w-full items-center justify-center bg-muted"
+                >
                     <Building2 class="size-12 text-muted-foreground/30" />
                 </div>
 
@@ -53,7 +58,10 @@ const scoreColor = computed(() => {
                     v-if="news.score"
                     class="absolute end-2 top-2 rounded-full bg-background/90 px-2 py-0.5 backdrop-blur-sm"
                 >
-                    <span class="text-xs font-bold tabular-nums" :class="scoreColor">
+                    <span
+                        class="text-xs font-bold tabular-nums"
+                        :class="scoreColor"
+                    >
                         {{ news.score }}/10
                     </span>
                 </div>
@@ -73,11 +81,17 @@ const scoreColor = computed(() => {
                     >
                         {{ news.category }}
                     </span>
-                    <NewsActionBadge :action="news.action" size="sm" :show-icon="false" />
+                    <NewsActionBadge
+                        :action="news.action"
+                        size="sm"
+                        :show-icon="false"
+                    />
                 </div>
 
                 <!-- Title -->
-                <h3 class="mb-2 line-clamp-2 font-semibold leading-tight group-hover:text-foreground transition-colors">
+                <h3
+                    class="mb-2 line-clamp-2 leading-tight font-semibold transition-colors group-hover:text-foreground"
+                >
                     {{ news.title }}
                 </h3>
 
@@ -87,9 +101,14 @@ const scoreColor = computed(() => {
                 </p>
 
                 <!-- Meta -->
-                <div class="flex items-center justify-between text-xs text-muted-foreground">
+                <div
+                    class="flex items-center justify-between text-xs text-muted-foreground"
+                >
                     <div class="flex items-center gap-2">
-                        <span v-if="formattedDate" class="flex items-center gap-1">
+                        <span
+                            v-if="formattedDate"
+                            class="flex items-center gap-1"
+                        >
                             <Calendar class="size-3" />
                             {{ formattedDate }}
                         </span>
@@ -98,7 +117,10 @@ const scoreColor = computed(() => {
                         <span v-if="news.asset" class="font-medium">
                             {{ news.asset.symbol }}
                         </span>
-                        <span v-if="news.market" class="rounded bg-muted px-1.5 py-0.5 font-medium">
+                        <span
+                            v-if="news.market"
+                            class="rounded bg-muted px-1.5 py-0.5 font-medium"
+                        >
                             {{ news.market.code }}
                         </span>
                     </div>

@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Head, router, Deferred } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import LocalizedLink from '@/components/LocalizedLink.vue';
-import FilterButtonBar from '@/components/FilterButtonBar.vue';
-import ClickableTableRow from '@/components/ClickableTableRow.vue';
 import AssetDisplay from '@/components/AssetDisplay.vue';
-import { SearchableSelect } from '@/components/ui/combobox';
+import ClickableTableRow from '@/components/ClickableTableRow.vue';
+import FilterButtonBar from '@/components/FilterButtonBar.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
+import RecommendationsTable from '@/components/RecommendationsTable.vue';
+import NewsCard from '@/components/news/NewsCard.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SearchableSelect } from '@/components/ui/combobox';
 import {
     Dialog,
     DialogContent,
@@ -24,32 +21,35 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import GuestLayout from '@/layouts/GuestLayout.vue';
-import {
-    Search,
-    ChevronDown,
-    TrendingUp,
-    Clock,
-    Target,
-    ArrowUpRight,
-    ArrowDownRight,
-    Loader2,
-    SlidersHorizontal,
-} from 'lucide-vue-next';
-import { useServerSearch } from '@/composables/useServerSearch';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
-import RecommendationsTable from '@/components/RecommendationsTable.vue';
-import NewsCard from '@/components/news/NewsCard.vue';
+import { useServerSearch } from '@/composables/useServerSearch';
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import type {
+    FeaturedPrediction,
     HomeStats,
     MarketPreview,
-    SectorPreview,
-    FeaturedPrediction,
-    TopMover,
     RecentPrediction,
     Recommendation,
+    SectorPreview,
+    TopMover,
 } from '@/types';
 import type { AssetNewListItem } from '@/types/news';
+import { Deferred, Head, router } from '@inertiajs/vue3';
+import {
+    ArrowDownRight,
+    ArrowUpRight,
+    ChevronDown,
+    Clock,
+    Loader2,
+    Search,
+    SlidersHorizontal,
+    Target,
+    TrendingUp,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 const { formatGain, getConfidenceColor } = usePredictionFormatters();
@@ -105,19 +105,21 @@ const selectedMarket = ref<string | null>(props.filters?.market ?? null);
 const selectedSector = ref<string | null>(props.filters?.sector ?? null);
 const selectedCountry = ref<string | null>(props.filters?.country ?? null);
 const sortBy = ref<'gain' | 'confidence' | 'newest'>('gain');
-const activeTab = ref<'recommendations' | 'predictions' | 'news'>('predictions');
+const activeTab = ref<'recommendations' | 'predictions' | 'news'>(
+    'predictions',
+);
 
 // Computed - options for searchable selects
 const marketOptions = computed(() =>
-    props.markets.map((m) => ({ value: m.code, label: `${m.name}` }))
+    props.markets.map((m) => ({ value: m.code, label: `${m.name}` })),
 );
 
 const sectorOptions = computed(() =>
-    props.sectors.map((s) => ({ value: s.id, label: s.name }))
+    props.sectors.map((s) => ({ value: s.id, label: s.name })),
 );
 
 const countryOptions = computed(() =>
-    props.countries.map((c) => ({ value: c.id, label: c.name }))
+    props.countries.map((c) => ({ value: c.id, label: c.name })),
 );
 
 // Count active filters
@@ -166,13 +168,19 @@ const filterByMarket = (marketCode: string | null) => {
 };
 
 // Computed - use props data directly (already filtered by server)
-const featuredPredictions = computed(() => props.featuredPredictions?.data ?? []);
+const featuredPredictions = computed(
+    () => props.featuredPredictions?.data ?? [],
+);
 const topMovers = computed(() => props.topMovers ?? []);
 const recentPredictions = computed(() => props.recentPredictions ?? []);
-const featuredRecommendations = computed(() => props.featuredRecommendations?.data ?? []);
+const featuredRecommendations = computed(
+    () => props.featuredRecommendations?.data ?? [],
+);
 const topBuySignals = computed(() => props.topBuySignals ?? []);
 const topSellSignals = computed(() => props.topSellSignals ?? []);
-const recentRecommendationsData = computed(() => props.recentRecommendations ?? []);
+const recentRecommendationsData = computed(
+    () => props.recentRecommendations ?? [],
+);
 const featuredNews = computed(() => props.featuredNews ?? []);
 
 // Sort predictions client-side (sorting doesn't require server round-trip)
@@ -193,12 +201,11 @@ const sortedPredictions = computed(() => {
 
     return result;
 });
-
 </script>
 
 <template>
     <Head :title="t('home.title')">
-        <meta name="description" :content="t('meta.home')">
+        <meta name="description" :content="t('meta.home')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -214,8 +221,14 @@ const sortedPredictions = computed(() => {
 
                 <!-- Search Bar -->
                 <div class="relative mx-auto mt-8 max-w-xl">
-                    <Search v-if="!isSearching" class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-                    <Loader2 v-else class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground animate-spin" />
+                    <Search
+                        v-if="!isSearching"
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <Loader2
+                        v-else
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground"
+                    />
                     <Input
                         v-model="searchQuery"
                         type="text"
@@ -244,88 +257,144 @@ const sortedPredictions = computed(() => {
                 <!-- Predictions Table -->
                 <div class="lg:col-span-3">
                     <!-- Tab Buttons -->
-                    <div class="mb-4 flex items-center gap-4 border-b border-border">
+                    <div
+                        class="mb-4 flex items-center gap-4 border-b border-border"
+                    >
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
-                            :class="activeTab === 'recommendations' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                            :class="
+                                activeTab === 'recommendations'
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            "
                             @click="activeTab = 'recommendations'"
                         >
                             {{ t('recommendations.title') }}
-                            <span v-if="activeTab === 'recommendations'" class="absolute bottom-0 inset-x-0 h-0.5 bg-foreground" />
+                            <span
+                                v-if="activeTab === 'recommendations'"
+                                class="absolute inset-x-0 bottom-0 h-0.5 bg-foreground"
+                            />
                         </button>
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
-                            :class="activeTab === 'predictions' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                            :class="
+                                activeTab === 'predictions'
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            "
                             @click="activeTab = 'predictions'"
                         >
                             {{ t('home.predictions') }}
-                            <span v-if="activeTab === 'predictions'" class="absolute bottom-0 inset-x-0 h-0.5 bg-foreground" />
+                            <span
+                                v-if="activeTab === 'predictions'"
+                                class="absolute inset-x-0 bottom-0 h-0.5 bg-foreground"
+                            />
                         </button>
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
-                            :class="activeTab === 'news' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+                            :class="
+                                activeTab === 'news'
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground hover:text-foreground'
+                            "
                             @click="activeTab = 'news'"
                         >
                             {{ t('news.title') }}
-                            <span v-if="activeTab === 'news'" class="absolute bottom-0 inset-x-0 h-0.5 bg-foreground" />
+                            <span
+                                v-if="activeTab === 'news'"
+                                class="absolute inset-x-0 bottom-0 h-0.5 bg-foreground"
+                            />
                         </button>
                     </div>
 
                     <!-- Controls -->
-                    <div v-if="activeTab === 'predictions'" class="mb-4 flex items-center justify-between">
-                        <h2 class="text-xl font-semibold">{{ t('home.predictions') }}</h2>
+                    <div
+                        v-if="activeTab === 'predictions'"
+                        class="mb-4 flex items-center justify-between"
+                    >
+                        <h2 class="text-xl font-semibold">
+                            {{ t('home.predictions') }}
+                        </h2>
                         <div class="flex items-center gap-2">
                             <!-- Filter Button -->
                             <Dialog v-model:open="filterOpen">
                                 <DialogTrigger as-child>
                                     <Button variant="outline" size="sm">
-                                        <SlidersHorizontal class="me-1 size-4" />
+                                        <SlidersHorizontal
+                                            class="me-1 size-4"
+                                        />
                                         {{ t('home.filters') }}
-                                        <span v-if="activeFilterCount > 0" class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                        <span
+                                            v-if="activeFilterCount > 0"
+                                            class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground"
+                                        >
                                             {{ activeFilterCount }}
                                         </span>
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent class="sm:max-w-md">
                                     <DialogHeader>
-                                        <DialogTitle>{{ t('home.filterPredictions') }}</DialogTitle>
+                                        <DialogTitle>{{
+                                            t('home.filterPredictions')
+                                        }}</DialogTitle>
                                     </DialogHeader>
                                     <div class="grid gap-4 py-4">
                                         <!-- Market Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('predictions.market') }}</Label>
+                                            <Label>{{
+                                                t('predictions.market')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedMarket"
                                                 :options="marketOptions"
-                                                :placeholder="t('predictions.allMarkets')"
-                                                :empty-text="t('home.noResults')"
+                                                :placeholder="
+                                                    t('predictions.allMarkets')
+                                                "
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
 
                                         <!-- Sector Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('predictions.sector') }}</Label>
+                                            <Label>{{
+                                                t('predictions.sector')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedSector"
                                                 :options="sectorOptions"
-                                                :placeholder="t('predictions.allSectors')"
-                                                :empty-text="t('home.noResults')"
+                                                :placeholder="
+                                                    t('predictions.allSectors')
+                                                "
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
 
                                         <!-- Country Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('markets.country') }}</Label>
+                                            <Label>{{
+                                                t('markets.country')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedCountry"
                                                 :options="countryOptions"
-                                                :placeholder="t('markets.allCountries')"
-                                                :empty-text="t('home.noResults')"
+                                                :placeholder="
+                                                    t('markets.allCountries')
+                                                "
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
                                     </div>
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="outline" @click="clearFilters">
+                                        <Button
+                                            variant="outline"
+                                            @click="clearFilters"
+                                        >
                                             {{ t('common.clear') }}
                                         </Button>
                                         <Button @click="applyFilters">
@@ -347,10 +416,14 @@ const sortedPredictions = computed(() => {
                                     <DropdownMenuItem @click="sortBy = 'gain'">
                                         {{ t('home.highestGain') }}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem @click="sortBy = 'confidence'">
+                                    <DropdownMenuItem
+                                        @click="sortBy = 'confidence'"
+                                    >
                                         {{ t('home.confidence') }}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem @click="sortBy = 'newest'">
+                                    <DropdownMenuItem
+                                        @click="sortBy = 'newest'"
+                                    >
                                         {{ t('home.newest') }}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -359,26 +432,46 @@ const sortedPredictions = computed(() => {
                     </div>
 
                     <!-- Recommendations Table -->
-                    <Deferred v-if="activeTab === 'recommendations'" data="featuredRecommendations">
+                    <Deferred
+                        v-if="activeTab === 'recommendations'"
+                        data="featuredRecommendations"
+                    >
                         <template #fallback>
                             <div class="rounded-lg border border-border">
                                 <div class="space-y-4 p-4">
-                                    <div v-for="i in 6" :key="i" class="animate-pulse">
-                                        <div class="h-16 bg-muted rounded-lg"></div>
+                                    <div
+                                        v-for="i in 6"
+                                        :key="i"
+                                        class="animate-pulse"
+                                    >
+                                        <div
+                                            class="h-16 rounded-lg bg-muted"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
                         </template>
-                        <RecommendationsTable :recommendations="featuredRecommendations" />
+                        <RecommendationsTable
+                            :recommendations="featuredRecommendations"
+                        />
                     </Deferred>
 
                     <!-- Predictions Table with Deferred Loading -->
-                    <Deferred v-if="activeTab === 'predictions'" data="featuredPredictions">
+                    <Deferred
+                        v-if="activeTab === 'predictions'"
+                        data="featuredPredictions"
+                    >
                         <template #fallback>
                             <div class="rounded-lg border border-border">
                                 <div class="space-y-4 p-4">
-                                    <div v-for="i in 6" :key="i" class="animate-pulse">
-                                        <div class="h-16 bg-muted rounded-lg"></div>
+                                    <div
+                                        v-for="i in 6"
+                                        :key="i"
+                                        class="animate-pulse"
+                                    >
+                                        <div
+                                            class="h-16 rounded-lg bg-muted"
+                                        ></div>
                                     </div>
                                 </div>
                             </div>
@@ -388,26 +481,44 @@ const sortedPredictions = computed(() => {
                             <div class="overflow-x-auto">
                                 <table class="w-full">
                                     <thead>
-                                        <tr class="border-b border-border bg-muted/50">
-                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                        <tr
+                                            class="border-b border-border bg-muted/50"
+                                        >
+                                            <th
+                                                class="px-4 py-3 text-start text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('home.table.symbol') }}
                                             </th>
-                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-start text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('home.table.name') }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('home.table.current') }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('home.table.predicted') }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                                {{ t('home.table.gainPercent') }}
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
+                                                {{
+                                                    t('home.table.gainPercent')
+                                                }}
                                             </th>
-                                            <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-center text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('home.horizon') }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('home.confidence') }}
                                             </th>
                                         </tr>
@@ -417,47 +528,114 @@ const sortedPredictions = computed(() => {
                                             v-for="prediction in sortedPredictions"
                                             :key="prediction.id"
                                             :aria-label="`${t('common.viewDetailsFor')} ${prediction.asset.symbol} - ${prediction.asset.name}`"
-                                            @click="router.visit(`/${locale}/assets/${prediction.asset.symbol}`)"
+                                            @click="
+                                                router.visit(
+                                                    `/${locale}/assets/${prediction.asset.symbol}`,
+                                                )
+                                            "
                                         >
                                             <td class="px-4 py-3">
                                                 <AssetDisplay
-                                                    :symbol="prediction.asset.symbol"
-                                                    :market-code="prediction.asset.market?.code"
+                                                    :symbol="
+                                                        prediction.asset.symbol
+                                                    "
+                                                    :market-code="
+                                                        prediction.asset.market
+                                                            ?.code
+                                                    "
                                                     :show-name="false"
                                                     :show-logo="false"
                                                     size="md"
                                                 />
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-muted-foreground">
+                                            <td
+                                                class="px-4 py-3 text-sm text-muted-foreground"
+                                            >
                                                 {{ prediction.asset.name }}
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end text-sm tabular-nums">
-                                                <template v-if="prediction.currentPrice">
-                                                    {{ prediction.currentPrice.toFixed(2) }}
+                                            <td
+                                                dir="ltr"
+                                                class="px-4 py-3 text-end text-sm tabular-nums"
+                                            >
+                                                <template
+                                                    v-if="
+                                                        prediction.currentPrice
+                                                    "
+                                                >
+                                                    {{
+                                                        prediction.currentPrice.toFixed(
+                                                            2,
+                                                        )
+                                                    }}
                                                 </template>
-                                                <span v-else class="text-muted-foreground">-</span>
+                                                <span
+                                                    v-else
+                                                    class="text-muted-foreground"
+                                                    >-</span
+                                                >
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium tabular-nums">
-                                                {{ prediction.predictedPrice.toFixed(2) }}
+                                            <td
+                                                dir="ltr"
+                                                class="px-4 py-3 text-end text-sm font-medium tabular-nums"
+                                            >
+                                                {{
+                                                    prediction.predictedPrice.toFixed(
+                                                        2,
+                                                    )
+                                                }}
                                             </td>
-                                            <td class="px-4 py-3 text-end tabular-nums">
+                                            <td
+                                                class="px-4 py-3 text-end tabular-nums"
+                                            >
                                                 <span
                                                     dir="ltr"
                                                     class="inline-flex items-center gap-0.5 font-medium"
-                                                    :class="prediction.expectedGainPercent >= 0 ? 'text-gain' : 'text-loss'"
+                                                    :class="
+                                                        prediction.expectedGainPercent >=
+                                                        0
+                                                            ? 'text-gain'
+                                                            : 'text-loss'
+                                                    "
                                                 >
-                                                    <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
-                                                    <ArrowDownRight v-else class="size-4" />
-                                                    {{ formatGain(prediction.expectedGainPercent) }}
+                                                    <ArrowUpRight
+                                                        v-if="
+                                                            prediction.expectedGainPercent >=
+                                                            0
+                                                        "
+                                                        class="size-4"
+                                                    />
+                                                    <ArrowDownRight
+                                                        v-else
+                                                        class="size-4"
+                                                    />
+                                                    {{
+                                                        formatGain(
+                                                            prediction.expectedGainPercent,
+                                                        )
+                                                    }}
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-center">
-                                                <span class="rounded-full bg-muted px-2 py-1 text-xs font-medium">
-                                                    {{ prediction.horizonLabel }}
+                                                <span
+                                                    class="rounded-full bg-muted px-2 py-1 text-xs font-medium"
+                                                >
+                                                    {{
+                                                        prediction.horizonLabel
+                                                    }}
                                                 </span>
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end tabular-nums">
-                                                <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                            <td
+                                                dir="ltr"
+                                                class="px-4 py-3 text-end tabular-nums"
+                                            >
+                                                <span
+                                                    :class="
+                                                        getConfidenceColor(
+                                                            prediction.confidence,
+                                                        )
+                                                    "
+                                                    class="font-medium"
+                                                >
                                                     {{ prediction.confidence }}%
                                                 </span>
                                             </td>
@@ -471,7 +649,9 @@ const sortedPredictions = computed(() => {
                                 v-if="sortedPredictions.length === 0"
                                 class="flex flex-col items-center justify-center py-12 text-center"
                             >
-                                <Search class="size-12 text-muted-foreground/50" />
+                                <Search
+                                    class="size-12 text-muted-foreground/50"
+                                />
                                 <p class="mt-4 text-muted-foreground">
                                     {{ t('home.noResults') }}
                                 </p>
@@ -480,21 +660,37 @@ const sortedPredictions = computed(() => {
                     </Deferred>
 
                     <!-- Results count -->
-                    <div v-if="activeTab === 'predictions'" class="mt-4 text-center text-sm text-muted-foreground">
-                        {{ t('home.showingPredictions', { count: sortedPredictions.length }) }}
+                    <div
+                        v-if="activeTab === 'predictions'"
+                        class="mt-4 text-center text-sm text-muted-foreground"
+                    >
+                        {{
+                            t('home.showingPredictions', {
+                                count: sortedPredictions.length,
+                            })
+                        }}
                     </div>
 
                     <!-- News Grid -->
                     <Deferred v-if="activeTab === 'news'" data="featuredNews">
                         <template #fallback>
-                            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                <div v-for="i in 6" :key="i" class="animate-pulse">
-                                    <div class="h-64 bg-muted rounded-lg"></div>
+                            <div
+                                class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                            >
+                                <div
+                                    v-for="i in 6"
+                                    :key="i"
+                                    class="animate-pulse"
+                                >
+                                    <div class="h-64 rounded-lg bg-muted"></div>
                                 </div>
                             </div>
                         </template>
 
-                        <div v-if="featuredNews.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <div
+                            v-if="featuredNews.length"
+                            class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                        >
                             <NewsCard
                                 v-for="item in featuredNews"
                                 :key="item.id"
@@ -529,7 +725,9 @@ const sortedPredictions = computed(() => {
                     <!-- Top Movers -->
                     <Card>
                         <CardHeader class="pb-3">
-                            <CardTitle class="flex items-center gap-2 text-base">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
                                 <TrendingUp class="size-4 text-foreground" />
                                 {{ t('home.topMovers') }}
                             </CardTitle>
@@ -538,8 +736,14 @@ const sortedPredictions = computed(() => {
                             <Deferred data="topMovers">
                                 <template #fallback>
                                     <div class="space-y-3">
-                                        <div v-for="i in 5" :key="i" class="animate-pulse">
-                                            <div class="h-8 bg-muted rounded"></div>
+                                        <div
+                                            v-for="i in 5"
+                                            :key="i"
+                                            class="animate-pulse"
+                                        >
+                                            <div
+                                                class="h-8 rounded bg-muted"
+                                            ></div>
                                         </div>
                                     </div>
                                 </template>
@@ -548,7 +752,7 @@ const sortedPredictions = computed(() => {
                                         v-for="mover in topMovers"
                                         :key="mover.id"
                                         :href="`/assets/${mover.symbol}`"
-                                        class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                        class="-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30"
                                     >
                                         <AssetDisplay
                                             :symbol="mover.symbol"
@@ -557,8 +761,15 @@ const sortedPredictions = computed(() => {
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span dir="ltr" class="font-medium tabular-nums text-gain">
-                                            {{ formatGain(mover.priceChangePercent) }}
+                                        <span
+                                            dir="ltr"
+                                            class="font-medium text-gain tabular-nums"
+                                        >
+                                            {{
+                                                formatGain(
+                                                    mover.priceChangePercent,
+                                                )
+                                            }}
                                         </span>
                                     </LocalizedLink>
                                 </div>
@@ -569,7 +780,9 @@ const sortedPredictions = computed(() => {
                     <!-- Highest Confidence (derived from featuredPredictions) -->
                     <Card>
                         <CardHeader class="pb-3">
-                            <CardTitle class="flex items-center gap-2 text-base">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
                                 <Target class="size-4 text-foreground" />
                                 {{ t('home.highestConfidence') }}
                             </CardTitle>
@@ -578,26 +791,49 @@ const sortedPredictions = computed(() => {
                             <Deferred data="featuredPredictions">
                                 <template #fallback>
                                     <div class="space-y-3">
-                                        <div v-for="i in 5" :key="i" class="animate-pulse">
-                                            <div class="h-8 bg-muted rounded"></div>
+                                        <div
+                                            v-for="i in 5"
+                                            :key="i"
+                                            class="animate-pulse"
+                                        >
+                                            <div
+                                                class="h-8 rounded bg-muted"
+                                            ></div>
                                         </div>
                                     </div>
                                 </template>
                                 <div class="space-y-3">
                                     <LocalizedLink
-                                        v-for="prediction in [...featuredPredictions].sort((a, b) => b.confidence - a.confidence).slice(0, 5)"
+                                        v-for="prediction in [
+                                            ...featuredPredictions,
+                                        ]
+                                            .sort(
+                                                (a, b) =>
+                                                    b.confidence - a.confidence,
+                                            )
+                                            .slice(0, 5)"
                                         :key="prediction.id"
                                         :href="`/assets/${prediction.asset.symbol}`"
-                                        class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                        class="-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30"
                                     >
                                         <AssetDisplay
                                             :symbol="prediction.asset.symbol"
-                                            :market-code="prediction.asset.market?.code"
+                                            :market-code="
+                                                prediction.asset.market?.code
+                                            "
                                             :show-name="false"
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium tabular-nums">
+                                        <span
+                                            dir="ltr"
+                                            :class="
+                                                getConfidenceColor(
+                                                    prediction.confidence,
+                                                )
+                                            "
+                                            class="font-medium tabular-nums"
+                                        >
                                             {{ prediction.confidence }}%
                                         </span>
                                     </LocalizedLink>
@@ -609,7 +845,9 @@ const sortedPredictions = computed(() => {
                     <!-- Recent Predictions -->
                     <Card>
                         <CardHeader class="pb-3">
-                            <CardTitle class="flex items-center gap-2 text-base">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
                                 <Clock class="size-4 text-foreground" />
                                 {{ t('home.recentUpdates') }}
                             </CardTitle>
@@ -618,8 +856,14 @@ const sortedPredictions = computed(() => {
                             <Deferred data="recentPredictions">
                                 <template #fallback>
                                     <div class="space-y-3">
-                                        <div v-for="i in 5" :key="i" class="animate-pulse">
-                                            <div class="h-8 bg-muted rounded"></div>
+                                        <div
+                                            v-for="i in 5"
+                                            :key="i"
+                                            class="animate-pulse"
+                                        >
+                                            <div
+                                                class="h-8 rounded bg-muted"
+                                            ></div>
                                         </div>
                                     </div>
                                 </template>
@@ -628,16 +872,20 @@ const sortedPredictions = computed(() => {
                                         v-for="prediction in recentPredictions"
                                         :key="prediction.id"
                                         :href="`/assets/${prediction.asset.symbol}`"
-                                        class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                        class="-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30"
                                     >
                                         <AssetDisplay
                                             :symbol="prediction.asset.symbol"
-                                            :market-code="prediction.asset.market?.code"
+                                            :market-code="
+                                                prediction.asset.market?.code
+                                            "
                                             :show-name="false"
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span class="text-xs text-muted-foreground">
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                        >
                                             {{ prediction.horizonLabel }}
                                         </span>
                                     </LocalizedLink>

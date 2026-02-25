@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/vue3';
-import { ref, watch, type Ref } from 'vue';
+import { ref, type Ref } from 'vue';
 
 export interface FilterOption<T = string> {
     value: T;
@@ -17,8 +17,15 @@ interface UseServerFilterOptions<T> {
     only?: string[];
 }
 
-export function useServerFilter<T = string>(options: UseServerFilterOptions<T>) {
-    const { paramName, initialValue = null, preserveParams = [], only = [] } = options;
+export function useServerFilter<T = string>(
+    options: UseServerFilterOptions<T>,
+) {
+    const {
+        paramName,
+        initialValue = null,
+        preserveParams = [],
+        only = [],
+    } = options;
 
     const selectedValue = ref<T | null>(initialValue) as Ref<T | null>;
     const isFiltering = ref(false);

@@ -10,17 +10,17 @@ export function useRecommendationFormatters() {
     const getActionColor = (action: string): string => {
         switch (action?.toUpperCase()) {
             case 'STRONG_BUY':
-                return 'bg-green-600 text-white';
+                return 'bg-foreground text-background font-semibold';
             case 'BUY':
-                return 'bg-green-500 text-white';
+                return 'bg-gain-muted text-gain';
             case 'HOLD':
-                return 'bg-gray-500 text-white';
+                return 'bg-muted text-muted-foreground';
             case 'SELL':
-                return 'bg-red-500 text-white';
+                return 'bg-loss-muted text-loss';
             case 'STRONG_SELL':
-                return 'bg-red-600 text-white';
+                return 'bg-foreground text-background font-semibold';
             default:
-                return 'bg-gray-400 text-white';
+                return 'bg-muted text-muted-foreground';
         }
     };
 
@@ -31,19 +31,21 @@ export function useRecommendationFormatters() {
         switch (action?.toUpperCase()) {
             case 'STRONG_BUY':
             case 'BUY':
-                return 'text-green-600 dark:text-green-400';
+                return 'text-gain';
             case 'SELL':
             case 'STRONG_SELL':
-                return 'text-red-600 dark:text-red-400';
+                return 'text-loss';
             default:
-                return 'text-gray-600 dark:text-gray-400';
+                return 'text-muted-foreground';
         }
     };
 
     /**
      * Get icon name based on recommendation action
      */
-    const getActionIcon = (action: string): 'TrendingUp' | 'TrendingDown' | 'Minus' => {
+    const getActionIcon = (
+        action: string,
+    ): 'TrendingUp' | 'TrendingDown' | 'Minus' => {
         const upper = action?.toUpperCase();
         if (upper?.includes('BUY')) return 'TrendingUp';
         if (upper?.includes('SELL')) return 'TrendingDown';
@@ -65,11 +67,10 @@ export function useRecommendationFormatters() {
      * Get Tailwind color classes for risk/reward ratio
      */
     const getRiskRewardColor = (ratio: number | null): string => {
-        if (ratio === null) return 'text-gray-500';
-        if (ratio >= 3) return 'text-green-600 dark:text-green-400';
-        if (ratio >= 2) return 'text-green-500 dark:text-green-400';
-        if (ratio >= 1) return 'text-yellow-500 dark:text-yellow-400';
-        return 'text-red-500 dark:text-red-400';
+        if (ratio === null) return 'text-muted-foreground';
+        if (ratio >= 2) return 'text-gain';
+        if (ratio >= 1) return 'text-foreground';
+        return 'text-loss';
     };
 
     /**
@@ -90,19 +91,22 @@ export function useRecommendationFormatters() {
     /**
      * Check if recommendation is stale (older than threshold)
      */
-    const isStale = (date: Date | string | null, thresholdMinutes: number = 30): boolean => {
+    const isStale = (
+        date: Date | string | null,
+        thresholdMinutes: number = 30,
+    ): boolean => {
         if (!date) return true;
         const d = typeof date === 'string' ? new Date(date) : date;
-        return (Date.now() - d.getTime()) > thresholdMinutes * 60 * 1000;
+        return Date.now() - d.getTime() > thresholdMinutes * 60 * 1000;
     };
 
     /**
      * Get strength color based on percentage
      */
     const getStrengthColor = (strength: number): string => {
-        if (strength >= 80) return 'text-green-600 dark:text-green-400';
-        if (strength >= 60) return 'text-yellow-600 dark:text-yellow-400';
-        return 'text-red-600 dark:text-red-400';
+        if (strength >= 80) return 'text-gain';
+        if (strength >= 60) return 'text-foreground';
+        return 'text-loss';
     };
 
     return {

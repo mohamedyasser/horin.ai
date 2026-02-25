@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { useNotifications } from '@/composables/useNotifications';
-import NotificationDropdown from './NotificationDropdown.vue';
 import { Button } from '@/components/ui/button';
+import { useNotifications } from '@/composables/useNotifications';
+import { usePage } from '@inertiajs/vue3';
 import { Bell } from 'lucide-vue-next';
+import { onMounted, onUnmounted, ref } from 'vue';
+import NotificationDropdown from './NotificationDropdown.vue';
 
 const page = usePage();
 const userId = (page.props.auth as { user?: { id: string } })?.user?.id ?? '';
 
-const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(userId);
+const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications(userId);
 
 const showDropdown = ref(false);
 

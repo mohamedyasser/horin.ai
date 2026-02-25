@@ -1,45 +1,47 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Head, Deferred } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import GuestLayout from '@/layouts/GuestLayout.vue';
-import LocalizedLink from '@/components/LocalizedLink.vue';
-import AssetDisplay from '@/components/AssetDisplay.vue';
-import {
-    ChevronLeft,
-    ChevronRight,
-    ChevronDown,
-    TrendingUp,
-    TrendingDown,
-    Clock,
-    Building2,
-    BarChart3,
-    Activity,
-    ArrowUpRight,
-    ArrowDownRight,
-    Gauge,
-    LineChart,
-} from 'lucide-vue-next';
-import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import AssetPriceChart from '@/components/AssetPriceChart.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import RecommendationCard from '@/components/RecommendationCard.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import type {
+    Anomaly,
     AssetDetailData,
-    AssetPriceData,
-    AssetPredictionData,
     AssetIndicatorsData,
+    AssetPredictionData,
+    AssetPriceData,
+    IndicatorHistoryPoint,
+    PatternDetection,
+    PredictionChartPoint,
     PredictionHistoryItem,
     PriceHistoryPoint,
-    PredictionChartPoint,
-    IndicatorHistoryPoint,
     Recommendation,
     Signal,
-    PatternDetection,
-    Anomaly,
 } from '@/types';
+import { Deferred, Head } from '@inertiajs/vue3';
+import {
+    Activity,
+    ArrowDownRight,
+    ArrowUpRight,
+    BarChart3,
+    Building2,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Gauge,
+    LineChart,
+    TrendingDown,
+    TrendingUp,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 const { formatGain, getConfidenceColor } = usePredictionFormatters();
@@ -147,44 +149,67 @@ const isPredictionsOpen = ref(true);
 
 <template>
     <Head :title="t('assetDetail.title', { symbol: asset.symbol })">
-        <meta name="description" :content="t('meta.assetDetail', { symbol: asset.symbol, name: asset.name })">
+        <meta
+            name="description"
+            :content="
+                t('meta.assetDetail', {
+                    symbol: asset.symbol,
+                    name: asset.name,
+                })
+            "
+        />
     </Head>
 
-    <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister" :show-nav="false">
+    <GuestLayout
+        :can-login="props.canLogin"
+        :can-register="props.canRegister"
+        :show-nav="false"
+    >
         <!-- Asset Header Section -->
         <section class="border-b border-border">
             <div class="mx-auto max-w-7xl px-6 pt-20 pb-8">
                 <!-- Back Links -->
-                <div class="flex flex-wrap items-center gap-4 mb-6">
+                <div class="mb-6 flex flex-wrap items-center gap-4">
                     <LocalizedLink
                         v-if="asset.market"
                         :href="`/markets/${asset.market.code}`"
-                        class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
-                        <component :is="locale === 'ar' ? ChevronRight : ChevronLeft" class="size-4" />
+                        <component
+                            :is="locale === 'ar' ? ChevronRight : ChevronLeft"
+                            class="size-4"
+                        />
                         {{ t('assetDetail.backToMarket') }}
                     </LocalizedLink>
-                    <span v-if="asset.market && asset.sector" class="text-muted-foreground">|</span>
+                    <span
+                        v-if="asset.market && asset.sector"
+                        class="text-muted-foreground"
+                        >|</span
+                    >
                     <LocalizedLink
                         v-if="asset.sector"
                         :href="`/sectors/${asset.sector.id}`"
-                        class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                         {{ t('assetDetail.backToSector') }}
                     </LocalizedLink>
                     <span class="text-muted-foreground">|</span>
                     <LocalizedLink
                         href="/predictions"
-                        class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                         {{ t('assetDetail.backToAll') }}
                     </LocalizedLink>
                 </div>
 
-                <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div
+                    class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
+                >
                     <!-- Asset Info -->
                     <div class="flex items-start gap-4">
-                        <div class="flex size-16 items-center justify-center rounded-md bg-muted text-foreground">
+                        <div
+                            class="flex size-16 items-center justify-center rounded-md bg-muted text-foreground"
+                        >
                             <Building2 class="size-8" />
                         </div>
                         <div>
@@ -192,39 +217,66 @@ const isPredictionsOpen = ref(true);
                                 <h1 class="text-2xl font-bold sm:text-3xl">
                                     {{ asset.symbol }}
                                 </h1>
-                                <span class="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
-                                {{ t(`assetDetail.assetType.${asset.type}`) }}
-                            </span>
+                                <span
+                                    class="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground"
+                                >
+                                    {{
+                                        t(`assetDetail.assetType.${asset.type}`)
+                                    }}
+                                </span>
                             </div>
                             <p class="mt-1 text-lg text-muted-foreground">
                                 {{ asset.name }}
                             </p>
-                            <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                            <span v-if="asset.market" class="flex items-center gap-1">
-                                <BarChart3 class="size-4" />
-                                {{ asset.market.code }} - {{ asset.market.name }}
-                            </span>
-                                <span v-if="asset.sector">{{ asset.sector.name }}</span>
+                            <div
+                                class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
+                            >
+                                <span
+                                    v-if="asset.market"
+                                    class="flex items-center gap-1"
+                                >
+                                    <BarChart3 class="size-4" />
+                                    {{ asset.market.code }} -
+                                    {{ asset.market.name }}
+                                </span>
+                                <span v-if="asset.sector">{{
+                                    asset.sector.name
+                                }}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Current Price -->
-                    <div v-if="price" class="flex flex-col items-start lg:items-end">
+                    <div
+                        v-if="price"
+                        class="flex flex-col items-start lg:items-end"
+                    >
                         <div class="flex items-baseline gap-3">
-                            <span dir="ltr" class="text-3xl font-bold tabular-nums">{{ formatPrice(price.last) }}</span>
+                            <span
+                                dir="ltr"
+                                class="text-3xl font-bold tabular-nums"
+                                >{{ formatPrice(price.last) }}</span
+                            >
                             <span
                                 dir="ltr"
                                 class="flex items-center gap-1 text-lg font-medium tabular-nums"
-                                :class="priceChangeIsPositive ? 'text-gain' : 'text-loss'"
+                                :class="
+                                    priceChangeIsPositive
+                                        ? 'text-gain'
+                                        : 'text-loss'
+                                "
                             >
-                            <ArrowUpRight v-if="priceChangeIsPositive" class="size-5" />
-                            <ArrowDownRight v-else class="size-5" />
-                            {{ price.changePercent }}%
-                        </span>
+                                <ArrowUpRight
+                                    v-if="priceChangeIsPositive"
+                                    class="size-5"
+                                />
+                                <ArrowDownRight v-else class="size-5" />
+                                {{ price.changePercent }}%
+                            </span>
                         </div>
-                        <p class="text-sm text-muted-foreground mt-1">
-                            {{ t('assetDetail.price.lastUpdated') }}: {{ formatDate(price.updatedAt) }}
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            {{ t('assetDetail.price.lastUpdated') }}:
+                            {{ formatDate(price.updatedAt) }}
                         </p>
                     </div>
                 </div>
@@ -254,7 +306,7 @@ const isPredictionsOpen = ref(true);
         <div class="mx-auto max-w-7xl px-6 py-8">
             <div class="grid gap-8 lg:grid-cols-3">
                 <!-- Left Column - Main Content -->
-                <div class="lg:col-span-2 space-y-6">
+                <div class="space-y-6 lg:col-span-2">
                     <!-- Price Details Card -->
                     <Card v-if="price">
                         <CardHeader>
@@ -266,34 +318,79 @@ const isPredictionsOpen = ref(true);
                         <CardContent>
                             <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
                                 <div>
-                                    <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.current') }}</p>
-                                    <p dir="ltr" class="text-lg font-semibold tabular-nums">{{ formatPrice(price.last) }}</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ t('assetDetail.price.current') }}
+                                    </p>
+                                    <p
+                                        dir="ltr"
+                                        class="text-lg font-semibold tabular-nums"
+                                    >
+                                        {{ formatPrice(price.last) }}
+                                    </p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.lastClose') }}</p>
-                                    <p dir="ltr" class="text-lg font-semibold tabular-nums">{{ formatPrice(price.previousClose) }}</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ t('assetDetail.price.lastClose') }}
+                                    </p>
+                                    <p
+                                        dir="ltr"
+                                        class="text-lg font-semibold tabular-nums"
+                                    >
+                                        {{ formatPrice(price.previousClose) }}
+                                    </p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.high') }}</p>
-                                    <p dir="ltr" class="text-lg font-semibold tabular-nums text-gain">{{ formatPrice(price.high) }}</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ t('assetDetail.price.high') }}
+                                    </p>
+                                    <p
+                                        dir="ltr"
+                                        class="text-lg font-semibold text-gain tabular-nums"
+                                    >
+                                        {{ formatPrice(price.high) }}
+                                    </p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.low') }}</p>
-                                    <p dir="ltr" class="text-lg font-semibold tabular-nums text-loss">{{ formatPrice(price.low) }}</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ t('assetDetail.price.low') }}
+                                    </p>
+                                    <p
+                                        dir="ltr"
+                                        class="text-lg font-semibold text-loss tabular-nums"
+                                    >
+                                        {{ formatPrice(price.low) }}
+                                    </p>
                                 </div>
                             </div>
-                            <div class="mt-4 pt-4 border-t border-border">
+                            <div class="mt-4 border-t border-border pt-4">
                                 <div class="flex items-center justify-between">
                                     <div>
-                                        <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.volume') }}</p>
-                                        <p dir="ltr" class="text-lg font-semibold tabular-nums">{{ formatVolume(price.volume) }}</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <p class="text-sm text-muted-foreground">{{ t('assetDetail.price.change') }}</p>
+                                        <p
+                                            class="text-sm text-muted-foreground"
+                                        >
+                                            {{ t('assetDetail.price.volume') }}
+                                        </p>
                                         <p
                                             dir="ltr"
                                             class="text-lg font-semibold tabular-nums"
-                                            :class="priceChangeIsPositive ? 'text-gain' : 'text-loss'"
+                                        >
+                                            {{ formatVolume(price.volume) }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <p
+                                            class="text-sm text-muted-foreground"
+                                        >
+                                            {{ t('assetDetail.price.change') }}
+                                        </p>
+                                        <p
+                                            dir="ltr"
+                                            class="text-lg font-semibold tabular-nums"
+                                            :class="
+                                                priceChangeIsPositive
+                                                    ? 'text-gain'
+                                                    : 'text-loss'
+                                            "
                                         >
                                             {{ price.changePercent }}%
                                         </p>
@@ -307,15 +404,27 @@ const isPredictionsOpen = ref(true);
                     <Collapsible v-model:open="isPredictionsOpen">
                         <Card>
                             <CollapsibleTrigger as-child>
-                                <CardHeader class="cursor-pointer hover:bg-muted transition-colors">
-                                    <CardTitle class="flex items-center justify-between">
+                                <CardHeader
+                                    class="cursor-pointer transition-colors hover:bg-muted"
+                                >
+                                    <CardTitle
+                                        class="flex items-center justify-between"
+                                    >
                                         <span class="flex items-center gap-2">
-                                            <TrendingUp class="size-5 text-foreground" />
-                                            {{ t('assetDetail.prediction.title') }}
+                                            <TrendingUp
+                                                class="size-5 text-foreground"
+                                            />
+                                            {{
+                                                t(
+                                                    'assetDetail.prediction.title',
+                                                )
+                                            }}
                                         </span>
                                         <ChevronDown
                                             class="size-5 text-muted-foreground transition-transform duration-200"
-                                            :class="{ 'rotate-180': isPredictionsOpen }"
+                                            :class="{
+                                                'rotate-180': isPredictionsOpen,
+                                            }"
                                         />
                                     </CardTitle>
                                 </CardHeader>
@@ -325,53 +434,124 @@ const isPredictionsOpen = ref(true);
                                     <Deferred data="predictions">
                                         <template #fallback>
                                             <div class="space-y-4">
-                                                <div v-for="i in 4" :key="i" class="animate-pulse rounded-md border border-border p-4">
-                                                    <div class="h-6 w-20 rounded bg-muted mb-3" />
-                                                    <div class="h-8 w-32 rounded bg-muted" />
+                                                <div
+                                                    v-for="i in 4"
+                                                    :key="i"
+                                                    class="animate-pulse rounded-md border border-border p-4"
+                                                >
+                                                    <div
+                                                        class="mb-3 h-6 w-20 rounded bg-muted"
+                                                    />
+                                                    <div
+                                                        class="h-8 w-32 rounded bg-muted"
+                                                    />
                                                 </div>
                                             </div>
                                         </template>
 
-                                        <div v-if="predictions.length > 0" class="space-y-4">
+                                        <div
+                                            v-if="predictions.length > 0"
+                                            class="space-y-4"
+                                        >
                                             <div
-                                                v-for="(prediction, index) in predictions"
+                                                v-for="(
+                                                    prediction, index
+                                                ) in predictions"
                                                 :key="index"
-                                                class="rounded-md border border-border p-4 hover:bg-muted transition-colors"
+                                                class="rounded-md border border-border p-4 transition-colors hover:bg-muted"
                                             >
-                                                <div class="flex items-start justify-between">
+                                                <div
+                                                    class="flex items-start justify-between"
+                                                >
                                                     <div>
-                                                        <div class="flex items-center gap-2">
-                                                            <span class="rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground">
-                                                                {{ prediction.horizonLabel }}
+                                                        <div
+                                                            class="flex items-center gap-2"
+                                                        >
+                                                            <span
+                                                                class="rounded-full bg-muted px-3 py-1 text-sm font-medium text-foreground"
+                                                            >
+                                                                {{
+                                                                    prediction.horizonLabel
+                                                                }}
                                                             </span>
                                                             <span
                                                                 dir="ltr"
-                                                                :class="getConfidenceBgColor(prediction.confidence)"
-                                                                class="rounded-full px-2.5 py-1 text-xs font-medium tabular-nums text-foreground"
+                                                                :class="
+                                                                    getConfidenceBgColor(
+                                                                        prediction.confidence,
+                                                                    )
+                                                                "
+                                                                class="rounded-full px-2.5 py-1 text-xs font-medium text-foreground tabular-nums"
                                                             >
-                                                                {{ prediction.confidence }}% {{ t('assetDetail.prediction.confidence') }}
+                                                                {{
+                                                                    prediction.confidence
+                                                                }}%
+                                                                {{
+                                                                    t(
+                                                                        'assetDetail.prediction.confidence',
+                                                                    )
+                                                                }}
                                                             </span>
                                                         </div>
-                                                        <div class="mt-3 flex items-baseline gap-2">
-                                                            <span dir="ltr" class="text-2xl font-bold tabular-nums">{{ formatPrice(prediction.predictedPrice) }}</span>
+                                                        <div
+                                                            class="mt-3 flex items-baseline gap-2"
+                                                        >
+                                                            <span
+                                                                dir="ltr"
+                                                                class="text-2xl font-bold tabular-nums"
+                                                                >{{
+                                                                    formatPrice(
+                                                                        prediction.predictedPrice,
+                                                                    )
+                                                                }}</span
+                                                            >
                                                             <span
                                                                 dir="ltr"
                                                                 class="flex items-center gap-0.5 text-lg font-medium tabular-nums"
-                                                                :class="prediction.expectedGainPercent >= 0 ? 'text-gain' : 'text-loss'"
+                                                                :class="
+                                                                    prediction.expectedGainPercent >=
+                                                                    0
+                                                                        ? 'text-gain'
+                                                                        : 'text-loss'
+                                                                "
                                                             >
-                                                                <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
-                                                                <ArrowDownRight v-else class="size-4" />
-                                                                {{ formatGain(prediction.expectedGainPercent) }}
+                                                                <ArrowUpRight
+                                                                    v-if="
+                                                                        prediction.expectedGainPercent >=
+                                                                        0
+                                                                    "
+                                                                    class="size-4"
+                                                                />
+                                                                <ArrowDownRight
+                                                                    v-else
+                                                                    class="size-4"
+                                                                />
+                                                                {{
+                                                                    formatGain(
+                                                                        prediction.expectedGainPercent,
+                                                                    )
+                                                                }}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div v-else class="flex flex-col items-center justify-center py-8 text-center">
-                                            <TrendingDown class="size-12 text-muted-foreground/50" />
-                                            <p class="mt-4 text-muted-foreground">
-                                                {{ t('assetDetail.prediction.noPredictions') }}
+                                        <div
+                                            v-else
+                                            class="flex flex-col items-center justify-center py-8 text-center"
+                                        >
+                                            <TrendingDown
+                                                class="size-12 text-muted-foreground/50"
+                                            />
+                                            <p
+                                                class="mt-4 text-muted-foreground"
+                                            >
+                                                {{
+                                                    t(
+                                                        'assetDetail.prediction.noPredictions',
+                                                    )
+                                                }}
                                             </p>
                                         </div>
                                     </Deferred>
@@ -393,19 +573,35 @@ const isPredictionsOpen = ref(true);
                                 <template #fallback>
                                     <div class="space-y-4">
                                         <!-- Period selector skeleton -->
-                                        <div class="flex justify-between items-center">
-                                            <div class="h-4 w-24 rounded bg-muted animate-pulse" />
+                                        <div
+                                            class="flex items-center justify-between"
+                                        >
+                                            <div
+                                                class="h-4 w-24 animate-pulse rounded bg-muted"
+                                            />
                                             <div class="flex gap-1">
-                                                <div v-for="i in 4" :key="i" class="h-7 w-10 rounded bg-muted animate-pulse" />
+                                                <div
+                                                    v-for="i in 4"
+                                                    :key="i"
+                                                    class="h-7 w-10 animate-pulse rounded bg-muted"
+                                                />
                                             </div>
                                         </div>
                                         <!-- Chart skeleton -->
-                                        <div class="h-64 sm:h-80 rounded-md bg-muted/30 animate-pulse" />
+                                        <div
+                                            class="h-64 animate-pulse rounded-md bg-muted/30 sm:h-80"
+                                        />
                                         <!-- Legend skeleton -->
                                         <div class="flex justify-center gap-6">
-                                            <div class="h-4 w-20 rounded bg-muted animate-pulse" />
-                                            <div class="h-4 w-20 rounded bg-muted animate-pulse" />
-                                            <div class="h-4 w-24 rounded bg-muted animate-pulse" />
+                                            <div
+                                                class="h-4 w-20 animate-pulse rounded bg-muted"
+                                            />
+                                            <div
+                                                class="h-4 w-20 animate-pulse rounded bg-muted"
+                                            />
+                                            <div
+                                                class="h-4 w-24 animate-pulse rounded bg-muted"
+                                            />
                                         </div>
                                     </div>
                                 </template>
@@ -430,15 +626,25 @@ const isPredictionsOpen = ref(true);
                         <template #fallback>
                             <Card>
                                 <CardHeader class="pb-3">
-                                    <CardTitle class="flex items-center gap-2 text-base">
+                                    <CardTitle
+                                        class="flex items-center gap-2 text-base"
+                                    >
                                         <Gauge class="size-4 text-foreground" />
                                         {{ t('assetDetail.indicators.title') }}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent class="space-y-4">
-                                    <div v-for="i in 5" :key="i" class="flex items-center justify-between animate-pulse">
-                                        <div class="h-4 w-16 rounded bg-muted" />
-                                        <div class="h-4 w-12 rounded bg-muted" />
+                                    <div
+                                        v-for="i in 5"
+                                        :key="i"
+                                        class="flex animate-pulse items-center justify-between"
+                                    >
+                                        <div
+                                            class="h-4 w-16 rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-4 w-12 rounded bg-muted"
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -446,65 +652,189 @@ const isPredictionsOpen = ref(true);
 
                         <Card v-if="indicators">
                             <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
+                                <CardTitle
+                                    class="flex items-center gap-2 text-base"
+                                >
                                     <Gauge class="size-4 text-foreground" />
                                     {{ t('assetDetail.indicators.title') }}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <!-- RSI -->
-                                <div v-if="indicators.rsi !== null" class="flex items-center justify-between">
+                                <div
+                                    v-if="indicators.rsi !== null"
+                                    class="flex items-center justify-between"
+                                >
                                     <div>
-                                        <p class="font-medium">{{ t('assetDetail.indicators.rsi') }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.rsiDesc') }}</p>
+                                        <p class="font-medium">
+                                            {{
+                                                t('assetDetail.indicators.rsi')
+                                            }}
+                                        </p>
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{
+                                                t(
+                                                    'assetDetail.indicators.rsiDesc',
+                                                )
+                                            }}
+                                        </p>
                                     </div>
                                     <div class="text-end">
-                                        <p dir="ltr" class="font-bold tabular-nums">{{ indicators.rsi?.toFixed(1) }}</p>
-                                        <p v-if="getRsiSignal(indicators.rsi)" :class="getRsiSignal(indicators.rsi)?.color" class="text-xs font-medium">
-                                            {{ t(`assetDetail.indicators.${getRsiSignal(indicators.rsi)?.key}`) }}
+                                        <p
+                                            dir="ltr"
+                                            class="font-bold tabular-nums"
+                                        >
+                                            {{ indicators.rsi?.toFixed(1) }}
+                                        </p>
+                                        <p
+                                            v-if="getRsiSignal(indicators.rsi)"
+                                            :class="
+                                                getRsiSignal(indicators.rsi)
+                                                    ?.color
+                                            "
+                                            class="text-xs font-medium"
+                                        >
+                                            {{
+                                                t(
+                                                    `assetDetail.indicators.${getRsiSignal(indicators.rsi)?.key}`,
+                                                )
+                                            }}
                                         </p>
                                     </div>
                                 </div>
 
                                 <!-- MACD -->
-                                <div v-if="indicators.macd?.line !== null" class="flex items-center justify-between">
+                                <div
+                                    v-if="indicators.macd?.line !== null"
+                                    class="flex items-center justify-between"
+                                >
                                     <div>
-                                        <p class="font-medium">{{ t('assetDetail.indicators.macd') }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.macdDesc') }}</p>
+                                        <p class="font-medium">
+                                            {{
+                                                t('assetDetail.indicators.macd')
+                                            }}
+                                        </p>
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{
+                                                t(
+                                                    'assetDetail.indicators.macdDesc',
+                                                )
+                                            }}
+                                        </p>
                                     </div>
                                     <div class="text-end">
-                                        <p dir="ltr" class="font-bold tabular-nums">{{ indicators.macd?.line?.toFixed(2) }}</p>
-                                        <p v-if="getMacdSignal(indicators.macd?.line)" :class="getMacdSignal(indicators.macd?.line)?.color" class="text-xs font-medium">
-                                            {{ t(`assetDetail.indicators.${getMacdSignal(indicators.macd?.line)?.key}`) }}
+                                        <p
+                                            dir="ltr"
+                                            class="font-bold tabular-nums"
+                                        >
+                                            {{
+                                                indicators.macd?.line?.toFixed(
+                                                    2,
+                                                )
+                                            }}
+                                        </p>
+                                        <p
+                                            v-if="
+                                                getMacdSignal(
+                                                    indicators.macd?.line,
+                                                )
+                                            "
+                                            :class="
+                                                getMacdSignal(
+                                                    indicators.macd?.line,
+                                                )?.color
+                                            "
+                                            class="text-xs font-medium"
+                                        >
+                                            {{
+                                                t(
+                                                    `assetDetail.indicators.${getMacdSignal(indicators.macd?.line)?.key}`,
+                                                )
+                                            }}
                                         </p>
                                     </div>
                                 </div>
 
                                 <!-- EMA -->
-                                <div v-if="indicators.ema !== null" class="flex items-center justify-between">
+                                <div
+                                    v-if="indicators.ema !== null"
+                                    class="flex items-center justify-between"
+                                >
                                     <div>
-                                        <p class="font-medium">{{ t('assetDetail.indicators.ema') }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.emaDesc') }}</p>
+                                        <p class="font-medium">
+                                            {{
+                                                t('assetDetail.indicators.ema')
+                                            }}
+                                        </p>
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{
+                                                t(
+                                                    'assetDetail.indicators.emaDesc',
+                                                )
+                                            }}
+                                        </p>
                                     </div>
-                                    <p dir="ltr" class="font-bold tabular-nums">{{ indicators.ema?.toFixed(2) }}</p>
+                                    <p dir="ltr" class="font-bold tabular-nums">
+                                        {{ indicators.ema?.toFixed(2) }}
+                                    </p>
                                 </div>
 
                                 <!-- SMA -->
-                                <div v-if="indicators.sma !== null" class="flex items-center justify-between">
+                                <div
+                                    v-if="indicators.sma !== null"
+                                    class="flex items-center justify-between"
+                                >
                                     <div>
-                                        <p class="font-medium">{{ t('assetDetail.indicators.sma') }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.smaDesc') }}</p>
+                                        <p class="font-medium">
+                                            {{
+                                                t('assetDetail.indicators.sma')
+                                            }}
+                                        </p>
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{
+                                                t(
+                                                    'assetDetail.indicators.smaDesc',
+                                                )
+                                            }}
+                                        </p>
                                     </div>
-                                    <p dir="ltr" class="font-bold tabular-nums">{{ indicators.sma?.toFixed(2) }}</p>
+                                    <p dir="ltr" class="font-bold tabular-nums">
+                                        {{ indicators.sma?.toFixed(2) }}
+                                    </p>
                                 </div>
 
                                 <!-- ATR -->
-                                <div v-if="indicators.atr !== null" class="flex items-center justify-between">
+                                <div
+                                    v-if="indicators.atr !== null"
+                                    class="flex items-center justify-between"
+                                >
                                     <div>
-                                        <p class="font-medium">{{ t('assetDetail.indicators.atr') }}</p>
-                                        <p class="text-xs text-muted-foreground">{{ t('assetDetail.indicators.atrDesc') }}</p>
+                                        <p class="font-medium">
+                                            {{
+                                                t('assetDetail.indicators.atr')
+                                            }}
+                                        </p>
+                                        <p
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{
+                                                t(
+                                                    'assetDetail.indicators.atrDesc',
+                                                )
+                                            }}
+                                        </p>
                                     </div>
-                                    <p dir="ltr" class="font-bold tabular-nums">{{ indicators.atr?.toFixed(2) }}</p>
+                                    <p dir="ltr" class="font-bold tabular-nums">
+                                        {{ indicators.atr?.toFixed(2) }}
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -515,16 +845,26 @@ const isPredictionsOpen = ref(true);
                         <template #fallback>
                             <Card>
                                 <CardHeader class="pb-3">
-                                    <CardTitle class="flex items-center gap-2 text-base">
+                                    <CardTitle
+                                        class="flex items-center gap-2 text-base"
+                                    >
                                         <Clock class="size-4 text-foreground" />
                                         {{ t('assetDetail.history.title') }}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div class="space-y-3">
-                                        <div v-for="i in 5" :key="i" class="flex items-center justify-between py-2 animate-pulse">
-                                            <div class="h-4 w-20 rounded bg-muted" />
-                                            <div class="h-4 w-12 rounded bg-muted" />
+                                        <div
+                                            v-for="i in 5"
+                                            :key="i"
+                                            class="flex animate-pulse items-center justify-between py-2"
+                                        >
+                                            <div
+                                                class="h-4 w-20 rounded bg-muted"
+                                            />
+                                            <div
+                                                class="h-4 w-12 rounded bg-muted"
+                                            />
                                         </div>
                                     </div>
                                 </CardContent>
@@ -533,42 +873,81 @@ const isPredictionsOpen = ref(true);
 
                         <Card>
                             <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
+                                <CardTitle
+                                    class="flex items-center gap-2 text-base"
+                                >
                                     <Clock class="size-4 text-foreground" />
                                     {{ t('assetDetail.history.title') }}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div v-if="predictionHistory.length > 0" class="space-y-3">
+                                <div
+                                    v-if="predictionHistory.length > 0"
+                                    class="space-y-3"
+                                >
                                     <div
-                                        v-for="(prediction, index) in predictionHistory"
+                                        v-for="(
+                                            prediction, index
+                                        ) in predictionHistory"
                                         :key="index"
-                                        class="flex items-center justify-between py-2 border-b border-border last:border-0"
+                                        class="flex items-center justify-between border-b border-border py-2 last:border-0"
                                     >
                                         <div>
-                                            <p dir="ltr" class="font-medium tabular-nums">{{ formatPrice(prediction.predictedPrice) }}</p>
-                                            <p class="text-xs text-muted-foreground">{{ formatShortDate(prediction.timestamp) }}</p>
+                                            <p
+                                                dir="ltr"
+                                                class="font-medium tabular-nums"
+                                            >
+                                                {{
+                                                    formatPrice(
+                                                        prediction.predictedPrice,
+                                                    )
+                                                }}
+                                            </p>
+                                            <p
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                {{
+                                                    formatShortDate(
+                                                        prediction.timestamp,
+                                                    )
+                                                }}
+                                            </p>
                                         </div>
                                         <div class="text-end">
-                                            <span class="rounded bg-muted px-2 py-0.5 text-xs font-medium">
+                                            <span
+                                                class="rounded bg-muted px-2 py-0.5 text-xs font-medium"
+                                            >
                                                 {{ prediction.horizonLabel }}
                                             </span>
-                                            <p dir="ltr" class="text-sm font-medium mt-1 tabular-nums text-foreground">
+                                            <p
+                                                dir="ltr"
+                                                class="mt-1 text-sm font-medium text-foreground tabular-nums"
+                                            >
                                                 {{ prediction.confidence }}%
                                             </p>
                                         </div>
                                     </div>
                                 </div>
-                                <div v-else class="flex flex-col items-center justify-center py-6 text-center">
-                                    <Clock class="size-8 text-muted-foreground/50" />
-                                    <p class="mt-2 text-sm text-muted-foreground">
-                                        {{ t('assetDetail.history.noPredictions') }}
+                                <div
+                                    v-else
+                                    class="flex flex-col items-center justify-center py-6 text-center"
+                                >
+                                    <Clock
+                                        class="size-8 text-muted-foreground/50"
+                                    />
+                                    <p
+                                        class="mt-2 text-sm text-muted-foreground"
+                                    >
+                                        {{
+                                            t(
+                                                'assetDetail.history.noPredictions',
+                                            )
+                                        }}
                                     </p>
                                 </div>
                             </CardContent>
                         </Card>
                     </Deferred>
-
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Component, HTMLAttributes } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Component, HTMLAttributes } from 'vue';
 
 interface Props {
     title: string;
@@ -19,7 +19,10 @@ const props = defineProps<Props>();
             <CardTitle class="flex items-center gap-2 text-base">
                 <component :is="icon" :class="['size-4', iconClass]" />
                 {{ title }}
-                <span v-if="description" class="text-xs font-normal text-muted-foreground">
+                <span
+                    v-if="description"
+                    class="text-xs font-normal text-muted-foreground"
+                >
                     {{ description }}
                 </span>
             </CardTitle>

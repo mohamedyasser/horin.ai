@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { Head } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import GuestLayout from '@/layouts/GuestLayout.vue';
 import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     DropdownMenu,
@@ -13,17 +8,22 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import GuestLayout from '@/layouts/GuestLayout.vue';
+import type { MarketPreview } from '@/types';
+import { Head } from '@inertiajs/vue3';
 import {
-    Search,
+    ArrowRight,
+    Building2,
     ChevronDown,
-    TrendingUp,
     Clock,
     Flame,
-    Building2,
-    ArrowRight,
+    Search,
+    TrendingUp,
 } from 'lucide-vue-next';
-import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
-import type { MarketPreview } from '@/types';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { getStatusColor } = usePredictionFormatters();
@@ -46,7 +46,9 @@ const selectedCountry = ref<string | null>(null);
 
 // Get unique countries from backend data
 const countries = computed(() => {
-    const uniqueCountries = [...new Set(props.markets.map((m) => m.country.name))];
+    const uniqueCountries = [
+        ...new Set(props.markets.map((m) => m.country.name)),
+    ];
     return uniqueCountries.sort();
 });
 
@@ -60,7 +62,7 @@ const filteredMarkets = computed(() => {
             (m) =>
                 m.code.toLowerCase().includes(query) ||
                 m.name.toLowerCase().includes(query) ||
-                m.country.name.toLowerCase().includes(query)
+                m.country.name.toLowerCase().includes(query),
         );
     }
 
@@ -79,23 +81,27 @@ const filteredMarkets = computed(() => {
 });
 
 const topMarkets = computed(() =>
-    [...props.markets].sort((a, b) => b.predictionCount - a.predictionCount).slice(0, 3)
+    [...props.markets]
+        .sort((a, b) => b.predictionCount - a.predictionCount)
+        .slice(0, 3),
 );
 
 const trendingMarket = computed(() =>
     props.markets.length > 0
-        ? [...props.markets].sort((a, b) => b.predictionCount - a.predictionCount)[0]
-        : null
+        ? [...props.markets].sort(
+              (a, b) => b.predictionCount - a.predictionCount,
+          )[0]
+        : null,
 );
 
 const recentlyUpdatedMarkets = computed(() =>
-    props.markets.filter((m) => m.isOpen).slice(0, 3)
+    props.markets.filter((m) => m.isOpen).slice(0, 3),
 );
 </script>
 
 <template>
     <Head :title="t('markets.title')">
-        <meta name="description" :content="t('meta.markets')">
+        <meta name="description" :content="t('meta.markets')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -111,7 +117,9 @@ const recentlyUpdatedMarkets = computed(() =>
 
                 <!-- Search Bar -->
                 <div class="relative mx-auto mt-8 max-w-xl">
-                    <Search class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                    <Search
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+                    />
                     <Input
                         v-model="searchQuery"
                         type="text"
@@ -129,7 +137,9 @@ const recentlyUpdatedMarkets = computed(() =>
                     <!-- Country Filter -->
                     <div class="flex flex-wrap items-center gap-2">
                         <Button
-                            :variant="selectedCountry === null ? 'default' : 'outline'"
+                            :variant="
+                                selectedCountry === null ? 'default' : 'outline'
+                            "
                             size="sm"
                             @click="selectedCountry = null"
                         >
@@ -138,7 +148,11 @@ const recentlyUpdatedMarkets = computed(() =>
                         <Button
                             v-for="country in countries"
                             :key="country"
-                            :variant="selectedCountry === country ? 'default' : 'outline'"
+                            :variant="
+                                selectedCountry === country
+                                    ? 'default'
+                                    : 'outline'
+                            "
                             size="sm"
                             @click="selectedCountry = country"
                         >
@@ -180,48 +194,86 @@ const recentlyUpdatedMarkets = computed(() =>
                             :href="`/markets/${market.code}`"
                             class="block"
                         >
-                            <Card class="group h-full hover:bg-muted/30 cursor-pointer transition-colors duration-200">
+                            <Card
+                                class="group h-full cursor-pointer transition-colors duration-200 hover:bg-muted/30"
+                            >
                                 <CardHeader class="pb-3">
-                                    <div class="flex items-start justify-between">
+                                    <div
+                                        class="flex items-start justify-between"
+                                    >
                                         <div class="flex items-center gap-3">
-                                            <div class="flex size-10 items-center justify-center rounded-md bg-muted text-foreground">
+                                            <div
+                                                class="flex size-10 items-center justify-center rounded-md bg-muted text-foreground"
+                                            >
                                                 <Building2 class="size-5" />
                                             </div>
                                             <div>
-                                                <CardTitle class="text-lg">{{ market.code }}</CardTitle>
-                                                <p class="text-sm text-muted-foreground">
+                                                <CardTitle class="text-lg">{{
+                                                    market.code
+                                                }}</CardTitle>
+                                                <p
+                                                    class="text-sm text-muted-foreground"
+                                                >
                                                     {{ market.name }}
                                                 </p>
                                             </div>
                                         </div>
                                         <span
-                                            :class="getStatusColor(market.isOpen)"
+                                            :class="
+                                                getStatusColor(market.isOpen)
+                                            "
                                             class="rounded-full px-2.5 py-1 text-xs font-medium"
                                         >
-                                            {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
+                                            {{
+                                                market.isOpen
+                                                    ? t('markets.open')
+                                                    : t('markets.closed')
+                                            }}
                                         </span>
                                     </div>
                                 </CardHeader>
                                 <CardContent class="space-y-4">
                                     <div class="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <p class="text-muted-foreground">{{ t('markets.country') }}</p>
-                                            <p class="font-medium">{{ market.country.name }}</p>
+                                            <p class="text-muted-foreground">
+                                                {{ t('markets.country') }}
+                                            </p>
+                                            <p class="font-medium">
+                                                {{ market.country.name }}
+                                            </p>
                                         </div>
                                         <div>
-                                            <p class="text-muted-foreground">{{ t('markets.assets') }}</p>
-                                            <p class="font-medium tabular-nums">{{ market.assetCount }}</p>
+                                            <p class="text-muted-foreground">
+                                                {{ t('markets.assets') }}
+                                            </p>
+                                            <p class="font-medium tabular-nums">
+                                                {{ market.assetCount }}
+                                            </p>
                                         </div>
                                     </div>
 
-                                    <div class="flex items-center justify-between border-t border-border pt-4">
+                                    <div
+                                        class="flex items-center justify-between border-t border-border pt-4"
+                                    >
                                         <div>
-                                            <p class="text-2xl font-bold tabular-nums">{{ market.predictionCount }}</p>
-                                            <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
+                                            <p
+                                                class="text-2xl font-bold tabular-nums"
+                                            >
+                                                {{ market.predictionCount }}
+                                            </p>
+                                            <p
+                                                class="text-xs text-muted-foreground"
+                                            >
+                                                {{ t('markets.predictions') }}
+                                            </p>
                                         </div>
-                                        <span class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
+                                        <span
+                                            class="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium whitespace-nowrap text-background transition-colors hover:bg-foreground/90"
+                                        >
                                             {{ t('markets.viewPredictions') }}
-                                            <ArrowRight class="size-4 rtl:rotate-180" />
+                                            <ArrowRight
+                                                class="size-4 rtl:rotate-180"
+                                            />
                                         </span>
                                     </div>
                                 </CardContent>
@@ -246,7 +298,9 @@ const recentlyUpdatedMarkets = computed(() =>
                     <!-- Top Markets -->
                     <Card>
                         <CardHeader class="pb-3">
-                            <CardTitle class="flex items-center gap-2 text-base">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
                                 <TrendingUp class="size-4 text-foreground" />
                                 {{ t('markets.topMarkets') }}
                             </CardTitle>
@@ -259,15 +313,21 @@ const recentlyUpdatedMarkets = computed(() =>
                                 v-for="market in topMarkets"
                                 :key="market.id"
                                 :href="`/markets/${market.code}`"
-                                class="flex items-center justify-between rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors"
+                                class="-mx-2 flex items-center justify-between rounded-md px-2 py-1.5 transition-colors hover:bg-muted"
                             >
                                 <div>
-                                    <span class="font-medium">{{ market.code }}</span>
-                                    <span class="ms-1 text-xs text-muted-foreground">
+                                    <span class="font-medium">{{
+                                        market.code
+                                    }}</span>
+                                    <span
+                                        class="ms-1 text-xs text-muted-foreground"
+                                    >
                                         {{ market.country.name }}
                                     </span>
                                 </div>
-                                <span class="text-sm font-medium tabular-nums text-foreground">
+                                <span
+                                    class="text-sm font-medium text-foreground tabular-nums"
+                                >
                                     {{ market.predictionCount }}
                                 </span>
                             </LocalizedLink>
@@ -277,7 +337,9 @@ const recentlyUpdatedMarkets = computed(() =>
                     <!-- Trending Market -->
                     <Card v-if="trendingMarket">
                         <CardHeader class="pb-3">
-                            <CardTitle class="flex items-center gap-2 text-base">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
                                 <Flame class="size-4 text-foreground" />
                                 {{ t('markets.trendingMarket') }}
                             </CardTitle>
@@ -288,13 +350,17 @@ const recentlyUpdatedMarkets = computed(() =>
                         <CardContent>
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="font-medium">{{ trendingMarket.code }}</p>
+                                    <p class="font-medium">
+                                        {{ trendingMarket.code }}
+                                    </p>
                                     <p class="text-sm text-muted-foreground">
                                         {{ trendingMarket.name }}
                                     </p>
                                 </div>
                                 <Button as-child variant="outline" size="sm">
-                                    <LocalizedLink :href="`/markets/${trendingMarket.code}`">
+                                    <LocalizedLink
+                                        :href="`/markets/${trendingMarket.code}`"
+                                    >
                                         {{ t('markets.viewPredictions') }}
                                     </LocalizedLink>
                                 </Button>
@@ -305,7 +371,9 @@ const recentlyUpdatedMarkets = computed(() =>
                     <!-- Recently Updated -->
                     <Card>
                         <CardHeader class="pb-3">
-                            <CardTitle class="flex items-center gap-2 text-base">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
                                 <Clock class="size-4 text-foreground" />
                                 {{ t('markets.recentlyUpdated') }}
                             </CardTitle>
@@ -318,11 +386,15 @@ const recentlyUpdatedMarkets = computed(() =>
                                 v-for="market in recentlyUpdatedMarkets"
                                 :key="market.id"
                                 :href="`/markets/${market.code}`"
-                                class="flex items-center justify-between rounded-md px-2 py-1.5 -mx-2 hover:bg-muted transition-colors"
+                                class="-mx-2 flex items-center justify-between rounded-md px-2 py-1.5 transition-colors hover:bg-muted"
                             >
                                 <div>
-                                    <span class="font-medium">{{ market.code }}</span>
-                                    <span class="ms-1 text-xs text-muted-foreground">
+                                    <span class="font-medium">{{
+                                        market.code
+                                    }}</span>
+                                    <span
+                                        class="ms-1 text-xs text-muted-foreground"
+                                    >
                                         {{ market.country.name }}
                                     </span>
                                 </div>
@@ -330,7 +402,11 @@ const recentlyUpdatedMarkets = computed(() =>
                                     :class="getStatusColor(market.isOpen)"
                                     class="rounded-full px-2 py-0.5 text-xs font-medium"
                                 >
-                                    {{ market.isOpen ? t('markets.open') : t('markets.closed') }}
+                                    {{
+                                        market.isOpen
+                                            ? t('markets.open')
+                                            : t('markets.closed')
+                                    }}
                                 </span>
                             </LocalizedLink>
                         </CardContent>

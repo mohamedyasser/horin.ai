@@ -12,7 +12,9 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const page = usePage();
 
-const isTelegramMiniApp = computed(() => page.props.isTelegramMiniApp as boolean);
+const isTelegramMiniApp = computed(
+    () => page.props.isTelegramMiniApp as boolean,
+);
 
 defineProps<{
     status?: string;

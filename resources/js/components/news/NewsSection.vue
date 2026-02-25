@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
-import NewsCard from './NewsCard.vue';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Newspaper, ArrowRight } from 'lucide-vue-next';
 import type { AssetNewListItem } from '@/types/news';
+import { ArrowRight, Newspaper } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+import NewsCard from './NewsCard.vue';
 
 interface Props {
     news?: AssetNewListItem[];
@@ -54,11 +54,7 @@ const gridClass = {
 
         <!-- News grid -->
         <div v-else-if="news?.length" :class="gridClass[columns]">
-            <NewsCard
-                v-for="item in news"
-                :key="item.id"
-                :news="item"
-            />
+            <NewsCard v-for="item in news" :key="item.id" :news="item" />
         </div>
 
         <!-- Empty state -->

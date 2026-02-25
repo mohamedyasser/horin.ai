@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { Alert } from '@/types/alerts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,7 +10,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { ChevronRight, Link2, Clock, Timer, Target, Bell } from 'lucide-vue-next';
+import type { Alert } from '@/types/alerts';
+import {
+    Bell,
+    ChevronRight,
+    Clock,
+    Link2,
+    Target,
+    Timer,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -41,26 +48,30 @@ const chainName = ref(props.existingChain?.name || '');
 const triggerAlertId = ref(props.existingChain?.trigger_alert_id || '');
 const activateAlertId = ref(props.existingChain?.activate_alert_id || '');
 const delayMinutes = ref(props.existingChain?.delay_minutes || 0);
-const expiresAfterMinutes = ref<number | undefined>(props.existingChain?.expires_after_minutes);
+const expiresAfterMinutes = ref<number | undefined>(
+    props.existingChain?.expires_after_minutes,
+);
 
 const activeAlerts = computed(() =>
-    props.alerts.filter(a => a.status === 'active' || a.status === 'chained')
+    props.alerts.filter((a) => a.status === 'active' || a.status === 'chained'),
 );
 
 const chainableAlerts = computed(() =>
-    props.alerts.filter(a => a.status === 'chained' && a.id !== triggerAlertId.value)
+    props.alerts.filter(
+        (a) => a.status === 'chained' && a.id !== triggerAlertId.value,
+    ),
 );
 
-const canSave = computed(() =>
-    chainName.value && triggerAlertId.value && activateAlertId.value
+const canSave = computed(
+    () => chainName.value && triggerAlertId.value && activateAlertId.value,
 );
 
 const triggerAlert = computed(() =>
-    props.alerts.find(a => a.id === triggerAlertId.value)
+    props.alerts.find((a) => a.id === triggerAlertId.value),
 );
 
 const activateAlert = computed(() =>
-    props.alerts.find(a => a.id === activateAlertId.value)
+    props.alerts.find((a) => a.id === activateAlertId.value),
 );
 
 const getAlertLabel = (alert: Alert) => {
@@ -85,7 +96,11 @@ const handleSave = () => {
         <CardHeader>
             <CardTitle class="flex items-center gap-2">
                 <Link2 class="size-5" />
-                {{ existingChain ? t('alerts.chains.edit_chain') : t('alerts.chains.create_chain') }}
+                {{
+                    existingChain
+                        ? t('alerts.chains.edit_chain')
+                        : t('alerts.chains.create_chain')
+                }}
             </CardTitle>
         </CardHeader>
         <CardContent class="space-y-6">
@@ -103,10 +118,14 @@ const handleSave = () => {
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <!-- Trigger Alert -->
                 <div class="space-y-2">
-                    <Label for="trigger-alert">{{ t('alerts.chains.when_triggers') }}</Label>
+                    <Label for="trigger-alert">{{
+                        t('alerts.chains.when_triggers')
+                    }}</Label>
                     <Select v-model="triggerAlertId">
                         <SelectTrigger id="trigger-alert">
-                            <SelectValue :placeholder="t('alerts.chains.select_alert')" />
+                            <SelectValue
+                                :placeholder="t('alerts.chains.select_alert')"
+                            />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem
@@ -122,10 +141,14 @@ const handleSave = () => {
 
                 <!-- Activate Alert -->
                 <div class="space-y-2">
-                    <Label for="activate-alert">{{ t('alerts.chains.then_activate') }}</Label>
+                    <Label for="activate-alert">{{
+                        t('alerts.chains.then_activate')
+                    }}</Label>
                     <Select v-model="activateAlertId">
                         <SelectTrigger id="activate-alert">
-                            <SelectValue :placeholder="t('alerts.chains.select_alert')" />
+                            <SelectValue
+                                :placeholder="t('alerts.chains.select_alert')"
+                            />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem
@@ -177,10 +200,14 @@ const handleSave = () => {
                 <div class="flex items-center justify-center gap-4">
                     <!-- Trigger Alert Box -->
                     <div class="text-center">
-                        <div class="mb-2 flex size-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                            <Target class="size-8 text-blue-600 dark:text-blue-400" />
+                        <div
+                            class="mb-2 flex size-16 items-center justify-center rounded-full bg-muted"
+                        >
+                            <Target class="size-8 text-foreground" />
                         </div>
-                        <span class="text-sm text-muted-foreground">{{ t('alerts.chains.trigger') }}</span>
+                        <span class="text-sm text-muted-foreground">{{
+                            t('alerts.chains.trigger')
+                        }}</span>
                         <p v-if="triggerAlert" class="mt-1 text-xs font-medium">
                             {{ triggerAlert.asset?.symbol }}
                         </p>
@@ -189,7 +216,10 @@ const handleSave = () => {
                     <!-- Arrow with Delay -->
                     <div class="flex items-center">
                         <div class="h-0.5 w-8 bg-border"></div>
-                        <span v-if="delayMinutes > 0" class="mx-1 text-xs text-muted-foreground">
+                        <span
+                            v-if="delayMinutes > 0"
+                            class="mx-1 text-xs text-muted-foreground"
+                        >
                             {{ delayMinutes }}{{ t('common.min_abbr') }}
                         </span>
                         <ChevronRight class="size-6 text-muted-foreground" />
@@ -198,11 +228,18 @@ const handleSave = () => {
 
                     <!-- Activate Alert Box -->
                     <div class="text-center">
-                        <div class="mb-2 flex size-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                            <Bell class="size-8 text-green-600 dark:text-green-400" />
+                        <div
+                            class="mb-2 flex size-16 items-center justify-center rounded-full bg-muted"
+                        >
+                            <Bell class="size-8 text-foreground" />
                         </div>
-                        <span class="text-sm text-muted-foreground">{{ t('alerts.chains.activate') }}</span>
-                        <p v-if="activateAlert" class="mt-1 text-xs font-medium">
+                        <span class="text-sm text-muted-foreground">{{
+                            t('alerts.chains.activate')
+                        }}</span>
+                        <p
+                            v-if="activateAlert"
+                            class="mt-1 text-xs font-medium"
+                        >
                             {{ activateAlert.asset?.symbol }}
                         </p>
                     </div>
@@ -215,7 +252,9 @@ const handleSave = () => {
                     {{ t('common.cancel') }}
                 </Button>
                 <Button :disabled="!canSave" @click="handleSave">
-                    {{ existingChain ? t('common.update') : t('common.create') }}
+                    {{
+                        existingChain ? t('common.update') : t('common.create')
+                    }}
                 </Button>
             </div>
         </CardContent>

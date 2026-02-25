@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { router } from '@inertiajs/vue3';
-import type { Alert } from '@/types/alerts';
-import { useAlerts } from '@/composables/useAlerts';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -18,7 +17,20 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, ArrowRight, Link2, AlertCircle } from 'lucide-vue-next';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useAlerts } from '@/composables/useAlerts';
+import type { Alert } from '@/types/alerts';
+import { router } from '@inertiajs/vue3';
+import { AlertCircle, ArrowRight, Link2, Plus, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 const { alertTypeLabels, triggerTypeLabels } = useAlerts();
@@ -40,22 +52,23 @@ const isSubmitting = ref(false);
 
 // Filter available alerts that can be chained (not already chained, not self)
 const availableAlerts = computed(() => {
-    return props.userAlerts.filter(a =>
-        a.id !== props.alert.id &&
-        a.status === 'active' &&
-        !a.chain_from_id
+    return props.userAlerts.filter(
+        (a) =>
+            a.id !== props.alert.id &&
+            a.status === 'active' &&
+            !a.chain_from_id,
     );
 });
 
 // Get the child alerts (alerts that trigger after this one)
 const childAlerts = computed(() => {
-    return props.userAlerts.filter(a => a.chain_from_id === props.alert.id);
+    return props.userAlerts.filter((a) => a.chain_from_id === props.alert.id);
 });
 
 // Get the parent alert (if this alert is chained from another)
 const parentAlert = computed(() => {
     if (!props.alert.chain_from_id) return null;
-    return props.userAlerts.find(a => a.id === props.alert.chain_from_id);
+    return props.userAlerts.find((a) => a.id === props.alert.chain_from_id);
 });
 
 const addChainedAlert = async () => {
@@ -63,45 +76,56 @@ const addChainedAlert = async () => {
 
     isSubmitting.value = true;
 
-    router.patch(`/alerts/${selectedAlertId.value}`, {
-        chain_from_id: props.alert.id,
-    }, {
-        onSuccess: () => {
-            showAddChainDialog.value = false;
-            selectedAlertId.value = null;
-            emit('refresh');
+    router.patch(
+        `/alerts/${selectedAlertId.value}`,
+        {
+            chain_from_id: props.alert.id,
         },
-        onFinish: () => {
-            isSubmitting.value = false;
+        {
+            onSuccess: () => {
+                showAddChainDialog.value = false;
+                selectedAlertId.value = null;
+                emit('refresh');
+            },
+            onFinish: () => {
+                isSubmitting.value = false;
+            },
         },
-    });
+    );
 };
 
 const removeChain = async (alertId: string) => {
-    router.patch(`/alerts/${alertId}`, {
-        chain_from_id: null,
-    }, {
-        onSuccess: () => {
-            emit('refresh');
+    router.patch(
+        `/alerts/${alertId}`,
+        {
+            chain_from_id: null,
         },
-    });
+        {
+            onSuccess: () => {
+                emit('refresh');
+            },
+        },
+    );
 };
 
 const getAlertLabel = (alert: Alert) => {
-    const typeLabel = locale.value === 'ar'
-        ? alertTypeLabels[alert.type]?.ar
-        : alertTypeLabels[alert.type]?.en;
+    const typeLabel =
+        locale.value === 'ar'
+            ? alertTypeLabels[alert.type]?.ar
+            : alertTypeLabels[alert.type]?.en;
     const symbol = alert.asset?.symbol || t('alerts.multiple_assets');
     return `${symbol} - ${typeLabel}`;
 };
 
 const getStatusVariant = (status: string) => {
-    return {
-        active: 'default' as const,
-        triggered: 'secondary' as const,
-        paused: 'outline' as const,
-        chained: 'secondary' as const,
-    }[status] || 'outline' as const;
+    return (
+        {
+            active: 'default' as const,
+            triggered: 'secondary' as const,
+            paused: 'outline' as const,
+            chained: 'secondary' as const,
+        }[status] || ('outline' as const)
+    );
 };
 </script>
 
@@ -112,7 +136,9 @@ const getStatusVariant = (status: string) => {
                 <Link2 class="size-5" />
                 {{ t('alerts.chains.title') }}
             </CardTitle>
-            <CardDescription>{{ t('alerts.chains.description') }}</CardDescription>
+            <CardDescription>{{
+                t('alerts.chains.description')
+            }}</CardDescription>
         </CardHeader>
         <CardContent class="space-y-6">
             <!-- Parent Alert (if exists) -->
@@ -123,11 +149,18 @@ const getStatusVariant = (status: string) => {
                 <div class="flex items-center gap-3 rounded-lg border p-3">
                     <AlertCircle class="size-5 text-muted-foreground" />
                     <div class="min-w-0 flex-1">
-                        <p class="font-medium">{{ getAlertLabel(parentAlert) }}</p>
+                        <p class="font-medium">
+                            {{ getAlertLabel(parentAlert) }}
+                        </p>
                         <p class="text-xs text-muted-foreground">
-                            {{ locale === 'ar'
-                                ? triggerTypeLabels[parentAlert.trigger_type]?.ar
-                                : triggerTypeLabels[parentAlert.trigger_type]?.en
+                            {{
+                                locale === 'ar'
+                                    ? triggerTypeLabels[
+                                          parentAlert.trigger_type
+                                      ]?.ar
+                                    : triggerTypeLabels[
+                                          parentAlert.trigger_type
+                                      ]?.en
                             }}
                         </p>
                     </div>
@@ -139,7 +172,9 @@ const getStatusVariant = (status: string) => {
                         size="icon"
                         @click="removeChain(alert.id)"
                     >
-                        <Trash2 class="size-4 text-muted-foreground hover:text-destructive" />
+                        <Trash2
+                            class="size-4 text-muted-foreground hover:text-destructive"
+                        />
                     </Button>
                 </div>
             </div>
@@ -149,16 +184,21 @@ const getStatusVariant = (status: string) => {
                 <Label class="text-xs text-muted-foreground uppercase">
                     {{ t('alerts.chains.current_alert') }}
                 </Label>
-                <div class="flex items-center gap-3 rounded-lg border-2 border-primary/50 bg-primary/5 p-3">
-                    <div class="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <div
+                    class="flex items-center gap-3 rounded-md border-2 border-foreground/50 bg-muted p-3"
+                >
+                    <div
+                        class="flex size-8 items-center justify-center rounded-full bg-foreground text-background"
+                    >
                         {{ childAlerts.length + 1 }}
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="font-medium">{{ getAlertLabel(alert) }}</p>
                         <p class="text-xs text-muted-foreground">
-                            {{ locale === 'ar'
-                                ? triggerTypeLabels[alert.trigger_type]?.ar
-                                : triggerTypeLabels[alert.trigger_type]?.en
+                            {{
+                                locale === 'ar'
+                                    ? triggerTypeLabels[alert.trigger_type]?.ar
+                                    : triggerTypeLabels[alert.trigger_type]?.en
                             }}
                         </p>
                     </div>
@@ -186,13 +226,22 @@ const getStatusVariant = (status: string) => {
                         class="flex items-center gap-3"
                     >
                         <ArrowRight class="size-4 text-muted-foreground" />
-                        <div class="flex flex-1 items-center gap-3 rounded-lg border p-3">
+                        <div
+                            class="flex flex-1 items-center gap-3 rounded-lg border p-3"
+                        >
                             <div class="min-w-0 flex-1">
-                                <p class="font-medium">{{ getAlertLabel(child) }}</p>
+                                <p class="font-medium">
+                                    {{ getAlertLabel(child) }}
+                                </p>
                                 <p class="text-xs text-muted-foreground">
-                                    {{ locale === 'ar'
-                                        ? triggerTypeLabels[child.trigger_type]?.ar
-                                        : triggerTypeLabels[child.trigger_type]?.en
+                                    {{
+                                        locale === 'ar'
+                                            ? triggerTypeLabels[
+                                                  child.trigger_type
+                                              ]?.ar
+                                            : triggerTypeLabels[
+                                                  child.trigger_type
+                                              ]?.en
                                     }}
                                 </p>
                             </div>
@@ -204,7 +253,9 @@ const getStatusVariant = (status: string) => {
                                 size="icon"
                                 @click="removeChain(child.id)"
                             >
-                                <Trash2 class="size-4 text-muted-foreground hover:text-destructive" />
+                                <Trash2
+                                    class="size-4 text-muted-foreground hover:text-destructive"
+                                />
                             </Button>
                         </div>
                     </div>
@@ -223,14 +274,20 @@ const getStatusVariant = (status: string) => {
                 <!-- Add Chain Button -->
                 <Dialog v-model:open="showAddChainDialog">
                     <DialogTrigger as-child>
-                        <Button variant="outline" class="w-full" :disabled="availableAlerts.length === 0">
+                        <Button
+                            variant="outline"
+                            class="w-full"
+                            :disabled="availableAlerts.length === 0"
+                        >
                             <Plus class="me-2 size-4" />
                             {{ t('alerts.chains.add_chain') }}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>{{ t('alerts.chains.add_title') }}</DialogTitle>
+                            <DialogTitle>{{
+                                t('alerts.chains.add_title')
+                            }}</DialogTitle>
                             <DialogDescription>
                                 {{ t('alerts.chains.add_description') }}
                             </DialogDescription>
@@ -238,10 +295,18 @@ const getStatusVariant = (status: string) => {
 
                         <div class="space-y-4 py-4">
                             <div class="space-y-2">
-                                <Label>{{ t('alerts.chains.select_alert') }}</Label>
+                                <Label>{{
+                                    t('alerts.chains.select_alert')
+                                }}</Label>
                                 <Select v-model="selectedAlertId">
                                     <SelectTrigger>
-                                        <SelectValue :placeholder="t('alerts.chains.select_placeholder')" />
+                                        <SelectValue
+                                            :placeholder="
+                                                t(
+                                                    'alerts.chains.select_placeholder',
+                                                )
+                                            "
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem
@@ -255,15 +320,28 @@ const getStatusVariant = (status: string) => {
                                 </Select>
                             </div>
 
-                            <div class="flex items-center gap-3 rounded-lg bg-muted p-3">
+                            <div
+                                class="flex items-center gap-3 rounded-lg bg-muted p-3"
+                            >
                                 <div class="text-sm">
-                                    <p class="font-medium">{{ t('alerts.chains.flow_preview') }}</p>
+                                    <p class="font-medium">
+                                        {{ t('alerts.chains.flow_preview') }}
+                                    </p>
                                     <p class="text-muted-foreground">
                                         {{ getAlertLabel(alert) }}
-                                        <ArrowRight class="mx-1 inline size-3" />
-                                        {{ selectedAlertId
-                                            ? getAlertLabel(availableAlerts.find(a => a.id === selectedAlertId)!)
-                                            : '...'
+                                        <ArrowRight
+                                            class="mx-1 inline size-3"
+                                        />
+                                        {{
+                                            selectedAlertId
+                                                ? getAlertLabel(
+                                                      availableAlerts.find(
+                                                          (a) =>
+                                                              a.id ===
+                                                              selectedAlertId,
+                                                      )!,
+                                                  )
+                                                : '...'
                                         }}
                                     </p>
                                 </div>
@@ -271,14 +349,21 @@ const getStatusVariant = (status: string) => {
                         </div>
 
                         <DialogFooter>
-                            <Button variant="outline" @click="showAddChainDialog = false">
+                            <Button
+                                variant="outline"
+                                @click="showAddChainDialog = false"
+                            >
                                 {{ t('common.cancel') }}
                             </Button>
                             <Button
                                 :disabled="!selectedAlertId || isSubmitting"
                                 @click="addChainedAlert"
                             >
-                                {{ isSubmitting ? t('common.saving') : t('alerts.chains.add_chain') }}
+                                {{
+                                    isSubmitting
+                                        ? t('common.saving')
+                                        : t('alerts.chains.add_chain')
+                                }}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

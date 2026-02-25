@@ -1,22 +1,32 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { DeliveryConfig, EscalationConfig, AlertPriority } from '@/types/alerts';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
-    MessageCircle,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import type {
+    AlertPriority,
+    DeliveryConfig,
+    EscalationConfig,
+} from '@/types/alerts';
+import {
     Bell,
-    Mail,
     Inbox,
+    Mail,
+    MessageCircle,
     Plus,
     Trash2,
 } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 
@@ -36,16 +46,38 @@ const emit = defineEmits<{
 
 type Channel = 'telegram' | 'push' | 'email' | 'in_app';
 
-const channels: Array<{ value: Channel; label: { en: string; ar: string }; icon: typeof MessageCircle }> = [
-    { value: 'telegram', label: { en: 'Telegram', ar: 'تيليجرام' }, icon: MessageCircle },
-    { value: 'push', label: { en: 'Push Notification', ar: 'إشعار فوري' }, icon: Bell },
-    { value: 'email', label: { en: 'Email', ar: 'البريد الإلكتروني' }, icon: Mail },
-    { value: 'in_app', label: { en: 'In-App', ar: 'داخل التطبيق' }, icon: Inbox },
+const channels: Array<{
+    value: Channel;
+    label: { en: string; ar: string };
+    icon: typeof MessageCircle;
+}> = [
+    {
+        value: 'telegram',
+        label: { en: 'Telegram', ar: 'تيليجرام' },
+        icon: MessageCircle,
+    },
+    {
+        value: 'push',
+        label: { en: 'Push Notification', ar: 'إشعار فوري' },
+        icon: Bell,
+    },
+    {
+        value: 'email',
+        label: { en: 'Email', ar: 'البريد الإلكتروني' },
+        icon: Mail,
+    },
+    {
+        value: 'in_app',
+        label: { en: 'In-App', ar: 'داخل التطبيق' },
+        icon: Inbox,
+    },
 ];
 
 const priorities: AlertPriority[] = ['critical', 'high', 'medium', 'low'];
 
-const selectedChannels = computed(() => props.deliveryConfig.channels || ['telegram', 'in_app']);
+const selectedChannels = computed(
+    () => props.deliveryConfig.channels || ['telegram', 'in_app'],
+);
 
 const isChannelSelected = (channel: Channel): boolean => {
     return selectedChannels.value.includes(channel);
@@ -64,7 +96,10 @@ const toggleChannel = (channel: Channel) => {
         current.push(channel);
     }
 
-    emit('update:deliveryConfig', { ...props.deliveryConfig, channels: current });
+    emit('update:deliveryConfig', {
+        ...props.deliveryConfig,
+        channels: current,
+    });
 };
 
 const escalationEnabled = computed({
@@ -80,7 +115,11 @@ const escalationEnabled = computed({
                 max_escalations: 3,
             });
         } else {
-            emit('update:escalationConfig', { enabled: false, levels: [], max_escalations: 0 });
+            emit('update:escalationConfig', {
+                enabled: false,
+                levels: [],
+                max_escalations: 0,
+            });
         }
     },
 });
@@ -142,11 +181,16 @@ const updateEscalationLevel = (index: number, key: string, value: unknown) => {
                     type="button"
                     class="rounded-md border px-4 py-2 text-sm font-medium transition-colors"
                     :class="{
-                        'border-red-500 bg-red-500/10 text-red-600': priority === p && p === 'critical',
-                        'border-orange-500 bg-orange-500/10 text-orange-600': priority === p && p === 'high',
-                        'border-yellow-500 bg-yellow-500/10 text-yellow-600': priority === p && p === 'medium',
-                        'border-gray-400 bg-gray-400/10 text-gray-600': priority === p && p === 'low',
-                        'border-border hover:border-primary/50': priority !== p,
+                        'border-destructive bg-destructive/10 text-destructive':
+                            priority === p && p === 'critical',
+                        'border-foreground bg-muted text-foreground':
+                            priority === p && p === 'high',
+                        'border-muted-foreground bg-muted/50 text-muted-foreground':
+                            priority === p && p === 'medium',
+                        'border-border bg-muted/30 text-muted-foreground':
+                            priority === p && p === 'low',
+                        'border-border hover:border-foreground/50':
+                            priority !== p,
                     }"
                     @click="emit('update:priority', p)"
                 >
@@ -165,14 +209,21 @@ const updateEscalationLevel = (index: number, key: string, value: unknown) => {
                     type="button"
                     class="flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-colors"
                     :class="{
-                        'border-primary bg-primary/5': isChannelSelected(channel.value),
-                        'border-border hover:border-primary/50': !isChannelSelected(channel.value),
+                        'border-foreground bg-muted': isChannelSelected(
+                            channel.value,
+                        ),
+                        'border-border hover:border-foreground/50':
+                            !isChannelSelected(channel.value),
                     }"
                     @click="toggleChannel(channel.value)"
                 >
                     <component :is="channel.icon" class="size-5" />
                     <span class="text-xs font-medium">
-                        {{ locale === 'ar' ? channel.label.ar : channel.label.en }}
+                        {{
+                            locale === 'ar'
+                                ? channel.label.ar
+                                : channel.label.en
+                        }}
                     </span>
                 </button>
             </div>
@@ -194,41 +245,74 @@ const updateEscalationLevel = (index: number, key: string, value: unknown) => {
                     <Switch v-model:checked="escalationEnabled" />
                 </div>
 
-                <div v-if="escalationEnabled && escalationConfig" class="mt-4 space-y-4">
+                <div
+                    v-if="escalationEnabled && escalationConfig"
+                    class="mt-4 space-y-4"
+                >
                     <div
                         v-for="(level, index) in escalationConfig.levels"
                         :key="index"
                         class="flex items-center gap-3 rounded-lg border p-3"
                     >
-                        <Badge variant="outline">{{ t('alerts.escalation.level') }} {{ level.level }}</Badge>
+                        <Badge variant="outline"
+                            >{{ t('alerts.escalation.level') }}
+                            {{ level.level }}</Badge
+                        >
 
                         <div class="flex flex-1 items-center gap-3">
                             <div class="grid gap-1">
-                                <Label class="text-xs text-muted-foreground">{{ t('alerts.escalation.after') }}</Label>
+                                <Label class="text-xs text-muted-foreground">{{
+                                    t('alerts.escalation.after')
+                                }}</Label>
                                 <div class="flex items-center gap-1">
                                     <Input
                                         :model-value="level.delay_minutes"
                                         type="number"
                                         min="1"
                                         class="w-16"
-                                        @update:model-value="updateEscalationLevel(index, 'delay_minutes', Number($event))"
+                                        @update:model-value="
+                                            updateEscalationLevel(
+                                                index,
+                                                'delay_minutes',
+                                                Number($event),
+                                            )
+                                        "
                                     />
-                                    <span class="text-sm text-muted-foreground">{{ t('common.minutes') }}</span>
+                                    <span
+                                        class="text-sm text-muted-foreground"
+                                        >{{ t('common.minutes') }}</span
+                                    >
                                 </div>
                             </div>
 
                             <div class="grid gap-1">
-                                <Label class="text-xs text-muted-foreground">{{ t('alerts.escalation.via') }}</Label>
+                                <Label class="text-xs text-muted-foreground">{{
+                                    t('alerts.escalation.via')
+                                }}</Label>
                                 <Select
                                     :model-value="level.channel"
-                                    @update:model-value="updateEscalationLevel(index, 'channel', $event)"
+                                    @update:model-value="
+                                        updateEscalationLevel(
+                                            index,
+                                            'channel',
+                                            $event,
+                                        )
+                                    "
                                 >
                                     <SelectTrigger class="w-32">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="ch in channels" :key="ch.value" :value="ch.value">
-                                            {{ locale === 'ar' ? ch.label.ar : ch.label.en }}
+                                        <SelectItem
+                                            v-for="ch in channels"
+                                            :key="ch.value"
+                                            :value="ch.value"
+                                        >
+                                            {{
+                                                locale === 'ar'
+                                                    ? ch.label.ar
+                                                    : ch.label.en
+                                            }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>

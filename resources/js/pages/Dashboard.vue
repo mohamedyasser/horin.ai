@@ -1,25 +1,24 @@
 <script setup lang="ts">
+import AssetDisplay from '@/components/AssetDisplay.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Deferred } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import { computed } from 'vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import LocalizedLink from '@/components/LocalizedLink.vue';
-import AssetDisplay from '@/components/AssetDisplay.vue';
+import { Head } from '@inertiajs/vue3';
 import {
-    ArrowUpRight,
+    Activity,
     ArrowDownRight,
+    ArrowUpRight,
+    BarChart3,
     Bell,
     Eye,
-    BarChart3,
-    Activity,
     TrendingUp,
 } from 'lucide-vue-next';
-import { usePredictionFormatters } from '@/composables/usePredictionFormatters';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 const { formatGain } = usePredictionFormatters();
@@ -73,13 +72,16 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const stats = computed(() => props.stats ?? {
-    portfolioValue: 0,
-    dailyPnl: 0,
-    dailyPnlPercent: 0,
-    activeAlerts: 0,
-    watchlistCount: 0,
-});
+const stats = computed(
+    () =>
+        props.stats ?? {
+            portfolioValue: 0,
+            dailyPnl: 0,
+            dailyPnlPercent: 0,
+            activeAlerts: 0,
+            watchlistCount: 0,
+        },
+);
 </script>
 
 <template>
@@ -113,18 +115,14 @@ const stats = computed(() => props.stats ?? {
                     <CardContent class="pt-6">
                         <div class="flex items-center justify-between">
                             <p
-                                class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                             >
                                 {{ t('dashboard.portfolioValue') }}
                             </p>
-                            <BarChart3
-                                class="size-4 text-muted-foreground"
-                            />
+                            <BarChart3 class="size-4 text-muted-foreground" />
                         </div>
                         <p class="mt-2 text-2xl font-bold tabular-nums">
-                            {{
-                                stats.portfolioValue.toLocaleString()
-                            }}
+                            {{ stats.portfolioValue.toLocaleString() }}
                         </p>
                     </CardContent>
                 </Card>
@@ -132,20 +130,16 @@ const stats = computed(() => props.stats ?? {
                     <CardContent class="pt-6">
                         <div class="flex items-center justify-between">
                             <p
-                                class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                             >
                                 {{ t('dashboard.dailyPnl') }}
                             </p>
-                            <Activity
-                                class="size-4 text-muted-foreground"
-                            />
+                            <Activity class="size-4 text-muted-foreground" />
                         </div>
                         <p
                             class="mt-2 text-2xl font-bold tabular-nums"
                             :class="
-                                stats.dailyPnl >= 0
-                                    ? 'text-gain'
-                                    : 'text-loss'
+                                stats.dailyPnl >= 0 ? 'text-gain' : 'text-loss'
                             "
                         >
                             <span dir="ltr">
@@ -162,10 +156,7 @@ const stats = computed(() => props.stats ?? {
                             "
                         >
                             <span dir="ltr">
-                                {{
-                                    stats.dailyPnlPercent >= 0
-                                        ? '+'
-                                        : ''
+                                {{ stats.dailyPnlPercent >= 0 ? '+' : ''
                                 }}{{ stats.dailyPnlPercent.toFixed(2) }}%
                             </span>
                         </p>
@@ -175,13 +166,11 @@ const stats = computed(() => props.stats ?? {
                     <CardContent class="pt-6">
                         <div class="flex items-center justify-between">
                             <p
-                                class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                             >
                                 {{ t('dashboard.activeAlerts') }}
                             </p>
-                            <Bell
-                                class="size-4 text-muted-foreground"
-                            />
+                            <Bell class="size-4 text-muted-foreground" />
                         </div>
                         <p class="mt-2 text-2xl font-bold tabular-nums">
                             {{ stats.activeAlerts }}
@@ -192,13 +181,11 @@ const stats = computed(() => props.stats ?? {
                     <CardContent class="pt-6">
                         <div class="flex items-center justify-between">
                             <p
-                                class="text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
                             >
                                 {{ t('dashboard.watchlistCount') }}
                             </p>
-                            <Eye
-                                class="size-4 text-muted-foreground"
-                            />
+                            <Eye class="size-4 text-muted-foreground" />
                         </div>
                         <p class="mt-2 text-2xl font-bold tabular-nums">
                             {{ stats.watchlistCount }}
@@ -225,27 +212,19 @@ const stats = computed(() => props.stats ?? {
                                 <thead>
                                     <tr class="border-b border-border">
                                         <th
-                                            class="pb-2 text-start text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                            class="pb-2 text-start text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                         >
-                                            {{
-                                                t('home.table.symbol')
-                                            }}
+                                            {{ t('home.table.symbol') }}
                                         </th>
                                         <th
-                                            class="pb-2 text-end text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                            class="pb-2 text-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                         >
-                                            {{
-                                                t('home.table.current')
-                                            }}
+                                            {{ t('home.table.current') }}
                                         </th>
                                         <th
-                                            class="pb-2 text-end text-xs font-medium uppercase tracking-wide text-muted-foreground"
+                                            class="pb-2 text-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                         >
-                                            {{
-                                                t(
-                                                    'home.table.gainPercent',
-                                                )
-                                            }}
+                                            {{ t('home.table.gainPercent') }}
                                         </th>
                                     </tr>
                                 </thead>
@@ -258,9 +237,7 @@ const stats = computed(() => props.stats ?? {
                                         <td class="py-2.5">
                                             <AssetDisplay
                                                 :symbol="item.symbol"
-                                                :market-code="
-                                                    item.marketCode
-                                                "
+                                                :market-code="item.marketCode"
                                                 :show-name="false"
                                                 :show-logo="false"
                                                 size="sm"
@@ -270,19 +247,14 @@ const stats = computed(() => props.stats ?? {
                                             dir="ltr"
                                             class="py-2.5 text-end text-sm tabular-nums"
                                         >
-                                            {{
-                                                item.currentPrice.toFixed(
-                                                    2,
-                                                )
-                                            }}
+                                            {{ item.currentPrice.toFixed(2) }}
                                         </td>
                                         <td class="py-2.5 text-end">
                                             <span
                                                 dir="ltr"
                                                 class="inline-flex items-center gap-0.5 text-sm font-medium tabular-nums"
                                                 :class="
-                                                    item.priceChangePercent >=
-                                                    0
+                                                    item.priceChangePercent >= 0
                                                         ? 'text-gain'
                                                         : 'text-loss'
                                                 "
@@ -313,12 +285,8 @@ const stats = computed(() => props.stats ?? {
                             v-else
                             class="flex flex-col items-center py-8 text-center"
                         >
-                            <Eye
-                                class="size-8 text-muted-foreground/50"
-                            />
-                            <p
-                                class="mt-2 text-sm text-muted-foreground"
-                            >
+                            <Eye class="size-8 text-muted-foreground/50" />
+                            <p class="mt-2 text-sm text-muted-foreground">
                                 {{ t('dashboard.emptyWatchlist') }}
                             </p>
                         </div>
@@ -361,12 +329,8 @@ const stats = computed(() => props.stats ?? {
                             v-else
                             class="flex flex-col items-center py-8 text-center"
                         >
-                            <Bell
-                                class="size-8 text-muted-foreground/50"
-                            />
-                            <p
-                                class="mt-2 text-sm text-muted-foreground"
-                            >
+                            <Bell class="size-8 text-muted-foreground/50" />
+                            <p class="mt-2 text-sm text-muted-foreground">
                                 {{ t('dashboard.noRecentAlerts') }}
                             </p>
                         </div>
@@ -394,12 +358,8 @@ const stats = computed(() => props.stats ?? {
                                 class="-mx-2 flex items-center justify-between rounded-md px-2 py-1.5 transition-colors duration-150 hover:bg-muted/50"
                             >
                                 <AssetDisplay
-                                    :symbol="
-                                        prediction.asset.symbol
-                                    "
-                                    :market-code="
-                                        prediction.asset.market?.code
-                                    "
+                                    :symbol="prediction.asset.symbol"
+                                    :market-code="prediction.asset.market?.code"
                                     :show-name="false"
                                     :show-logo="false"
                                     size="sm"
@@ -408,8 +368,7 @@ const stats = computed(() => props.stats ?? {
                                     dir="ltr"
                                     class="text-sm font-medium tabular-nums"
                                     :class="
-                                        prediction.expectedGainPercent >=
-                                        0
+                                        prediction.expectedGainPercent >= 0
                                             ? 'text-gain'
                                             : 'text-loss'
                                     "
@@ -429,9 +388,7 @@ const stats = computed(() => props.stats ?? {
                             <TrendingUp
                                 class="size-8 text-muted-foreground/50"
                             />
-                            <p
-                                class="mt-2 text-sm text-muted-foreground"
-                            >
+                            <p class="mt-2 text-sm text-muted-foreground">
                                 {{ t('dashboard.noPredictions') }}
                             </p>
                         </div>
@@ -440,18 +397,12 @@ const stats = computed(() => props.stats ?? {
                 <Card>
                     <CardHeader>
                         <CardTitle class="text-base font-semibold">
-                            {{
-                                t(
-                                    'dashboard.recentRecommendations',
-                                )
-                            }}
+                            {{ t('dashboard.recentRecommendations') }}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div
-                            v-if="
-                                props.recentRecommendations?.length
-                            "
+                            v-if="props.recentRecommendations?.length"
                             class="space-y-2"
                         >
                             <LocalizedLink
@@ -462,9 +413,7 @@ const stats = computed(() => props.stats ?? {
                             >
                                 <AssetDisplay
                                     :symbol="rec.asset.symbol"
-                                    :market-code="
-                                        rec.asset.market?.code
-                                    "
+                                    :market-code="rec.asset.market?.code"
                                     :show-name="false"
                                     :show-logo="false"
                                     size="sm"
@@ -475,8 +424,7 @@ const stats = computed(() => props.stats ?? {
                                         rec.action === 'strong_buy'
                                             ? 'gain'
                                             : rec.action === 'sell' ||
-                                                rec.action ===
-                                                    'strong_sell'
+                                                rec.action === 'strong_sell'
                                               ? 'loss'
                                               : 'outline'
                                     "
@@ -489,17 +437,9 @@ const stats = computed(() => props.stats ?? {
                             v-else
                             class="flex flex-col items-center py-8 text-center"
                         >
-                            <Activity
-                                class="size-8 text-muted-foreground/50"
-                            />
-                            <p
-                                class="mt-2 text-sm text-muted-foreground"
-                            >
-                                {{
-                                    t(
-                                        'dashboard.noRecommendations',
-                                    )
-                                }}
+                            <Activity class="size-8 text-muted-foreground/50" />
+                            <p class="mt-2 text-sm text-muted-foreground">
+                                {{ t('dashboard.noRecommendations') }}
                             </p>
                         </div>
                     </CardContent>

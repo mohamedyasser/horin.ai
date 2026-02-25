@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { router, usePage } from '@inertiajs/vue3';
-import { Languages } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { router, usePage } from '@inertiajs/vue3';
+import { Languages } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
 
 const { locale } = useI18n();
 const page = usePage();

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import SelectableCard from '@/components/SelectableCard.vue';
+import TradingProfileController from '@/actions/App/Http/Controllers/Settings/TradingProfileController';
 import HeadingSmall from '@/components/HeadingSmall.vue';
+import SelectableCard from '@/components/SelectableCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import { edit } from '@/routes/trading-profile';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
-import { edit } from '@/routes/trading-profile';
-import TradingProfileController from '@/actions/App/Http/Controllers/Settings/TradingProfileController';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -67,18 +67,22 @@ const tradingStyles = [
 
 const updateField = (field: string, value: string) => {
     saving.value = true;
-    router.patch(TradingProfileController.update().url, { [field]: value }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            recentlySaved.value = true;
-            setTimeout(() => {
-                recentlySaved.value = false;
-            }, 2000);
+    router.patch(
+        TradingProfileController.update().url,
+        { [field]: value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                recentlySaved.value = true;
+                setTimeout(() => {
+                    recentlySaved.value = false;
+                }, 2000);
+            },
+            onFinish: () => {
+                saving.value = false;
+            },
         },
-        onFinish: () => {
-            saving.value = false;
-        },
-    });
+    );
 };
 </script>
 
@@ -90,7 +94,9 @@ const updateField = (field: string, value: string) => {
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
                     :title="t('settings.tradingProfile.experienceRisk.heading')"
-                    :description="t('settings.tradingProfile.experienceRisk.description')"
+                    :description="
+                        t('settings.tradingProfile.experienceRisk.description')
+                    "
                 />
 
                 <!-- Experience Level -->
@@ -102,8 +108,12 @@ const updateField = (field: string, value: string) => {
                         <SelectableCard
                             v-for="level in experienceLevels"
                             :key="level.value"
-                            :selected="props.user.experience_level === level.value"
-                            @select="updateField('experience_level', level.value)"
+                            :selected="
+                                props.user.experience_level === level.value
+                            "
+                            @select="
+                                updateField('experience_level', level.value)
+                            "
                         >
                             <span class="text-3xl">{{ level.icon }}</span>
                             <span class="font-medium">{{
@@ -115,7 +125,9 @@ const updateField = (field: string, value: string) => {
 
                 <!-- Risk Level -->
                 <div class="space-y-4">
-                    <h3 class="font-semibold">{{ t('onboarding.riskLevel.label') }}</h3>
+                    <h3 class="font-semibold">
+                        {{ t('onboarding.riskLevel.label') }}
+                    </h3>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <SelectableCard
                             v-for="level in riskLevels"
@@ -135,7 +147,9 @@ const updateField = (field: string, value: string) => {
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
                     :title="t('settings.tradingProfile.goalsStyle.heading')"
-                    :description="t('settings.tradingProfile.goalsStyle.description')"
+                    :description="
+                        t('settings.tradingProfile.goalsStyle.description')
+                    "
                 />
 
                 <!-- Investment Goal -->
@@ -143,11 +157,15 @@ const updateField = (field: string, value: string) => {
                     <h3 class="font-semibold">
                         {{ t('onboarding.investmentGoal.label') }}
                     </h3>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <div
+                        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    >
                         <SelectableCard
                             v-for="goal in investmentGoals"
                             :key="goal.value"
-                            :selected="props.user.investment_goal === goal.value"
+                            :selected="
+                                props.user.investment_goal === goal.value
+                            "
                             @select="updateField('investment_goal', goal.value)"
                         >
                             <span class="text-3xl">{{ goal.icon }}</span>
@@ -160,7 +178,9 @@ const updateField = (field: string, value: string) => {
 
                 <!-- Trading Style -->
                 <div class="space-y-4">
-                    <h3 class="font-semibold">{{ t('onboarding.tradingStyle.label') }}</h3>
+                    <h3 class="font-semibold">
+                        {{ t('onboarding.tradingStyle.label') }}
+                    </h3>
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <SelectableCard
                             v-for="style in tradingStyles"
@@ -179,16 +199,10 @@ const updateField = (field: string, value: string) => {
 
             <!-- Save indicator -->
             <div class="flex items-center gap-4">
-                <span
-                    v-if="recentlySaved"
-                    class="text-sm text-gain"
-                >
+                <span v-if="recentlySaved" class="text-sm text-gain">
                     {{ t('settings.tradingProfile.saved') }}
                 </span>
-                <span
-                    v-if="saving"
-                    class="text-sm text-muted-foreground"
-                >
+                <span v-if="saving" class="text-sm text-muted-foreground">
                     Saving...
                 </span>
             </div>

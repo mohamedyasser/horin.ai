@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, type HTMLAttributes } from 'vue';
 import { Link } from '@inertiajs/vue3';
+import { computed, type HTMLAttributes } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
@@ -25,7 +25,10 @@ const { locale } = useI18n();
 
 const localizedHref = computed(() => {
     // If href already starts with locale prefix, return as-is
-    if (props.href.startsWith(`/${locale.value}/`) || props.href.startsWith(`/${locale.value}`)) {
+    if (
+        props.href.startsWith(`/${locale.value}/`) ||
+        props.href.startsWith(`/${locale.value}`)
+    ) {
         return props.href;
     }
     // If href is just '/', return locale home

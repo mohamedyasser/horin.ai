@@ -2,9 +2,9 @@
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
-import { Form, Head, Link, usePage, router } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
+import { Form, Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -33,19 +33,28 @@ const breadcrumbItems = computed<BreadcrumbItem[]>(() => [
 ]);
 
 const page = usePage();
-const user = page.props.auth.user as { name: string; email: string; email_verified_at: string | null; language: string | null };
+const user = page.props.auth.user as {
+    name: string;
+    email: string;
+    email_verified_at: string | null;
+    language: string | null;
+};
 
 const selectedLanguage = ref(user.language || locale.value);
 
 const updateLanguage = (value: string) => {
     selectedLanguage.value = value;
-    router.patch(ProfileController.update().url, { language: value }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            // Reload the page to apply the new locale
-            window.location.reload();
+    router.patch(
+        ProfileController.update().url,
+        { language: value },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Reload the page to apply the new locale
+                window.location.reload();
+            },
         },
-    });
+    );
 };
 </script>
 
@@ -66,7 +75,9 @@ const updateLanguage = (value: string) => {
                     v-slot="{ errors, processing, recentlySuccessful }"
                 >
                     <div class="grid gap-2">
-                        <Label for="name">{{ t('settings.profile.nameLabel') }}</Label>
+                        <Label for="name">{{
+                            t('settings.profile.nameLabel')
+                        }}</Label>
                         <Input
                             id="name"
                             class="mt-1 block w-full"
@@ -80,7 +91,9 @@ const updateLanguage = (value: string) => {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="email">{{ t('settings.profile.emailLabel') }}</Label>
+                        <Label for="email">{{
+                            t('settings.profile.emailLabel')
+                        }}</Label>
                         <Input
                             id="email"
                             type="email"
@@ -89,7 +102,9 @@ const updateLanguage = (value: string) => {
                             :default-value="user.email"
                             required
                             autocomplete="username"
-                            :placeholder="t('settings.profile.emailPlaceholder')"
+                            :placeholder="
+                                t('settings.profile.emailPlaceholder')
+                            "
                         />
                         <InputError class="mt-2" :message="errors.email" />
                     </div>
@@ -150,7 +165,11 @@ const updateLanguage = (value: string) => {
                     <div class="flex gap-2">
                         <Button
                             type="button"
-                            :variant="selectedLanguage === 'ar' ? 'default' : 'outline'"
+                            :variant="
+                                selectedLanguage === 'ar'
+                                    ? 'default'
+                                    : 'outline'
+                            "
                             @click="updateLanguage('ar')"
                             class="min-w-[120px]"
                         >
@@ -158,7 +177,11 @@ const updateLanguage = (value: string) => {
                         </Button>
                         <Button
                             type="button"
-                            :variant="selectedLanguage === 'en' ? 'default' : 'outline'"
+                            :variant="
+                                selectedLanguage === 'en'
+                                    ? 'default'
+                                    : 'outline'
+                            "
                             @click="updateLanguage('en')"
                             class="min-w-[120px]"
                         >

@@ -21,7 +21,9 @@ interface Props {
     user: User;
 }
 
-const isTelegramMiniApp = computed(() => page.props.isTelegramMiniApp as boolean);
+const isTelegramMiniApp = computed(
+    () => page.props.isTelegramMiniApp as boolean,
+);
 
 const handleLogout = () => {
     router.flushAll();

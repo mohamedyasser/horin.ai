@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { HTMLAttributes } from 'vue';
 import { computed } from 'vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export interface AssetDisplayProps {
     symbol: string;
@@ -65,8 +65,12 @@ const sizeClasses = computed(() => {
             <AvatarImage v-if="logo" :src="logo" :alt="symbol" />
             <AvatarFallback
                 :class="[
-                    'bg-primary/10 text-primary font-medium',
-                    size === 'sm' ? 'text-[10px]' : size === 'lg' ? 'text-xl' : 'text-xs',
+                    'bg-muted font-medium text-foreground',
+                    size === 'sm'
+                        ? 'text-[10px]'
+                        : size === 'lg'
+                          ? 'text-xl'
+                          : 'text-xs',
                 ]"
             >
                 {{ initials }}
@@ -81,20 +85,29 @@ const sizeClasses = computed(() => {
             <!-- Badge (Market Code or Sector) -->
             <span
                 v-if="marketCode"
-                :class="[sizeClasses.badge, 'rounded bg-muted text-muted-foreground']"
+                :class="[
+                    sizeClasses.badge,
+                    'rounded bg-muted text-muted-foreground',
+                ]"
             >
                 {{ marketCode }}
             </span>
             <span
                 v-else-if="sectorName"
-                :class="[sizeClasses.badge, 'rounded bg-muted text-muted-foreground']"
+                :class="[
+                    sizeClasses.badge,
+                    'rounded bg-muted text-muted-foreground',
+                ]"
             >
                 {{ sectorName }}
             </span>
         </div>
 
         <!-- Name -->
-        <p v-if="showName && name" :class="[sizeClasses.name, 'text-muted-foreground']">
+        <p
+            v-if="showName && name"
+            :class="[sizeClasses.name, 'text-muted-foreground']"
+        >
             {{ name }}
         </p>
     </div>

@@ -1,5 +1,5 @@
-import { ref, onMounted, onUnmounted, computed } from 'vue';
 import type { AlertNotification } from '@/types/alerts';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 export function useNotifications(userId: string) {
     const notifications = ref<AlertNotification[]>([]);
@@ -10,8 +10,8 @@ export function useNotifications(userId: string) {
 
     let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
-    const unreadCount = computed(() =>
-        notifications.value.filter(n => !n.read_at).length
+    const unreadCount = computed(
+        () => notifications.value.filter((n) => !n.read_at).length,
     );
 
     const setupAlertChannel = () => {
@@ -20,8 +20,7 @@ export function useNotifications(userId: string) {
             return;
         }
 
-        window.Echo
-            .private(`user.${userId}.alerts`)
+        window.Echo.private(`user.${userId}.alerts`)
             .listen('.alert.triggered', (event: AlertNotification) => {
                 handleAlert(event);
             })
@@ -57,10 +56,12 @@ export function useNotifications(userId: string) {
         reconnectAttempts.value++;
         const delay = Math.min(
             Math.pow(2, reconnectAttempts.value) * 1000,
-            MAX_RECONNECT_DELAY
+            MAX_RECONNECT_DELAY,
         );
 
-        console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts.value})`);
+        console.log(
+            `Reconnecting in ${delay}ms (attempt ${reconnectAttempts.value})`,
+        );
 
         reconnectTimeout = setTimeout(() => {
             reconnectTimeout = null;
@@ -84,7 +85,9 @@ export function useNotifications(userId: string) {
         if (!lastSeen) return;
 
         try {
-            const response = await fetch(`/api/notifications?since=${lastSeen}`);
+            const response = await fetch(
+                `/api/notifications?since=${lastSeen}`,
+            );
             const data = await response.json();
 
             if (data.data.length > 0) {
@@ -101,11 +104,16 @@ export function useNotifications(userId: string) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
                 },
             });
 
-            const notification = notifications.value.find(n => n.id === notificationId);
+            const notification = notifications.value.find(
+                (n) => n.id === notificationId,
+            );
             if (notification) {
                 notification.read_at = new Date().toISOString();
             }
@@ -120,11 +128,14 @@ export function useNotifications(userId: string) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
                 },
             });
 
-            notifications.value.forEach(n => {
+            notifications.value.forEach((n) => {
                 if (!n.read_at) {
                     n.read_at = new Date().toISOString();
                 }
@@ -135,7 +146,9 @@ export function useNotifications(userId: string) {
     };
 
     const dismissToast = (notificationId: string) => {
-        const index = toastQueue.value.findIndex(n => n.id === notificationId);
+        const index = toastQueue.value.findIndex(
+            (n) => n.id === notificationId,
+        );
         if (index !== -1) {
             toastQueue.value.splice(index, 1);
         }
@@ -167,7 +180,10 @@ export function useNotifications(userId: string) {
     });
 
     onUnmounted(() => {
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        document.removeEventListener(
+            'visibilitychange',
+            handleVisibilityChange,
+        );
         if (reconnectTimeout) {
             clearTimeout(reconnectTimeout);
         }

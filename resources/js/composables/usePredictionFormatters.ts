@@ -33,8 +33,8 @@ export function usePredictionFormatters() {
      */
     const getStatusColor = (isOpen: boolean): string => {
         return isOpen
-            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-            : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400';
+            ? 'bg-gain-muted text-gain'
+            : 'bg-muted text-muted-foreground';
     };
 
     /**
@@ -43,7 +43,10 @@ export function usePredictionFormatters() {
      * @param currentPrice - The current price (nullable)
      * @returns Gain percentage or 0 if current price is invalid
      */
-    const calculateGainPercent = (predictedPrice: number, currentPrice: number | null): number => {
+    const calculateGainPercent = (
+        predictedPrice: number,
+        currentPrice: number | null,
+    ): number => {
         if (!currentPrice || currentPrice === 0) return 0;
         return ((predictedPrice - currentPrice) / currentPrice) * 100;
     };

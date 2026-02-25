@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
+import { ref, watch } from 'vue';
 
 interface UseServerSearchOptions {
     /** Debounce delay in milliseconds (default: 300) */
@@ -14,7 +14,12 @@ interface UseServerSearchOptions {
 }
 
 export function useServerSearch(options: UseServerSearchOptions = {}) {
-    const { delay = 300, initialValue = null, preserveParams = [], only = ['assets', 'filters'] } = options;
+    const {
+        delay = 300,
+        initialValue = null,
+        preserveParams = [],
+        only = ['assets', 'filters'],
+    } = options;
 
     const searchQuery = ref(initialValue || '');
     const isSearching = ref(false);

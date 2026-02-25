@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import MarketPreferencesController from '@/actions/App/Http/Controllers/Settings/MarketPreferencesController';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import MultiSelectList from '@/components/MultiSelectList.vue';
 import SearchableSelect from '@/components/ui/combobox/SearchableSelect.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import { edit } from '@/routes/market-preferences';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
 import { computed, ref } from 'vue';
-import { edit } from '@/routes/market-preferences';
-import MarketPreferencesController from '@/actions/App/Http/Controllers/Settings/MarketPreferencesController';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -63,46 +63,58 @@ const updateCountry = (countryId: string) => {
     selectedCountry.value = countryId;
     savingCountry.value = true;
 
-    router.patch(MarketPreferencesController.update().url, { country_id: countryId }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            countrySaved.value = true;
-            setTimeout(() => {
-                countrySaved.value = false;
-            }, 2000);
+    router.patch(
+        MarketPreferencesController.update().url,
+        { country_id: countryId },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                countrySaved.value = true;
+                setTimeout(() => {
+                    countrySaved.value = false;
+                }, 2000);
+            },
+            onFinish: () => {
+                savingCountry.value = false;
+            },
         },
-        onFinish: () => {
-            savingCountry.value = false;
-        },
-    });
+    );
 };
 
 const saveMarkets = (markets: string[]) => {
     savingMarkets.value = true;
 
-    router.patch(MarketPreferencesController.update().url, { markets }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            selectedMarkets.value = markets;
+    router.patch(
+        MarketPreferencesController.update().url,
+        { markets },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                selectedMarkets.value = markets;
+            },
+            onFinish: () => {
+                savingMarkets.value = false;
+            },
         },
-        onFinish: () => {
-            savingMarkets.value = false;
-        },
-    });
+    );
 };
 
 const saveSectors = (sectors: string[]) => {
     savingSectors.value = true;
 
-    router.patch(MarketPreferencesController.update().url, { sectors }, {
-        preserveScroll: true,
-        onSuccess: () => {
-            selectedSectors.value = sectors;
+    router.patch(
+        MarketPreferencesController.update().url,
+        { sectors },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                selectedSectors.value = sectors;
+            },
+            onFinish: () => {
+                savingSectors.value = false;
+            },
         },
-        onFinish: () => {
-            savingSectors.value = false;
-        },
-    });
+    );
 };
 </script>
 
@@ -115,23 +127,26 @@ const saveSectors = (sectors: string[]) => {
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
                     :title="t('settings.marketPreferences.country.heading')"
-                    :description="t('settings.marketPreferences.country.description')"
+                    :description="
+                        t('settings.marketPreferences.country.description')
+                    "
                 />
 
                 <div class="max-w-md">
                     <SearchableSelect
                         :model-value="selectedCountry"
-                        :options="countries.map((country) => ({
-                            value: country.id,
-                            label: country.name,
-                        }))"
-                        :placeholder="t('settings.marketPreferences.country.placeholder')"
+                        :options="
+                            countries.map((country) => ({
+                                value: country.id,
+                                label: country.name,
+                            }))
+                        "
+                        :placeholder="
+                            t('settings.marketPreferences.country.placeholder')
+                        "
                         @update:model-value="updateCountry"
                     />
-                    <p
-                        v-if="countrySaved"
-                        class="mt-2 text-sm text-gain"
-                    >
+                    <p v-if="countrySaved" class="mt-2 text-sm text-gain">
                         {{ t('settings.marketPreferences.saved') }}
                     </p>
                 </div>
@@ -141,7 +156,9 @@ const saveSectors = (sectors: string[]) => {
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
                     :title="t('settings.marketPreferences.markets.heading')"
-                    :description="t('settings.marketPreferences.markets.description')"
+                    :description="
+                        t('settings.marketPreferences.markets.description')
+                    "
                 />
 
                 <MultiSelectList
@@ -158,7 +175,9 @@ const saveSectors = (sectors: string[]) => {
             <div class="flex flex-col space-y-6">
                 <HeadingSmall
                     :title="t('settings.marketPreferences.sectors.heading')"
-                    :description="t('settings.marketPreferences.sectors.description')"
+                    :description="
+                        t('settings.marketPreferences.sectors.description')
+                    "
                 />
 
                 <MultiSelectList

@@ -1,16 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useDebounceFn } from '@vueuse/core';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Command,
     CommandEmpty,
@@ -19,13 +8,24 @@ import {
     CommandItem,
     CommandList,
 } from '@/components/ui/command';
+import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, X } from 'lucide-vue-next';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useDebounceFn } from '@vueuse/core';
+import { Check, ChevronsUpDown, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Asset {
     id: string;
@@ -71,15 +71,21 @@ const loading = ref(false);
 const currentAsset = ref<Asset | null>(props.selectedAsset);
 
 // Watch for prop changes
-watch(() => props.selectedAsset, (newVal) => {
-    currentAsset.value = newVal;
-});
+watch(
+    () => props.selectedAsset,
+    (newVal) => {
+        currentAsset.value = newVal;
+    },
+);
 
-watch(() => props.modelValue, (newVal) => {
-    if (!newVal) {
-        currentAsset.value = null;
-    }
-});
+watch(
+    () => props.modelValue,
+    (newVal) => {
+        if (!newVal) {
+            currentAsset.value = null;
+        }
+    },
+);
 
 const displayValue = computed(() => {
     if (currentAsset.value) {
@@ -102,10 +108,14 @@ const searchAssets = useDebounceFn(async () => {
     try {
         const params = new URLSearchParams();
         if (searchQuery.value) params.append('search', searchQuery.value);
-        if (selectedMarket.value) params.append('market_id', selectedMarket.value);
-        if (selectedSector.value) params.append('sector_id', selectedSector.value);
+        if (selectedMarket.value)
+            params.append('market_id', selectedMarket.value);
+        if (selectedSector.value)
+            params.append('sector_id', selectedSector.value);
 
-        const response = await fetch(`/alerts/search-assets?${params.toString()}`);
+        const response = await fetch(
+            `/alerts/search-assets?${params.toString()}`,
+        );
         const data = await response.json();
         assets.value = data.assets;
     } catch (error) {
@@ -159,28 +169,54 @@ const handleSectorChange = (value: string) => {
         <!-- Filters Row -->
         <div class="grid gap-3 sm:grid-cols-2">
             <div class="space-y-1.5">
-                <Label class="text-xs text-muted-foreground">{{ t('alerts.filters.market') }}</Label>
-                <Select :model-value="selectedMarket || 'all'" @update:model-value="handleMarketChange">
+                <Label class="text-xs text-muted-foreground">{{
+                    t('alerts.filters.market')
+                }}</Label>
+                <Select
+                    :model-value="selectedMarket || 'all'"
+                    @update:model-value="handleMarketChange"
+                >
                     <SelectTrigger class="h-9">
-                        <SelectValue :placeholder="t('alerts.filters.all_markets')" />
+                        <SelectValue
+                            :placeholder="t('alerts.filters.all_markets')"
+                        />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">{{ t('alerts.filters.all_markets') }}</SelectItem>
-                        <SelectItem v-for="market in markets" :key="market.id" :value="market.id">
+                        <SelectItem value="all">{{
+                            t('alerts.filters.all_markets')
+                        }}</SelectItem>
+                        <SelectItem
+                            v-for="market in markets"
+                            :key="market.id"
+                            :value="market.id"
+                        >
                             {{ getLocalizedName(market) }}
                         </SelectItem>
                     </SelectContent>
                 </Select>
             </div>
             <div class="space-y-1.5">
-                <Label class="text-xs text-muted-foreground">{{ t('alerts.filters.sector') }}</Label>
-                <Select :model-value="selectedSector || 'all'" @update:model-value="handleSectorChange">
+                <Label class="text-xs text-muted-foreground">{{
+                    t('alerts.filters.sector')
+                }}</Label>
+                <Select
+                    :model-value="selectedSector || 'all'"
+                    @update:model-value="handleSectorChange"
+                >
                     <SelectTrigger class="h-9">
-                        <SelectValue :placeholder="t('alerts.filters.all_sectors')" />
+                        <SelectValue
+                            :placeholder="t('alerts.filters.all_sectors')"
+                        />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">{{ t('alerts.filters.all_sectors') }}</SelectItem>
-                        <SelectItem v-for="sector in sectors" :key="sector.id" :value="sector.id">
+                        <SelectItem value="all">{{
+                            t('alerts.filters.all_sectors')
+                        }}</SelectItem>
+                        <SelectItem
+                            v-for="sector in sectors"
+                            :key="sector.id"
+                            :value="sector.id"
+                        >
                             {{ getLocalizedName(sector) }}
                         </SelectItem>
                     </SelectContent>
@@ -222,7 +258,9 @@ const handleSectorChange = (value: string) => {
                                 class="size-4 shrink-0 opacity-50 hover:opacity-100"
                                 @click.stop="clearSelection"
                             />
-                            <ChevronsUpDown class="size-4 shrink-0 opacity-50" />
+                            <ChevronsUpDown
+                                class="size-4 shrink-0 opacity-50"
+                            />
                         </div>
                     </Button>
                 </PopoverTrigger>
@@ -234,9 +272,11 @@ const handleSectorChange = (value: string) => {
                         />
                         <CommandList>
                             <CommandEmpty v-if="!loading">
-                                {{ hasFilters
-                                    ? t('alerts.no_assets_found')
-                                    : t('alerts.search_to_find_assets') }}
+                                {{
+                                    hasFilters
+                                        ? t('alerts.no_assets_found')
+                                        : t('alerts.search_to_find_assets')
+                                }}
                             </CommandEmpty>
                             <CommandEmpty v-else>
                                 {{ t('common.loading') }}
@@ -249,15 +289,27 @@ const handleSectorChange = (value: string) => {
                                     @select="selectAsset(asset)"
                                 >
                                     <Check
-                                        :class="cn(
-                                            'me-2 size-4',
-                                            currentAsset?.id === asset.id ? 'opacity-100' : 'opacity-0'
-                                        )"
+                                        :class="
+                                            cn(
+                                                'me-2 size-4',
+                                                currentAsset?.id === asset.id
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0',
+                                            )
+                                        "
                                     />
                                     <div class="flex flex-col">
-                                        <span class="font-medium">{{ asset.symbol }}</span>
-                                        <span class="text-xs text-muted-foreground">
-                                            {{ locale === 'ar' ? asset.name_ar : asset.name }}
+                                        <span class="font-medium">{{
+                                            asset.symbol
+                                        }}</span>
+                                        <span
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{
+                                                locale === 'ar'
+                                                    ? asset.name_ar
+                                                    : asset.name
+                                            }}
                                         </span>
                                     </div>
                                 </CommandItem>

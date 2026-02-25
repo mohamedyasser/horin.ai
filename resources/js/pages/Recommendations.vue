@@ -1,17 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Head, router, Deferred } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import LocalizedLink from '@/components/LocalizedLink.vue';
-import FilterButtonBar from '@/components/FilterButtonBar.vue';
-import ClickableTableRow from '@/components/ClickableTableRow.vue';
 import AssetDisplay from '@/components/AssetDisplay.vue';
-import { SearchableSelect } from '@/components/ui/combobox';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import ClickableTableRow from '@/components/ClickableTableRow.vue';
+import FilterButtonBar from '@/components/FilterButtonBar.vue';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SearchableSelect } from '@/components/ui/combobox';
 import {
     Dialog,
     DialogContent,
@@ -25,19 +20,24 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import GuestLayout from '@/layouts/GuestLayout.vue';
-import {
-    Search,
-    ChevronDown,
-    TrendingUp,
-    TrendingDown,
-    ArrowUpRight,
-    ArrowDownRight,
-    Loader2,
-    SlidersHorizontal,
-} from 'lucide-vue-next';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useServerSearch } from '@/composables/useServerSearch';
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import type { PaginationMeta } from '@/types';
+import { Deferred, Head, router } from '@inertiajs/vue3';
+import {
+    ArrowDownRight,
+    ArrowUpRight,
+    ChevronDown,
+    Loader2,
+    Search,
+    SlidersHorizontal,
+    TrendingDown,
+    TrendingUp,
+} from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 
@@ -128,7 +128,9 @@ const filterOpen = ref(false);
 const selectedMarket = ref<string | null>(props.filters?.market ?? null);
 const selectedSector = ref<string | null>(props.filters?.sector ?? null);
 const selectedCountry = ref<string | null>(props.filters?.country ?? null);
-const selectedRecommendation = ref<string | null>(props.filters?.recommendation ?? null);
+const selectedRecommendation = ref<string | null>(
+    props.filters?.recommendation ?? null,
+);
 const sortBy = ref<'score' | 'newest'>('score');
 
 // Recommendation type options
@@ -144,15 +146,15 @@ const recommendationOptions = [
 
 // Computed - options for searchable selects
 const marketOptions = computed(() =>
-    props.markets.map((m) => ({ value: m.code, label: m.name }))
+    props.markets.map((m) => ({ value: m.code, label: m.name })),
 );
 
 const sectorOptions = computed(() =>
-    props.sectors.map((s) => ({ value: s.id, label: s.name }))
+    props.sectors.map((s) => ({ value: s.id, label: s.name })),
 );
 
 const countryOptions = computed(() =>
-    props.countries.map((c) => ({ value: c.id, label: c.name }))
+    props.countries.map((c) => ({ value: c.id, label: c.name })),
 );
 
 // Count active filters
@@ -176,7 +178,8 @@ const applyFilters = () => {
     if (selectedMarket.value) data.market = selectedMarket.value;
     if (selectedSector.value) data.sector = selectedSector.value;
     if (selectedCountry.value) data.country = selectedCountry.value;
-    if (selectedRecommendation.value) data.recommendation = selectedRecommendation.value;
+    if (selectedRecommendation.value)
+        data.recommendation = selectedRecommendation.value;
 
     router.visit(window.location.pathname, {
         data,
@@ -225,7 +228,9 @@ const sortedRecommendations = computed(() => {
 });
 
 // Helper functions
-const getRecommendationVariant = (recommendation: string): 'gain' | 'loss' | 'outline' => {
+const getRecommendationVariant = (
+    recommendation: string,
+): 'gain' | 'loss' | 'outline' => {
     switch (recommendation) {
         case 'STRONG_BUY':
         case 'BUY':
@@ -277,7 +282,7 @@ const goToPage = (page: number) => {
 
 <template>
     <Head :title="t('recommendations.title')">
-        <meta name="description" :content="t('meta.recommendations')">
+        <meta name="description" :content="t('meta.recommendations')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -293,8 +298,14 @@ const goToPage = (page: number) => {
 
                 <!-- Search Bar -->
                 <div class="relative mx-auto mt-8 max-w-xl">
-                    <Search v-if="!isSearching" class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-                    <Loader2 v-else class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground animate-spin" />
+                    <Search
+                        v-if="!isSearching"
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <Loader2
+                        v-else
+                        class="absolute start-3 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground"
+                    />
                     <Input
                         v-model="searchQuery"
                         type="text"
@@ -324,70 +335,104 @@ const goToPage = (page: number) => {
                 <div class="lg:col-span-3">
                     <!-- Controls -->
                     <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-xl font-semibold">{{ t('recommendations.title') }}</h2>
+                        <h2 class="text-xl font-semibold">
+                            {{ t('recommendations.title') }}
+                        </h2>
                         <div class="flex items-center gap-2">
                             <!-- Filter Button -->
                             <Dialog v-model:open="filterOpen">
                                 <DialogTrigger as-child>
                                     <Button variant="outline" size="sm">
-                                        <SlidersHorizontal class="me-1 size-4" />
+                                        <SlidersHorizontal
+                                            class="me-1 size-4"
+                                        />
                                         {{ t('home.filters') }}
-                                        <span v-if="activeFilterCount > 0" class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                        <span
+                                            v-if="activeFilterCount > 0"
+                                            class="ms-1 rounded-full bg-primary px-1.5 text-xs text-primary-foreground"
+                                        >
                                             {{ activeFilterCount }}
                                         </span>
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent class="sm:max-w-md">
                                     <DialogHeader>
-                                        <DialogTitle>{{ t('home.filterPredictions') }}</DialogTitle>
+                                        <DialogTitle>{{
+                                            t('home.filterPredictions')
+                                        }}</DialogTitle>
                                     </DialogHeader>
                                     <div class="grid gap-4 py-4">
                                         <!-- Market Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('predictions.market') }}</Label>
+                                            <Label>{{
+                                                t('predictions.market')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedMarket"
                                                 :options="marketOptions"
-                                                :placeholder="t('predictions.allMarkets')"
-                                                :empty-text="t('home.noResults')"
+                                                :placeholder="
+                                                    t('predictions.allMarkets')
+                                                "
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
 
                                         <!-- Sector Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('predictions.sector') }}</Label>
+                                            <Label>{{
+                                                t('predictions.sector')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedSector"
                                                 :options="sectorOptions"
-                                                :placeholder="t('predictions.allSectors')"
-                                                :empty-text="t('home.noResults')"
+                                                :placeholder="
+                                                    t('predictions.allSectors')
+                                                "
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
 
                                         <!-- Country Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('markets.country') }}</Label>
+                                            <Label>{{
+                                                t('markets.country')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedCountry"
                                                 :options="countryOptions"
-                                                :placeholder="t('markets.allCountries')"
-                                                :empty-text="t('home.noResults')"
+                                                :placeholder="
+                                                    t('markets.allCountries')
+                                                "
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
 
                                         <!-- Recommendation Type Select -->
                                         <div class="grid gap-2">
-                                            <Label>{{ t('recommendations.title') }}</Label>
+                                            <Label>{{
+                                                t('recommendations.title')
+                                            }}</Label>
                                             <SearchableSelect
                                                 v-model="selectedRecommendation"
                                                 :options="recommendationOptions"
                                                 :placeholder="t('common.all')"
-                                                :empty-text="t('home.noResults')"
+                                                :empty-text="
+                                                    t('home.noResults')
+                                                "
                                             />
                                         </div>
                                     </div>
                                     <div class="flex justify-end gap-2">
-                                        <Button variant="outline" @click="clearFilters">
+                                        <Button
+                                            variant="outline"
+                                            @click="clearFilters"
+                                        >
                                             {{ t('common.clear') }}
                                         </Button>
                                         <Button @click="applyFilters">
@@ -409,7 +454,9 @@ const goToPage = (page: number) => {
                                     <DropdownMenuItem @click="sortBy = 'score'">
                                         {{ t('recommendations.score') }}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem @click="sortBy = 'newest'">
+                                    <DropdownMenuItem
+                                        @click="sortBy = 'newest'"
+                                    >
                                         {{ t('predictions.newest') }}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -422,12 +469,26 @@ const goToPage = (page: number) => {
                             <!-- Loading skeleton -->
                             <div class="rounded-md border border-border">
                                 <div class="animate-pulse space-y-4 p-4">
-                                    <div v-for="i in 10" :key="i" class="flex items-center gap-4">
-                                        <div class="h-10 w-20 rounded bg-muted" />
-                                        <div class="h-4 flex-1 rounded bg-muted" />
-                                        <div class="h-4 w-16 rounded bg-muted" />
-                                        <div class="h-4 w-16 rounded bg-muted" />
-                                        <div class="h-4 w-16 rounded bg-muted" />
+                                    <div
+                                        v-for="i in 10"
+                                        :key="i"
+                                        class="flex items-center gap-4"
+                                    >
+                                        <div
+                                            class="h-10 w-20 rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-4 flex-1 rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-4 w-16 rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-4 w-16 rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-4 w-16 rounded bg-muted"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -437,30 +498,66 @@ const goToPage = (page: number) => {
                             <div class="overflow-x-auto">
                                 <table class="w-full">
                                     <thead>
-                                        <tr class="border-b border-border bg-muted/50">
-                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                                {{ t('predictions.table.symbol') }}
+                                        <tr
+                                            class="border-b border-border bg-muted/50"
+                                        >
+                                            <th
+                                                class="px-4 py-3 text-start text-sm font-medium text-muted-foreground"
+                                            >
+                                                {{
+                                                    t(
+                                                        'predictions.table.symbol',
+                                                    )
+                                                }}
                                             </th>
-                                            <th class="px-4 py-3 text-start text-sm font-medium text-muted-foreground">
-                                                {{ t('predictions.table.name') }}
+                                            <th
+                                                class="px-4 py-3 text-start text-sm font-medium text-muted-foreground"
+                                            >
+                                                {{
+                                                    t('predictions.table.name')
+                                                }}
                                             </th>
-                                            <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                                                {{ t('predictions.table.market') }}
+                                            <th
+                                                class="px-4 py-3 text-center text-sm font-medium text-muted-foreground"
+                                            >
+                                                {{
+                                                    t(
+                                                        'predictions.table.market',
+                                                    )
+                                                }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
-                                                {{ t('predictions.table.lastPrice') }}
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
+                                                {{
+                                                    t(
+                                                        'predictions.table.lastPrice',
+                                                    )
+                                                }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('search.table.change') }}
                                             </th>
-                                            <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-center text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('recommendations.title') }}
                                             </th>
-                                            <th class="px-4 py-3 text-end text-sm font-medium text-muted-foreground">
+                                            <th
+                                                class="px-4 py-3 text-end text-sm font-medium text-muted-foreground"
+                                            >
                                                 {{ t('recommendations.score') }}
                                             </th>
-                                            <th class="px-4 py-3 text-center text-sm font-medium text-muted-foreground">
-                                                {{ t('predictions.table.action') }}
+                                            <th
+                                                class="px-4 py-3 text-center text-sm font-medium text-muted-foreground"
+                                            >
+                                                {{
+                                                    t(
+                                                        'predictions.table.action',
+                                                    )
+                                                }}
                                             </th>
                                         </tr>
                                     </thead>
@@ -469,18 +566,26 @@ const goToPage = (page: number) => {
                                             v-for="item in sortedRecommendations"
                                             :key="item.id"
                                             :aria-label="`${t('common.viewDetailsFor')} ${item.asset.symbol} - ${item.asset.name}`"
-                                            @click="router.visit(`/${locale}/assets/${item.asset.symbol}`)"
+                                            @click="
+                                                router.visit(
+                                                    `/${locale}/assets/${item.asset.symbol}`,
+                                                )
+                                            "
                                         >
                                             <td class="px-4 py-3">
                                                 <AssetDisplay
                                                     :symbol="item.asset.symbol"
-                                                    :sector-name="item.asset.sector?.name"
+                                                    :sector-name="
+                                                        item.asset.sector?.name
+                                                    "
                                                     :show-name="false"
                                                     :show-logo="false"
                                                     size="md"
                                                 />
                                             </td>
-                                            <td class="px-4 py-3 text-sm text-muted-foreground">
+                                            <td
+                                                class="px-4 py-3 text-sm text-muted-foreground"
+                                            >
                                                 {{ item.asset.name }}
                                             </td>
                                             <td class="px-4 py-3 text-center">
@@ -491,29 +596,90 @@ const goToPage = (page: number) => {
                                                     {{ item.asset.market.code }}
                                                 </span>
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end text-sm tabular-nums">
-                                                {{ item.asset.currentPrice?.toFixed(2) ?? '-' }}
+                                            <td
+                                                dir="ltr"
+                                                class="px-4 py-3 text-end text-sm tabular-nums"
+                                            >
+                                                {{
+                                                    item.asset.currentPrice?.toFixed(
+                                                        2,
+                                                    ) ?? '-'
+                                                }}
                                             </td>
                                             <td class="px-4 py-3 text-end">
                                                 <span
-                                                    v-if="formatPriceChange(item.asset.priceChange) !== null"
+                                                    v-if="
+                                                        formatPriceChange(
+                                                            item.asset
+                                                                .priceChange,
+                                                        ) !== null
+                                                    "
                                                     dir="ltr"
                                                     class="inline-flex items-center gap-0.5 text-sm font-medium tabular-nums"
-                                                    :class="formatPriceChange(item.asset.priceChange)! >= 0 ? 'text-gain' : 'text-loss'"
+                                                    :class="
+                                                        formatPriceChange(
+                                                            item.asset
+                                                                .priceChange,
+                                                        )! >= 0
+                                                            ? 'text-gain'
+                                                            : 'text-loss'
+                                                    "
                                                 >
-                                                    <ArrowUpRight v-if="formatPriceChange(item.asset.priceChange)! >= 0" class="size-3" />
-                                                    <ArrowDownRight v-else class="size-3" />
-                                                    {{ Math.abs(formatPriceChange(item.asset.priceChange)!).toFixed(2) }}%
+                                                    <ArrowUpRight
+                                                        v-if="
+                                                            formatPriceChange(
+                                                                item.asset
+                                                                    .priceChange,
+                                                            )! >= 0
+                                                        "
+                                                        class="size-3"
+                                                    />
+                                                    <ArrowDownRight
+                                                        v-else
+                                                        class="size-3"
+                                                    />
+                                                    {{
+                                                        Math.abs(
+                                                            formatPriceChange(
+                                                                item.asset
+                                                                    .priceChange,
+                                                            )!,
+                                                        ).toFixed(2)
+                                                    }}%
                                                 </span>
-                                                <span v-else class="text-sm text-muted-foreground">-</span>
+                                                <span
+                                                    v-else
+                                                    class="text-sm text-muted-foreground"
+                                                    >-</span
+                                                >
                                             </td>
                                             <td class="px-4 py-3 text-center">
-                                                <Badge :variant="getRecommendationVariant(item.recommendation)">
-                                                    {{ t(`recommendations.actions.${item.recommendation}`) }}
+                                                <Badge
+                                                    :variant="
+                                                        getRecommendationVariant(
+                                                            item.recommendation,
+                                                        )
+                                                    "
+                                                >
+                                                    {{
+                                                        t(
+                                                            `recommendations.actions.${item.recommendation}`,
+                                                        )
+                                                    }}
                                                 </Badge>
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end">
-                                                <span :class="getScoreColor(item.score)" class="font-medium tabular-nums">
+                                            <td
+                                                dir="ltr"
+                                                class="px-4 py-3 text-end"
+                                            >
+                                                <span
+                                                    :class="
+                                                        getScoreColor(
+                                                            item.score,
+                                                        )
+                                                    "
+                                                    class="font-medium tabular-nums"
+                                                >
                                                     {{ item.score.toFixed(1) }}
                                                 </span>
                                             </td>
@@ -524,8 +690,14 @@ const goToPage = (page: number) => {
                                                     size="sm"
                                                     @click.stop
                                                 >
-                                                    <LocalizedLink :href="`/assets/${item.asset.symbol}`">
-                                                        {{ t('predictions.viewDetails') }}
+                                                    <LocalizedLink
+                                                        :href="`/assets/${item.asset.symbol}`"
+                                                    >
+                                                        {{
+                                                            t(
+                                                                'predictions.viewDetails',
+                                                            )
+                                                        }}
                                                     </LocalizedLink>
                                                 </Button>
                                             </td>
@@ -539,7 +711,9 @@ const goToPage = (page: number) => {
                                 v-if="sortedRecommendations.length === 0"
                                 class="flex flex-col items-center justify-center py-12 text-center"
                             >
-                                <Search class="size-12 text-muted-foreground/50" />
+                                <Search
+                                    class="size-12 text-muted-foreground/50"
+                                />
                                 <p class="mt-4 text-muted-foreground">
                                     {{ t('predictions.noResults') }}
                                 </p>
@@ -547,23 +721,44 @@ const goToPage = (page: number) => {
                         </div>
 
                         <!-- Pagination -->
-                        <div v-if="recommendationsMeta && recommendationsMeta.lastPage > 1" class="mt-4 flex items-center justify-center gap-2">
+                        <div
+                            v-if="
+                                recommendationsMeta &&
+                                recommendationsMeta.lastPage > 1
+                            "
+                            class="mt-4 flex items-center justify-center gap-2"
+                        >
                             <Button
                                 variant="outline"
                                 size="sm"
                                 :disabled="recommendationsMeta.currentPage <= 1"
-                                @click="goToPage(recommendationsMeta.currentPage - 1)"
+                                @click="
+                                    goToPage(
+                                        recommendationsMeta.currentPage - 1,
+                                    )
+                                "
                             >
                                 {{ t('common.previous') }}
                             </Button>
-                            <span dir="ltr" class="text-sm text-muted-foreground">
-                                {{ recommendationsMeta.currentPage }} / {{ recommendationsMeta.lastPage }}
+                            <span
+                                dir="ltr"
+                                class="text-sm text-muted-foreground"
+                            >
+                                {{ recommendationsMeta.currentPage }} /
+                                {{ recommendationsMeta.lastPage }}
                             </span>
                             <Button
                                 variant="outline"
                                 size="sm"
-                                :disabled="recommendationsMeta.currentPage >= recommendationsMeta.lastPage"
-                                @click="goToPage(recommendationsMeta.currentPage + 1)"
+                                :disabled="
+                                    recommendationsMeta.currentPage >=
+                                    recommendationsMeta.lastPage
+                                "
+                                @click="
+                                    goToPage(
+                                        recommendationsMeta.currentPage + 1,
+                                    )
+                                "
                             >
                                 {{ t('common.next') }}
                             </Button>
@@ -578,15 +773,27 @@ const goToPage = (page: number) => {
                         <template #fallback>
                             <Card>
                                 <CardHeader class="pb-3">
-                                    <CardTitle class="flex items-center gap-2 text-base">
-                                        <TrendingUp class="size-4 text-foreground" />
+                                    <CardTitle
+                                        class="flex items-center gap-2 text-base"
+                                    >
+                                        <TrendingUp
+                                            class="size-4 text-foreground"
+                                        />
                                         {{ t('sidebar.topBuySignals') }}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent class="space-y-3">
-                                    <div v-for="i in 5" :key="i" class="flex items-center justify-between">
-                                        <div class="h-4 w-16 rounded bg-muted animate-pulse" />
-                                        <div class="h-5 w-20 rounded bg-muted animate-pulse" />
+                                    <div
+                                        v-for="i in 5"
+                                        :key="i"
+                                        class="flex items-center justify-between"
+                                    >
+                                        <div
+                                            class="h-4 w-16 animate-pulse rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-5 w-20 animate-pulse rounded bg-muted"
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -594,8 +801,12 @@ const goToPage = (page: number) => {
 
                         <Card>
                             <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingUp class="size-4 text-foreground" />
+                                <CardTitle
+                                    class="flex items-center gap-2 text-base"
+                                >
+                                    <TrendingUp
+                                        class="size-4 text-foreground"
+                                    />
                                     {{ t('sidebar.topBuySignals') }}
                                 </CardTitle>
                             </CardHeader>
@@ -604,7 +815,7 @@ const goToPage = (page: number) => {
                                     v-for="item in props.topBuySignals"
                                     :key="item.id"
                                     :href="`/assets/${item.asset.symbol}`"
-                                    class="flex items-center justify-between hover:bg-muted -mx-2 px-2 py-1 rounded-md transition-colors"
+                                    class="-mx-2 flex items-center justify-between rounded-md px-2 py-1 transition-colors hover:bg-muted"
                                 >
                                     <AssetDisplay
                                         :symbol="item.asset.symbol"
@@ -613,11 +824,25 @@ const goToPage = (page: number) => {
                                         :show-logo="false"
                                         size="sm"
                                     />
-                                    <Badge :variant="getRecommendationVariant(item.recommendation)" class="text-xs">
-                                        {{ t(`recommendations.actions.${item.recommendation}`) }}
+                                    <Badge
+                                        :variant="
+                                            getRecommendationVariant(
+                                                item.recommendation,
+                                            )
+                                        "
+                                        class="text-xs"
+                                    >
+                                        {{
+                                            t(
+                                                `recommendations.actions.${item.recommendation}`,
+                                            )
+                                        }}
                                     </Badge>
                                 </LocalizedLink>
-                                <p v-if="!props.topBuySignals?.length" class="text-sm text-muted-foreground text-center py-2">
+                                <p
+                                    v-if="!props.topBuySignals?.length"
+                                    class="py-2 text-center text-sm text-muted-foreground"
+                                >
                                     {{ t('common.noData') }}
                                 </p>
                             </CardContent>
@@ -629,15 +854,27 @@ const goToPage = (page: number) => {
                         <template #fallback>
                             <Card>
                                 <CardHeader class="pb-3">
-                                    <CardTitle class="flex items-center gap-2 text-base">
-                                        <TrendingDown class="size-4 text-foreground" />
+                                    <CardTitle
+                                        class="flex items-center gap-2 text-base"
+                                    >
+                                        <TrendingDown
+                                            class="size-4 text-foreground"
+                                        />
                                         {{ t('sidebar.topSellSignals') }}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent class="space-y-3">
-                                    <div v-for="i in 5" :key="i" class="flex items-center justify-between">
-                                        <div class="h-4 w-16 rounded bg-muted animate-pulse" />
-                                        <div class="h-5 w-20 rounded bg-muted animate-pulse" />
+                                    <div
+                                        v-for="i in 5"
+                                        :key="i"
+                                        class="flex items-center justify-between"
+                                    >
+                                        <div
+                                            class="h-4 w-16 animate-pulse rounded bg-muted"
+                                        />
+                                        <div
+                                            class="h-5 w-20 animate-pulse rounded bg-muted"
+                                        />
                                     </div>
                                 </CardContent>
                             </Card>
@@ -645,8 +882,12 @@ const goToPage = (page: number) => {
 
                         <Card>
                             <CardHeader class="pb-3">
-                                <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingDown class="size-4 text-foreground" />
+                                <CardTitle
+                                    class="flex items-center gap-2 text-base"
+                                >
+                                    <TrendingDown
+                                        class="size-4 text-foreground"
+                                    />
                                     {{ t('sidebar.topSellSignals') }}
                                 </CardTitle>
                             </CardHeader>
@@ -655,7 +896,7 @@ const goToPage = (page: number) => {
                                     v-for="item in props.topSellSignals"
                                     :key="item.id"
                                     :href="`/assets/${item.asset.symbol}`"
-                                    class="flex items-center justify-between hover:bg-muted -mx-2 px-2 py-1 rounded-md transition-colors"
+                                    class="-mx-2 flex items-center justify-between rounded-md px-2 py-1 transition-colors hover:bg-muted"
                                 >
                                     <AssetDisplay
                                         :symbol="item.asset.symbol"
@@ -664,11 +905,25 @@ const goToPage = (page: number) => {
                                         :show-logo="false"
                                         size="sm"
                                     />
-                                    <Badge :variant="getRecommendationVariant(item.recommendation)" class="text-xs">
-                                        {{ t(`recommendations.actions.${item.recommendation}`) }}
+                                    <Badge
+                                        :variant="
+                                            getRecommendationVariant(
+                                                item.recommendation,
+                                            )
+                                        "
+                                        class="text-xs"
+                                    >
+                                        {{
+                                            t(
+                                                `recommendations.actions.${item.recommendation}`,
+                                            )
+                                        }}
                                     </Badge>
                                 </LocalizedLink>
-                                <p v-if="!props.topSellSignals?.length" class="text-sm text-muted-foreground text-center py-2">
+                                <p
+                                    v-if="!props.topSellSignals?.length"
+                                    class="py-2 text-center text-sm text-muted-foreground"
+                                >
                                     {{ t('common.noData') }}
                                 </p>
                             </CardContent>

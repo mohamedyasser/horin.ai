@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import LocalizedLink from '@/components/LocalizedLink.vue';
+import GuestLayout from '@/layouts/GuestLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import GuestLayout from '@/layouts/GuestLayout.vue';
-import LocalizedLink from '@/components/LocalizedLink.vue';
 
 const { t } = useI18n();
 
@@ -34,7 +34,7 @@ const questions = [
 
 <template>
     <Head :title="t('faq.title')">
-        <meta name="description" :content="t('meta.faq')">
+        <meta name="description" :content="t('meta.faq')" />
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
@@ -52,7 +52,7 @@ const questions = [
                     <h2 class="text-base font-semibold">
                         {{ t(`faq.questions.${q}.q`) }}
                     </h2>
-                    <p class="mt-2 text-muted-foreground leading-relaxed">
+                    <p class="mt-2 leading-relaxed text-muted-foreground">
                         {{ t(`faq.questions.${q}.a`) }}
                     </p>
                 </div>
@@ -62,9 +62,12 @@ const questions = [
                     <h2 class="text-base font-semibold">
                         {{ t('faq.questions.reportIssue.q') }}
                     </h2>
-                    <p class="mt-2 text-muted-foreground leading-relaxed">
+                    <p class="mt-2 leading-relaxed text-muted-foreground">
                         {{ t('faq.questions.reportIssue.a') }}
-                        <LocalizedLink href="/contact" class="underline hover:text-foreground">
+                        <LocalizedLink
+                            href="/contact"
+                            class="underline hover:text-foreground"
+                        >
                             {{ t('contact.title') }}
                         </LocalizedLink>
                     </p>

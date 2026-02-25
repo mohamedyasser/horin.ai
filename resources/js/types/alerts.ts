@@ -1,4 +1,10 @@
-export type AlertType = 'price' | 'prediction' | 'signal' | 'anomaly' | 'pattern' | 'recommendation';
+export type AlertType =
+    | 'price'
+    | 'prediction'
+    | 'signal'
+    | 'anomaly'
+    | 'pattern'
+    | 'recommendation';
 
 export type AlertTriggerType =
     | 'target_price'
@@ -15,10 +21,26 @@ export type AlertTriggerType =
     | 'recommendation'
     | 'compound_intelligence';
 
-export type AlertStatus = 'active' | 'triggered' | 'paused' | 'expired' | 'chained' | 'deleted';
+export type AlertStatus =
+    | 'active'
+    | 'triggered'
+    | 'paused'
+    | 'expired'
+    | 'chained'
+    | 'deleted';
 export type AlertPriority = 'critical' | 'high' | 'medium' | 'low';
-export type AlertScope = 'single_asset' | 'watchlist' | 'portfolio' | 'sector' | 'market';
-export type AlertDirection = 'above' | 'below' | 'both' | 'cross_up' | 'cross_down';
+export type AlertScope =
+    | 'single_asset'
+    | 'watchlist'
+    | 'portfolio'
+    | 'sector'
+    | 'market';
+export type AlertDirection =
+    | 'above'
+    | 'below'
+    | 'both'
+    | 'cross_up'
+    | 'cross_down';
 export type ConditionLogic = 'single' | 'and' | 'or';
 
 export interface AlertParameters {

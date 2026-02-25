@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { router } from '@inertiajs/vue3';
-import type { AlertNotification } from '@/types/alerts';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, AlertCircle, AlertTriangle, Bell, Info, ExternalLink, Check } from 'lucide-vue-next';
+import { Card, CardContent } from '@/components/ui/card';
+import type { AlertNotification } from '@/types/alerts';
+import { router } from '@inertiajs/vue3';
+import {
+    AlertCircle,
+    AlertTriangle,
+    Bell,
+    Check,
+    ExternalLink,
+    Info,
+    X,
+} from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { locale, t } = useI18n();
 
@@ -70,46 +78,65 @@ onMounted(() => {
     }
 
     // Play sound for high/critical priority
-    if (props.notification.priority === 'critical' || props.notification.priority === 'high') {
+    if (
+        props.notification.priority === 'critical' ||
+        props.notification.priority === 'high'
+    ) {
         playNotificationSound();
     }
 });
 
 const PriorityIcon = computed(() => {
     switch (props.notification.priority) {
-        case 'critical': return AlertCircle;
-        case 'high': return AlertTriangle;
-        case 'medium': return Bell;
-        default: return Info;
+        case 'critical':
+            return AlertCircle;
+        case 'high':
+            return AlertTriangle;
+        case 'medium':
+            return Bell;
+        default:
+            return Info;
     }
 });
 
 const priorityStyles = computed(() => {
     switch (props.notification.priority) {
-        case 'critical': return 'border-destructive bg-destructive/10';
-        case 'high': return 'border-orange-500 bg-orange-500/10';
-        case 'medium': return 'border-yellow-500 bg-yellow-500/10';
-        default: return 'border-border bg-muted/50';
+        case 'critical':
+            return 'border-destructive bg-destructive/10';
+        case 'high':
+            return 'border-foreground bg-muted';
+        case 'medium':
+            return 'border-muted-foreground bg-muted/50';
+        default:
+            return 'border-border bg-muted/50';
     }
 });
 
 const iconStyles = computed(() => {
     switch (props.notification.priority) {
-        case 'critical': return 'text-destructive';
-        case 'high': return 'text-orange-500';
-        case 'medium': return 'text-yellow-500';
-        default: return 'text-muted-foreground';
+        case 'critical':
+            return 'text-destructive';
+        case 'high':
+            return 'text-foreground';
+        case 'medium':
+            return 'text-muted-foreground';
+        default:
+            return 'text-muted-foreground';
     }
 });
 
 const notificationTitle = computed(() => {
     const data = props.notification.data as { title_ar?: string } | undefined;
-    return locale.value === 'ar' && data?.title_ar ? data.title_ar : props.notification.title;
+    return locale.value === 'ar' && data?.title_ar
+        ? data.title_ar
+        : props.notification.title;
 });
 
 const notificationBody = computed(() => {
     const data = props.notification.data as { body_ar?: string } | undefined;
-    return locale.value === 'ar' && data?.body_ar ? data.body_ar : props.notification.body;
+    return locale.value === 'ar' && data?.body_ar
+        ? data.body_ar
+        : props.notification.body;
 });
 </script>
 
@@ -125,9 +152,9 @@ const notificationBody = computed(() => {
         <Card
             v-if="isVisible"
             :class="[
-                'w-full max-w-sm border-s-4 shadow-lg',
+                'w-full max-w-sm border-s-4',
                 priorityStyles,
-                notification.priority === 'critical' && 'animate-pulse'
+                notification.priority === 'critical' && 'animate-pulse',
             ]"
         >
             <CardContent class="p-4">
@@ -154,14 +181,11 @@ const notificationBody = computed(() => {
                                 variant="outline"
                                 @click="viewAlert"
                             >
-                                <ExternalLink class="size-3.5 me-1.5" />
+                                <ExternalLink class="me-1.5 size-3.5" />
                                 {{ t('alerts.view_alert', 'View Alert') }}
                             </Button>
-                            <Button
-                                size="sm"
-                                @click="acknowledge"
-                            >
-                                <Check class="size-3.5 me-1.5" />
+                            <Button size="sm" @click="acknowledge">
+                                <Check class="me-1.5 size-3.5" />
                                 {{ t('alerts.acknowledge', 'Acknowledge') }}
                             </Button>
                         </div>

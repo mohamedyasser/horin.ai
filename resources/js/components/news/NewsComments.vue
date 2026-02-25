@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { usePage } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import LocalizedLink from '@/components/LocalizedLink.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-    MessageSquare,
-    Send,
-    Trash2,
-    Loader2,
-    LogIn,
-} from 'lucide-vue-next';
-import LocalizedLink from '@/components/LocalizedLink.vue';
+import { Textarea } from '@/components/ui/textarea';
 import type { NewsComment } from '@/types/news';
+import { usePage } from '@inertiajs/vue3';
+import { Loader2, LogIn, MessageSquare, Send, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 interface Props {
     newsId: string;
@@ -72,7 +66,7 @@ const submitComment = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-XSRF-TOKEN': getCsrfToken(),
             },
             credentials: 'include',
@@ -98,18 +92,21 @@ const deleteComment = async (commentId: string) => {
 
     deletingId.value = commentId;
     try {
-        const response = await fetch(`/api/news/${props.newsId}/comments/${commentId}`, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'X-XSRF-TOKEN': getCsrfToken(),
+        const response = await fetch(
+            `/api/news/${props.newsId}/comments/${commentId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                },
+                credentials: 'include',
             },
-            credentials: 'include',
-        });
+        );
 
         if (response.ok) {
             const data = await response.json();
-            comments.value = comments.value.filter(c => c.id !== commentId);
+            comments.value = comments.value.filter((c) => c.id !== commentId);
             commentsCount.value = data.comments_count;
         }
     } catch (error) {
@@ -141,7 +138,7 @@ const formatDate = (dateString: string) => {
 const getInitials = (name: string) => {
     return name
         .split(' ')
-        .map(n => n[0])
+        .map((n) => n[0])
         .join('')
         .toUpperCase()
         .slice(0, 2);
@@ -157,7 +154,10 @@ loadComments();
             <CardTitle class="flex items-center gap-2">
                 <MessageSquare class="size-5" />
                 {{ t('news.comments.title') }}
-                <span v-if="commentsCount" class="text-sm font-normal text-muted-foreground">
+                <span
+                    v-if="commentsCount"
+                    class="text-sm font-normal text-muted-foreground"
+                >
                     ({{ commentsCount }})
                 </span>
             </CardTitle>
@@ -175,14 +175,20 @@ loadComments();
                     :disabled="!newComment.trim() || isSubmitting"
                     @click="submitComment"
                 >
-                    <Loader2 v-if="isSubmitting" class="me-2 size-4 animate-spin" />
+                    <Loader2
+                        v-if="isSubmitting"
+                        class="me-2 size-4 animate-spin"
+                    />
                     <Send v-else class="me-2 size-4" />
                     {{ t('news.comments.submit') }}
                 </Button>
             </div>
 
             <!-- Login prompt -->
-            <div v-else class="mb-6 rounded-lg border border-dashed border-border p-4 text-center">
+            <div
+                v-else
+                class="mb-6 rounded-md border border-dashed border-border p-4 text-center"
+            >
                 <p class="mb-3 text-sm text-muted-foreground">
                     {{ t('news.comments.loginRequired') }}
                 </p>
@@ -223,8 +229,12 @@ loadComments();
                     <div class="flex-1">
                         <div class="flex items-start justify-between gap-2">
                             <div>
-                                <span class="font-medium">{{ comment.user.name }}</span>
-                                <span class="ms-2 text-xs text-muted-foreground">
+                                <span class="font-medium">{{
+                                    comment.user.name
+                                }}</span>
+                                <span
+                                    class="ms-2 text-xs text-muted-foreground"
+                                >
                                     {{ formatDate(comment.created_at) }}
                                 </span>
                             </div>
@@ -236,19 +246,28 @@ loadComments();
                                 :disabled="deletingId === comment.id"
                                 @click="deleteComment(comment.id)"
                             >
-                                <Loader2 v-if="deletingId === comment.id" class="size-4 animate-spin" />
+                                <Loader2
+                                    v-if="deletingId === comment.id"
+                                    class="size-4 animate-spin"
+                                />
                                 <Trash2 v-else class="size-4" />
                             </Button>
                         </div>
-                        <p class="mt-1 text-sm whitespace-pre-wrap">{{ comment.content }}</p>
+                        <p class="mt-1 text-sm whitespace-pre-wrap">
+                            {{ comment.content }}
+                        </p>
                     </div>
                 </div>
             </div>
 
             <!-- Empty state -->
             <div v-else class="py-8 text-center">
-                <MessageSquare class="mx-auto size-12 text-muted-foreground/30" />
-                <h3 class="mt-4 text-sm font-medium">{{ t('news.comments.empty') }}</h3>
+                <MessageSquare
+                    class="mx-auto size-12 text-muted-foreground/30"
+                />
+                <h3 class="mt-4 text-sm font-medium">
+                    {{ t('news.comments.empty') }}
+                </h3>
                 <p class="mt-1 text-sm text-muted-foreground">
                     {{ t('news.comments.emptyDescription') }}
                 </p>

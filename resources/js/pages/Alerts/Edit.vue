@@ -1,31 +1,51 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import type { Alert, AlertType, AlertDirection, AlertPriority, AlertParameters, DeliveryConfig as DeliveryConfigType, EscalationConfig } from '@/types/alerts';
-import type { BreadcrumbItemType } from '@/types';
-import { useAlerts } from '@/composables/useAlerts';
-import AppLayout from '@/layouts/AppLayout.vue';
+import AlertChainManager from '@/components/alerts/AlertChainManager.vue';
+import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import DeliveryConfig from '@/components/alerts/DeliveryConfig.vue';
-import AlertChainManager from '@/components/alerts/AlertChainManager.vue';
 import {
-    TrendingUp,
-    Brain,
-    BarChart3,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { useAlerts } from '@/composables/useAlerts';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType } from '@/types';
+import type {
+    Alert,
+    AlertDirection,
+    AlertParameters,
+    AlertPriority,
+    AlertType,
+    DeliveryConfig as DeliveryConfigType,
+    EscalationConfig,
+} from '@/types/alerts';
+import { Head, router } from '@inertiajs/vue3';
+import {
     AlertTriangle,
-    Lightbulb,
-    Shapes,
     ArrowLeft,
+    BarChart3,
+    Brain,
+    Lightbulb,
     Save,
+    Shapes,
     Trash2,
+    TrendingUp,
 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 
@@ -34,7 +54,12 @@ interface Props {
         data: Alert;
     };
     userAlerts?: Alert[];
-    templates: Array<{ id: string; name: string; type: AlertType; trigger_type: string }>;
+    templates: Array<{
+        id: string;
+        name: string;
+        type: AlertType;
+        trigger_type: string;
+    }>;
 }
 
 const props = defineProps<Props>();
@@ -52,27 +77,38 @@ const cooldownMinutes = ref(alert.value.cooldown_minutes);
 const marketHoursOnly = ref(alert.value.market_hours_only);
 const maxTriggers = ref<number | undefined>(alert.value.max_triggers);
 const status = ref(alert.value.status);
-const deliveryConfig = ref<DeliveryConfigType>(alert.value.delivery_config || {
-    channels: ['telegram', 'in_app'],
-    sound_enabled: true,
-});
-const escalationConfig = ref<EscalationConfig>(alert.value.escalation_config || {
-    enabled: false,
-    levels: [],
-    max_escalations: 0,
-});
+const deliveryConfig = ref<DeliveryConfigType>(
+    alert.value.delivery_config || {
+        channels: ['telegram', 'in_app'],
+        sound_enabled: true,
+    },
+);
+const escalationConfig = ref<EscalationConfig>(
+    alert.value.escalation_config || {
+        enabled: false,
+        levels: [],
+        max_escalations: 0,
+    },
+);
 
 const currentPrice = computed(() => alert.value.asset?.last_price || 0);
 
 const getTypeIcon = (type: AlertType) => {
     switch (type) {
-        case 'price': return TrendingUp;
-        case 'prediction': return Brain;
-        case 'signal': return BarChart3;
-        case 'anomaly': return AlertTriangle;
-        case 'recommendation': return Lightbulb;
-        case 'pattern': return Shapes;
-        default: return TrendingUp;
+        case 'price':
+            return TrendingUp;
+        case 'prediction':
+            return Brain;
+        case 'signal':
+            return BarChart3;
+        case 'anomaly':
+            return AlertTriangle;
+        case 'recommendation':
+            return Lightbulb;
+        case 'pattern':
+            return Shapes;
+        default:
+            return TrendingUp;
     }
 };
 
@@ -109,7 +145,13 @@ const breadcrumbs: BreadcrumbItemType[] = [
 ];
 
 const priorities: AlertPriority[] = ['critical', 'high', 'medium', 'low'];
-const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cross_down'];
+const directions: AlertDirection[] = [
+    'above',
+    'below',
+    'both',
+    'cross_up',
+    'cross_down',
+];
 const statuses = ['active', 'paused'] as const;
 
 const TypeIcon = computed(() => getTypeIcon(alert.value.type));
@@ -123,30 +165,60 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" @click="router.visit('/alerts')">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        @click="router.visit('/alerts')"
+                    >
                         <ArrowLeft class="size-4 rtl:rotate-180" />
                     </Button>
                     <div class="flex items-center gap-3">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
-                            <component :is="TypeIcon" class="size-5 text-foreground" />
+                        <div
+                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                        >
+                            <component
+                                :is="TypeIcon"
+                                class="size-5 text-foreground"
+                            />
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold tracking-tight">
-                                {{ alert.asset?.symbol || t('alerts.multiple_assets') }}
+                                {{
+                                    alert.asset?.symbol ||
+                                    t('alerts.multiple_assets')
+                                }}
                             </h1>
                             <p class="text-sm text-muted-foreground">
-                                {{ locale === 'ar' ? alertTypeLabels[alert.type].ar : alertTypeLabels[alert.type].en }}
+                                {{
+                                    locale === 'ar'
+                                        ? alertTypeLabels[alert.type].ar
+                                        : alertTypeLabels[alert.type].en
+                                }}
                                 &bull;
-                                {{ locale === 'ar' ? triggerTypeLabels[alert.trigger_type]?.ar : triggerTypeLabels[alert.trigger_type]?.en }}
+                                {{
+                                    locale === 'ar'
+                                        ? triggerTypeLabels[alert.trigger_type]
+                                              ?.ar
+                                        : triggerTypeLabels[alert.trigger_type]
+                                              ?.en
+                                }}
                             </p>
                         </div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Badge :variant="alert.status === 'active' ? 'default' : 'secondary'">
+                    <Badge
+                        :variant="
+                            alert.status === 'active' ? 'default' : 'secondary'
+                        "
+                    >
                         {{ t(`alerts.status.${alert.status}`) }}
                     </Badge>
-                    <Button variant="destructive" size="icon" @click="handleDelete">
+                    <Button
+                        variant="destructive"
+                        size="icon"
+                        @click="handleDelete"
+                    >
                         <Trash2 class="size-4" />
                     </Button>
                 </div>
@@ -159,31 +231,60 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                     <Card>
                         <CardHeader>
                             <CardTitle>{{ t('alerts.info') }}</CardTitle>
-                            <CardDescription>{{ t('alerts.info_description') }}</CardDescription>
+                            <CardDescription>{{
+                                t('alerts.info_description')
+                            }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="space-y-1">
-                                    <Label class="text-muted-foreground">{{ t('alerts.fields.type') }}</Label>
+                                    <Label class="text-muted-foreground">{{
+                                        t('alerts.fields.type')
+                                    }}</Label>
                                     <p class="font-medium">
-                                        {{ locale === 'ar' ? alertTypeLabels[alert.type].ar : alertTypeLabels[alert.type].en }}
+                                        {{
+                                            locale === 'ar'
+                                                ? alertTypeLabels[alert.type].ar
+                                                : alertTypeLabels[alert.type].en
+                                        }}
                                     </p>
                                 </div>
                                 <div class="space-y-1">
-                                    <Label class="text-muted-foreground">{{ t('alerts.fields.trigger') }}</Label>
+                                    <Label class="text-muted-foreground">{{
+                                        t('alerts.fields.trigger')
+                                    }}</Label>
                                     <p class="font-medium">
-                                        {{ locale === 'ar' ? triggerTypeLabels[alert.trigger_type]?.ar : triggerTypeLabels[alert.trigger_type]?.en }}
+                                        {{
+                                            locale === 'ar'
+                                                ? triggerTypeLabels[
+                                                      alert.trigger_type
+                                                  ]?.ar
+                                                : triggerTypeLabels[
+                                                      alert.trigger_type
+                                                  ]?.en
+                                        }}
                                     </p>
                                 </div>
                                 <div v-if="alert.asset" class="space-y-1">
-                                    <Label class="text-muted-foreground">{{ t('alerts.fields.asset') }}</Label>
+                                    <Label class="text-muted-foreground">{{
+                                        t('alerts.fields.asset')
+                                    }}</Label>
                                     <p class="font-medium">
-                                        {{ alert.asset.symbol }} - {{ locale === 'ar' ? alert.asset.name_ar : alert.asset.name }}
+                                        {{ alert.asset.symbol }} -
+                                        {{
+                                            locale === 'ar'
+                                                ? alert.asset.name_ar
+                                                : alert.asset.name
+                                        }}
                                     </p>
                                 </div>
                                 <div class="space-y-1">
-                                    <Label class="text-muted-foreground">{{ t('alerts.fields.triggered_count') }}</Label>
-                                    <p class="font-medium tabular-nums">{{ alert.triggered_count }}</p>
+                                    <Label class="text-muted-foreground">{{
+                                        t('alerts.fields.triggered_count')
+                                    }}</Label>
+                                    <p class="font-medium tabular-nums">
+                                        {{ alert.triggered_count }}
+                                    </p>
                                 </div>
                             </div>
                         </CardContent>
@@ -192,33 +293,58 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                     <!-- Parameters -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.parameters') }}</CardTitle>
-                            <CardDescription>{{ t('alerts.steps.parameters_description') }}</CardDescription>
+                            <CardTitle>{{
+                                t('alerts.steps.parameters')
+                            }}</CardTitle>
+                            <CardDescription>{{
+                                t('alerts.steps.parameters_description')
+                            }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <!-- Price Alert Parameters -->
-                            <template v-if="alert.trigger_type === 'target_price'">
+                            <template
+                                v-if="alert.trigger_type === 'target_price'"
+                            >
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.target_price') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.target_price')
+                                        }}</Label>
                                         <Input
-                                            v-model.number="parameters.target_price"
+                                            v-model.number="
+                                                parameters.target_price
+                                            "
                                             type="number"
                                             step="0.01"
                                         />
-                                        <p v-if="currentPrice > 0" class="text-xs text-muted-foreground">
-                                            {{ t('alerts.current_price') }}: {{ currentPrice }} {{ t('common.currency') }}
+                                        <p
+                                            v-if="currentPrice > 0"
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{ t('alerts.current_price') }}:
+                                            {{ currentPrice }}
+                                            {{ t('common.currency') }}
                                         </p>
                                     </div>
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.direction') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.direction')
+                                        }}</Label>
                                         <Select v-model="direction">
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem v-for="dir in directions" :key="dir" :value="dir">
-                                                    {{ t(`alerts.direction.${dir}`) }}
+                                                <SelectItem
+                                                    v-for="dir in directions"
+                                                    :key="dir"
+                                                    :value="dir"
+                                                >
+                                                    {{
+                                                        t(
+                                                            `alerts.direction.${dir}`,
+                                                        )
+                                                    }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -230,7 +356,9 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             <template v-else-if="alert.trigger_type === 'zone'">
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.zone_low') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.zone_low')
+                                        }}</Label>
                                         <Input
                                             v-model.number="parameters.zone_low"
                                             type="number"
@@ -238,9 +366,13 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                                         />
                                     </div>
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.zone_high') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.zone_high')
+                                        }}</Label>
                                         <Input
-                                            v-model.number="parameters.zone_high"
+                                            v-model.number="
+                                                parameters.zone_high
+                                            "
                                             type="number"
                                             step="0.01"
                                         />
@@ -249,26 +381,42 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             </template>
 
                             <!-- Daily Change Parameters -->
-                            <template v-else-if="alert.trigger_type === 'daily_change'">
+                            <template
+                                v-else-if="
+                                    alert.trigger_type === 'daily_change'
+                                "
+                            >
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.threshold_percent') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.threshold_percent')
+                                        }}</Label>
                                         <Input
-                                            v-model.number="parameters.threshold_percent"
+                                            v-model.number="
+                                                parameters.threshold_percent
+                                            "
                                             type="number"
                                             step="0.1"
                                         />
                                     </div>
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.direction') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.direction')
+                                        }}</Label>
                                         <Select v-model="direction">
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="above">{{ t('alerts.direction.above') }}</SelectItem>
-                                                <SelectItem value="below">{{ t('alerts.direction.below') }}</SelectItem>
-                                                <SelectItem value="both">{{ t('alerts.direction.both') }}</SelectItem>
+                                                <SelectItem value="above">{{
+                                                    t('alerts.direction.above')
+                                                }}</SelectItem>
+                                                <SelectItem value="below">{{
+                                                    t('alerts.direction.below')
+                                                }}</SelectItem>
+                                                <SelectItem value="both">{{
+                                                    t('alerts.direction.both')
+                                                }}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -276,26 +424,54 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             </template>
 
                             <!-- Prediction Parameters -->
-                            <template v-else-if="alert.trigger_type === 'prediction'">
+                            <template
+                                v-else-if="alert.trigger_type === 'prediction'"
+                            >
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.horizon') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.horizon')
+                                        }}</Label>
                                         <Select v-model="parameters.horizon">
                                             <SelectTrigger>
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="1hour">1 {{ t('common.hour') }}</SelectItem>
-                                                <SelectItem value="4hours">4 {{ t('common.hours') }}</SelectItem>
-                                                <SelectItem value="1day">1 {{ t('common.day') }}</SelectItem>
-                                                <SelectItem value="1week">1 {{ t('common.week') }}</SelectItem>
+                                                <SelectItem value="1hour"
+                                                    >1
+                                                    {{
+                                                        t('common.hour')
+                                                    }}</SelectItem
+                                                >
+                                                <SelectItem value="4hours"
+                                                    >4
+                                                    {{
+                                                        t('common.hours')
+                                                    }}</SelectItem
+                                                >
+                                                <SelectItem value="1day"
+                                                    >1
+                                                    {{
+                                                        t('common.day')
+                                                    }}</SelectItem
+                                                >
+                                                <SelectItem value="1week"
+                                                    >1
+                                                    {{
+                                                        t('common.week')
+                                                    }}</SelectItem
+                                                >
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div class="grid gap-2">
-                                        <Label>{{ t('alerts.fields.min_confidence') }}</Label>
+                                        <Label>{{
+                                            t('alerts.fields.min_confidence')
+                                        }}</Label>
                                         <Input
-                                            v-model.number="parameters.min_confidence"
+                                            v-model.number="
+                                                parameters.min_confidence
+                                            "
                                             type="number"
                                             step="0.05"
                                             min="0"
@@ -306,9 +482,13 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             </template>
 
                             <!-- Signal Parameters -->
-                            <template v-else-if="alert.trigger_type === 'signal'">
+                            <template
+                                v-else-if="alert.trigger_type === 'signal'"
+                            >
                                 <div class="grid gap-2">
-                                    <Label>{{ t('alerts.fields.min_strength') }}</Label>
+                                    <Label>{{
+                                        t('alerts.fields.min_strength')
+                                    }}</Label>
                                     <Input
                                         v-model.number="parameters.min_strength"
                                         type="number"
@@ -320,11 +500,17 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             </template>
 
                             <!-- Anomaly Parameters -->
-                            <template v-else-if="alert.trigger_type === 'anomaly'">
+                            <template
+                                v-else-if="alert.trigger_type === 'anomaly'"
+                            >
                                 <div class="grid gap-2">
-                                    <Label>{{ t('alerts.fields.min_confidence') }}</Label>
+                                    <Label>{{
+                                        t('alerts.fields.min_confidence')
+                                    }}</Label>
                                     <Input
-                                        v-model.number="parameters.min_confidence"
+                                        v-model.number="
+                                            parameters.min_confidence
+                                        "
                                         type="number"
                                         step="0.05"
                                         min="0"
@@ -338,32 +524,48 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                     <!-- Options -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.options') }}</CardTitle>
-                            <CardDescription>{{ t('alerts.steps.options_description') }}</CardDescription>
+                            <CardTitle>{{
+                                t('alerts.steps.options')
+                            }}</CardTitle>
+                            <CardDescription>{{
+                                t('alerts.steps.options_description')
+                            }}</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div class="grid gap-2">
-                                    <Label>{{ t('alerts.fields.status') }}</Label>
+                                    <Label>{{
+                                        t('alerts.fields.status')
+                                    }}</Label>
                                     <Select v-model="status">
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="s in statuses" :key="s" :value="s">
+                                            <SelectItem
+                                                v-for="s in statuses"
+                                                :key="s"
+                                                :value="s"
+                                            >
                                                 {{ t(`alerts.status.${s}`) }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div class="grid gap-2">
-                                    <Label>{{ t('alerts.fields.priority') }}</Label>
+                                    <Label>{{
+                                        t('alerts.fields.priority')
+                                    }}</Label>
                                     <Select v-model="priority">
                                         <SelectTrigger>
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="p in priorities" :key="p" :value="p">
+                                            <SelectItem
+                                                v-for="p in priorities"
+                                                :key="p"
+                                                :value="p"
+                                            >
                                                 {{ t(`alerts.priority.${p}`) }}
                                             </SelectItem>
                                         </SelectContent>
@@ -378,21 +580,37 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                                     type="number"
                                     min="0"
                                 />
-                                <p class="text-xs text-muted-foreground">{{ t('alerts.fields.cooldown_hint') }}</p>
+                                <p class="text-xs text-muted-foreground">
+                                    {{ t('alerts.fields.cooldown_hint') }}
+                                </p>
                             </div>
 
-                            <div class="flex items-center justify-between rounded-lg border p-4">
+                            <div
+                                class="flex items-center justify-between rounded-lg border p-4"
+                            >
                                 <div class="space-y-0.5">
-                                    <Label>{{ t('alerts.fields.recurring') }}</Label>
-                                    <p class="text-sm text-muted-foreground">{{ t('alerts.fields.recurring_hint') }}</p>
+                                    <Label>{{
+                                        t('alerts.fields.recurring')
+                                    }}</Label>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{ t('alerts.fields.recurring_hint') }}
+                                    </p>
                                 </div>
                                 <Switch v-model:checked="isRecurring" />
                             </div>
 
-                            <div class="flex items-center justify-between rounded-lg border p-4">
+                            <div
+                                class="flex items-center justify-between rounded-lg border p-4"
+                            >
                                 <div class="space-y-0.5">
-                                    <Label>{{ t('alerts.fields.market_hours_only') }}</Label>
-                                    <p class="text-sm text-muted-foreground">{{ t('alerts.fields.market_hours_hint') }}</p>
+                                    <Label>{{
+                                        t('alerts.fields.market_hours_only')
+                                    }}</Label>
+                                    <p class="text-sm text-muted-foreground">
+                                        {{
+                                            t('alerts.fields.market_hours_hint')
+                                        }}
+                                    </p>
                                 </div>
                                 <Switch v-model:checked="marketHoursOnly" />
                             </div>
@@ -402,16 +620,24 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                     <!-- Delivery Configuration -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>{{ t('alerts.steps.delivery') }}</CardTitle>
-                            <CardDescription>{{ t('alerts.steps.delivery_description') }}</CardDescription>
+                            <CardTitle>{{
+                                t('alerts.steps.delivery')
+                            }}</CardTitle>
+                            <CardDescription>{{
+                                t('alerts.steps.delivery_description')
+                            }}</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <DeliveryConfig
                                 :delivery-config="deliveryConfig"
                                 :escalation-config="escalationConfig"
                                 :priority="priority"
-                                @update:delivery-config="deliveryConfig = $event"
-                                @update:escalation-config="escalationConfig = $event"
+                                @update:delivery-config="
+                                    deliveryConfig = $event
+                                "
+                                @update:escalation-config="
+                                    escalationConfig = $event
+                                "
                                 @update:priority="priority = $event"
                             />
                         </CardContent>
@@ -437,10 +663,18 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                                 <Save class="me-2 size-4" />
                                 {{ t('common.save_changes') }}
                             </Button>
-                            <Button variant="outline" class="w-full" @click="router.visit(`/alerts/${alert.id}`)">
+                            <Button
+                                variant="outline"
+                                class="w-full"
+                                @click="router.visit(`/alerts/${alert.id}`)"
+                            >
                                 {{ t('common.view') }}
                             </Button>
-                            <Button variant="destructive" class="w-full" @click="handleDelete">
+                            <Button
+                                variant="destructive"
+                                class="w-full"
+                                @click="handleDelete"
+                            >
                                 <Trash2 class="me-2 size-4" />
                                 {{ t('common.delete') }}
                             </Button>
@@ -455,12 +689,25 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                         <CardContent>
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <span class="text-muted-foreground">{{ t('alerts.fields.triggered_count') }}</span>
-                                    <span class="font-medium tabular-nums">{{ alert.triggered_count }}</span>
+                                    <span class="text-muted-foreground">{{
+                                        t('alerts.fields.triggered_count')
+                                    }}</span>
+                                    <span class="font-medium tabular-nums">{{
+                                        alert.triggered_count
+                                    }}</span>
                                 </div>
-                                <div v-if="alert.last_triggered_at" class="flex justify-between">
-                                    <span class="text-muted-foreground">{{ t('alerts.last_triggered') }}</span>
-                                    <span class="font-medium tabular-nums">{{ new Date(alert.last_triggered_at).toLocaleDateString(locale) }}</span>
+                                <div
+                                    v-if="alert.last_triggered_at"
+                                    class="flex justify-between"
+                                >
+                                    <span class="text-muted-foreground">{{
+                                        t('alerts.last_triggered')
+                                    }}</span>
+                                    <span class="font-medium tabular-nums">{{
+                                        new Date(
+                                            alert.last_triggered_at,
+                                        ).toLocaleDateString(locale)
+                                    }}</span>
                                 </div>
                             </div>
                         </CardContent>

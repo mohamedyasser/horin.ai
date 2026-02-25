@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
+import type { NewsAction } from '@/types/news';
+import { Eye, ShoppingCart, TrendingDown } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, TrendingDown, Eye } from 'lucide-vue-next';
-import type { NewsAction } from '@/types/news';
 
 interface Props {
     action: NewsAction | null;
@@ -43,7 +43,9 @@ const actionConfig = computed(() => {
     }
 });
 
-const sizeClass = computed(() => props.size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1');
+const sizeClass = computed(() =>
+    props.size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-sm px-2 py-1',
+);
 </script>
 
 <template>
@@ -55,7 +57,7 @@ const sizeClass = computed(() => props.size === 'sm' ? 'text-xs px-1.5 py-0.5' :
         <component
             :is="actionConfig.icon"
             v-if="showIcon"
-            :class="size === 'sm' ? 'size-3 me-1' : 'size-4 me-1'"
+            :class="size === 'sm' ? 'me-1 size-3' : 'me-1 size-4'"
         />
         {{ actionConfig.label }}
     </Badge>

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
-import type { Alert, AlertStats } from '@/types/alerts';
-import type { BreadcrumbItemType, PaginationMeta } from '@/types';
-import { useAlerts } from '@/composables/useAlerts';
 import AlertCard from '@/components/alerts/AlertCard.vue';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Bell, BellRing, Activity } from 'lucide-vue-next';
+import { useAlerts } from '@/composables/useAlerts';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItemType, PaginationMeta } from '@/types';
+import type { Alert, AlertStats } from '@/types/alerts';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { Activity, Bell, BellRing, Plus } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -36,15 +36,19 @@ const filteredAlerts = computed(() => {
     if (selectedFilter.value === 'all') {
         return props.alerts.data;
     }
-    return props.alerts.data.filter(a => a.status === selectedFilter.value);
+    return props.alerts.data.filter((a) => a.status === selectedFilter.value);
 });
 
 const applyFilter = (status: string) => {
     selectedFilter.value = status;
-    router.get('/alerts', { status: status === 'all' ? undefined : status }, {
-        preserveState: true,
-        replace: true,
-    });
+    router.get(
+        '/alerts',
+        { status: status === 'all' ? undefined : status },
+        {
+            preserveState: true,
+            replace: true,
+        },
+    );
 };
 
 const handleSnooze = (alertId: string, preset: string) => {
@@ -61,7 +65,13 @@ const breadcrumbs: BreadcrumbItemType[] = [
     { title: t('alerts.title'), href: '/alerts' },
 ];
 
-const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as const;
+const filterOptions = [
+    'all',
+    'active',
+    'triggered',
+    'paused',
+    'expired',
+] as const;
 </script>
 
 <template>
@@ -91,34 +101,52 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                        <div
+                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                        >
                             <Bell class="size-5 text-foreground" />
                         </div>
                         <div>
-                            <p class="text-sm text-muted-foreground">{{ t('alerts.stats.active') }}</p>
-                            <p class="text-2xl font-bold tabular-nums">{{ stats.active }}</p>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('alerts.stats.active') }}
+                            </p>
+                            <p class="text-2xl font-bold tabular-nums">
+                                {{ stats.active }}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                        <div
+                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                        >
                             <BellRing class="size-5 text-foreground" />
                         </div>
                         <div>
-                            <p class="text-sm text-muted-foreground">{{ t('alerts.stats.triggered_today') }}</p>
-                            <p class="text-2xl font-bold tabular-nums">{{ stats.triggered_today }}</p>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('alerts.stats.triggered_today') }}
+                            </p>
+                            <p class="text-2xl font-bold tabular-nums">
+                                {{ stats.triggered_today }}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                        <div
+                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                        >
                             <Activity class="size-5 text-muted-foreground" />
                         </div>
                         <div>
-                            <p class="text-sm text-muted-foreground">{{ t('alerts.stats.total') }}</p>
-                            <p class="text-2xl font-bold tabular-nums">{{ stats.total }}</p>
+                            <p class="text-sm text-muted-foreground">
+                                {{ t('alerts.stats.total') }}
+                            </p>
+                            <p class="text-2xl font-bold tabular-nums">
+                                {{ stats.total }}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
@@ -134,7 +162,11 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
                     class="whitespace-nowrap"
                     @click="applyFilter(status)"
                 >
-                    {{ status === 'all' ? t('alerts.filters.all') : t(`alerts.status.${status}`) }}
+                    {{
+                        status === 'all'
+                            ? t('alerts.filters.all')
+                            : t(`alerts.status.${status}`)
+                    }}
                 </Button>
             </div>
 
@@ -149,10 +181,17 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
                 />
 
                 <!-- Empty State -->
-                <div v-if="filteredAlerts.length === 0" class="flex flex-col items-center justify-center py-12 text-center">
+                <div
+                    v-if="filteredAlerts.length === 0"
+                    class="flex flex-col items-center justify-center py-12 text-center"
+                >
                     <Bell class="size-12 text-muted-foreground/50" />
-                    <h3 class="mt-4 text-lg font-medium">{{ t('alerts.empty.title') }}</h3>
-                    <p class="mt-2 text-sm text-muted-foreground">{{ t('alerts.empty.description') }}</p>
+                    <h3 class="mt-4 text-lg font-medium">
+                        {{ t('alerts.empty.title') }}
+                    </h3>
+                    <p class="mt-2 text-sm text-muted-foreground">
+                        {{ t('alerts.empty.description') }}
+                    </p>
                     <Button as-child class="mt-6">
                         <Link href="/alerts/create">
                             {{ t('alerts.create_first') }}
@@ -162,23 +201,39 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
             </div>
 
             <!-- Pagination -->
-            <div v-if="alerts.meta.lastPage > 1" class="flex items-center justify-center gap-2">
+            <div
+                v-if="alerts.meta.lastPage > 1"
+                class="flex items-center justify-center gap-2"
+            >
                 <Button
                     variant="outline"
                     size="sm"
                     :disabled="alerts.meta.currentPage <= 1"
-                    @click="router.get('/alerts', { ...filters, page: alerts.meta.currentPage - 1 })"
+                    @click="
+                        router.get('/alerts', {
+                            ...filters,
+                            page: alerts.meta.currentPage - 1,
+                        })
+                    "
                 >
                     {{ t('common.previous') }}
                 </Button>
-                <span dir="ltr" class="text-sm tabular-nums text-muted-foreground">
+                <span
+                    dir="ltr"
+                    class="text-sm text-muted-foreground tabular-nums"
+                >
                     {{ alerts.meta.currentPage }} / {{ alerts.meta.lastPage }}
                 </span>
                 <Button
                     variant="outline"
                     size="sm"
                     :disabled="alerts.meta.currentPage >= alerts.meta.lastPage"
-                    @click="router.get('/alerts', { ...filters, page: alerts.meta.currentPage + 1 })"
+                    @click="
+                        router.get('/alerts', {
+                            ...filters,
+                            page: alerts.meta.currentPage + 1,
+                        })
+                    "
                 >
                     {{ t('common.next') }}
                 </Button>

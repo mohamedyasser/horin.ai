@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toUrl, urlIsActive } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { edit as editMarketPreferences } from '@/routes/market-preferences';
 import { edit as editProfile } from '@/routes/profile';
+import { alerts as editAlerts } from '@/routes/settings';
+import { edit as editTradingProfile } from '@/routes/trading-profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
-import { edit as editTradingProfile } from '@/routes/trading-profile';
-import { edit as editMarketPreferences } from '@/routes/market-preferences';
-import { alerts as editAlerts } from '@/routes/settings';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
@@ -68,7 +68,7 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
                         :class="[
                             'w-full justify-start',
                             urlIsActive(item.href, currentPath)
-                                ? 'bg-muted text-foreground font-medium'
+                                ? 'bg-muted font-medium text-foreground'
                                 : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
                         ]"
                         as-child

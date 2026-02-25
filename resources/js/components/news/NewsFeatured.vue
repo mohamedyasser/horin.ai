@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 import LocalizedLink from '@/components/LocalizedLink.vue';
-import NewsSentimentBadge from './NewsSentimentBadge.vue';
-import NewsActionBadge from './NewsActionBadge.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Building2, ArrowRight } from 'lucide-vue-next';
 import type { AssetNew } from '@/types/news';
+import { ArrowRight, Building2, Calendar } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import NewsActionBadge from './NewsActionBadge.vue';
+import NewsSentimentBadge from './NewsSentimentBadge.vue';
 
 interface Props {
     news: AssetNew;
@@ -36,7 +36,7 @@ const scoreColor = computed(() => {
 </script>
 
 <template>
-    <Card class="overflow-hidden border border-border rounded-md">
+    <Card class="overflow-hidden rounded-md border border-border">
         <CardContent class="p-0">
             <div class="grid gap-6 md:grid-cols-2">
                 <!-- Image -->
@@ -47,7 +47,10 @@ const scoreColor = computed(() => {
                         :alt="news.title"
                         class="absolute inset-0 h-full w-full object-cover"
                     />
-                    <div v-else class="absolute inset-0 flex items-center justify-center bg-muted">
+                    <div
+                        v-else
+                        class="absolute inset-0 flex items-center justify-center bg-muted"
+                    >
                         <Building2 class="size-16 text-muted-foreground/30" />
                     </div>
                     <!-- Score overlay -->
@@ -55,7 +58,10 @@ const scoreColor = computed(() => {
                         v-if="news.score"
                         class="absolute start-4 top-4 rounded-full bg-background/90 px-3 py-1 backdrop-blur-sm"
                     >
-                        <span class="text-sm font-bold tabular-nums" :class="scoreColor">
+                        <span
+                            class="text-sm font-bold tabular-nums"
+                            :class="scoreColor"
+                        >
                             {{ news.score }}/10
                         </span>
                     </div>
@@ -76,7 +82,9 @@ const scoreColor = computed(() => {
                     </div>
 
                     <!-- Title -->
-                    <h2 class="mb-3 text-2xl font-bold leading-tight md:text-3xl">
+                    <h2
+                        class="mb-3 text-2xl leading-tight font-bold md:text-3xl"
+                    >
                         {{ news.title }}
                     </h2>
 
@@ -86,20 +94,28 @@ const scoreColor = computed(() => {
                     </p>
 
                     <!-- Meta -->
-                    <div class="mb-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        <span v-if="formattedDate" class="flex items-center gap-1">
+                    <div
+                        class="mb-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground"
+                    >
+                        <span
+                            v-if="formattedDate"
+                            class="flex items-center gap-1"
+                        >
                             <Calendar class="size-4" />
                             {{ formattedDate }}
                         </span>
                         <LocalizedLink
                             v-if="news.asset"
                             :href="`/assets/${news.asset.symbol}`"
-                            class="flex items-center gap-1 hover:text-foreground transition-colors"
+                            class="flex items-center gap-1 transition-colors hover:text-foreground"
                         >
                             <Building2 class="size-4" />
                             {{ news.asset.symbol }}
                         </LocalizedLink>
-                        <span v-if="news.market" class="rounded bg-muted px-2 py-0.5 text-xs font-medium">
+                        <span
+                            v-if="news.market"
+                            class="rounded bg-muted px-2 py-0.5 text-xs font-medium"
+                        >
                             {{ news.market.code }}
                         </span>
                     </div>

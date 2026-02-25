@@ -11,7 +11,7 @@ import { show } from '@/routes/two-factor';
 import { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ShieldBan, ShieldCheck } from 'lucide-vue-next';
-import { onUnmounted, ref, computed } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -70,7 +70,9 @@ onUnmounted(() => {
                     v-if="!twoFactorEnabled"
                     class="flex flex-col items-start justify-start space-y-4"
                 >
-                    <Badge variant="destructive">{{ t('settings.twoFactor.statusDisabled') }}</Badge>
+                    <Badge variant="destructive">{{
+                        t('settings.twoFactor.statusDisabled')
+                    }}</Badge>
 
                     <p class="text-muted-foreground">
                         {{ t('settings.twoFactor.disabledDescription') }}
@@ -81,14 +83,18 @@ onUnmounted(() => {
                             v-if="hasSetupData"
                             @click="showSetupModal = true"
                         >
-                            <ShieldCheck />{{ t('settings.twoFactor.continueSetup') }}
+                            <ShieldCheck />{{
+                                t('settings.twoFactor.continueSetup')
+                            }}
                         </Button>
                         <Button
                             v-else
                             @click="handleEnable"
                             :disabled="enableForm.processing"
                         >
-                            <ShieldCheck />{{ t('settings.twoFactor.enableButton') }}
+                            <ShieldCheck />{{
+                                t('settings.twoFactor.enableButton')
+                            }}
                         </Button>
                     </div>
                 </div>
@@ -97,7 +103,9 @@ onUnmounted(() => {
                     v-else
                     class="flex flex-col items-start justify-start space-y-4"
                 >
-                    <Badge variant="default">{{ t('settings.twoFactor.statusEnabled') }}</Badge>
+                    <Badge variant="default">{{
+                        t('settings.twoFactor.statusEnabled')
+                    }}</Badge>
 
                     <p class="text-muted-foreground">
                         {{ t('settings.twoFactor.enabledDescription') }}
