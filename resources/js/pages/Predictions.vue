@@ -217,8 +217,8 @@ const goToPage = (page: number) => {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
             <!-- Hero Section -->
-            <section class="border-b border-border/40 bg-muted/30">
-                <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+            <section class="border-b border-border">
+                <div class="mx-auto max-w-7xl px-6 pt-20 pb-12 text-center">
                     <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                         {{ t('predictions.title') }}
                     </h1>
@@ -241,8 +241,8 @@ const goToPage = (page: number) => {
             </section>
 
             <!-- Market Filter Bar -->
-            <section class="border-b border-border/40">
-                <div class="mx-auto max-w-7xl px-4 py-4">
+            <section class="border-b border-border">
+                <div class="mx-auto max-w-7xl px-6 py-4">
                     <FilterButtonBar
                         :model-value="selectedMarket"
                         :options="marketOptions"
@@ -253,7 +253,7 @@ const goToPage = (page: number) => {
             </section>
 
             <!-- Main Content -->
-            <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mx-auto max-w-7xl px-6 py-8">
                 <div class="grid gap-8 lg:grid-cols-4">
                     <!-- Predictions Table -->
                     <div class="lg:col-span-3">
@@ -347,7 +347,7 @@ const goToPage = (page: number) => {
                         <Deferred data="predictions">
                             <template #fallback>
                                 <!-- Loading skeleton -->
-                                <div class="rounded-lg border border-border">
+                                <div class="rounded-md border border-border">
                                     <div class="animate-pulse space-y-4 p-4">
                                         <div v-for="i in 10" :key="i" class="flex items-center gap-4">
                                             <div class="h-10 w-20 rounded bg-muted" />
@@ -360,7 +360,7 @@ const goToPage = (page: number) => {
                                 </div>
                             </template>
 
-                            <div class="rounded-lg border border-border">
+                            <div class="rounded-md border border-border">
                                 <div class="overflow-x-auto">
                                     <table class="w-full">
                                         <thead>
@@ -421,17 +421,17 @@ const goToPage = (page: number) => {
                                                         {{ prediction.asset.market.code }}
                                                     </span>
                                                 </td>
-                                                <td dir="ltr" class="px-4 py-3 text-end text-sm">
+                                                <td dir="ltr" class="px-4 py-3 text-end text-sm tabular-nums">
                                                     {{ prediction.asset.currentPrice?.toFixed(2) ?? '-' }}
                                                 </td>
-                                                <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium">
+                                                <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium tabular-nums">
                                                     {{ prediction.predictedPrice.toFixed(2) }}
                                                 </td>
                                                 <td class="px-4 py-3 text-end">
                                                     <span
                                                         dir="ltr"
-                                                        class="inline-flex items-center gap-0.5 font-medium"
-                                                        :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                                        class="inline-flex items-center gap-0.5 font-medium tabular-nums"
+                                                        :class="prediction.expectedGainPercent >= 0 ? 'text-gain' : 'text-loss'"
                                                     >
                                                         <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
                                                         <ArrowDownRight v-else class="size-4" />
@@ -444,7 +444,7 @@ const goToPage = (page: number) => {
                                                     </span>
                                                 </td>
                                                 <td dir="ltr" class="px-4 py-3 text-end">
-                                                    <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                                    <span class="font-medium tabular-nums text-foreground">
                                                         {{ prediction.confidence }}%
                                                     </span>
                                                 </td>
@@ -508,7 +508,7 @@ const goToPage = (page: number) => {
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingUp class="size-4 text-green-500" />
+                                    <TrendingUp class="size-4 text-foreground" />
                                     {{ t('predictions.topGainers') }}
                                 </CardTitle>
                                 <p class="text-xs text-muted-foreground">
@@ -520,7 +520,7 @@ const goToPage = (page: number) => {
                                     v-for="prediction in topGainers"
                                     :key="prediction.id"
                                     :href="`/assets/${prediction.asset.symbol}`"
-                                    class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    class="flex items-center justify-between hover:bg-muted -mx-2 px-2 py-1 rounded-md transition-colors"
                                 >
                                     <AssetDisplay
                                         :symbol="prediction.asset.symbol"
@@ -529,7 +529,7 @@ const goToPage = (page: number) => {
                                         :show-logo="false"
                                         size="sm"
                                     />
-                                    <span dir="ltr" class="font-medium text-green-600 dark:text-green-400">
+                                    <span dir="ltr" class="font-medium tabular-nums text-gain">
                                         {{ formatGain(prediction.expectedGainPercent) }}
                                     </span>
                                 </LocalizedLink>
@@ -540,7 +540,7 @@ const goToPage = (page: number) => {
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <Target class="size-4 text-blue-500" />
+                                    <Target class="size-4 text-foreground" />
                                     {{ t('predictions.mostConfident') }}
                                 </CardTitle>
                                 <p class="text-xs text-muted-foreground">
@@ -552,7 +552,7 @@ const goToPage = (page: number) => {
                                     v-for="prediction in mostConfident"
                                     :key="prediction.id"
                                     :href="`/assets/${prediction.asset.symbol}`"
-                                    class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    class="flex items-center justify-between hover:bg-muted -mx-2 px-2 py-1 rounded-md transition-colors"
                                 >
                                     <AssetDisplay
                                         :symbol="prediction.asset.symbol"
@@ -561,7 +561,7 @@ const goToPage = (page: number) => {
                                         :show-logo="false"
                                         size="sm"
                                     />
-                                    <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                    <span dir="ltr" class="font-medium tabular-nums text-foreground">
                                         {{ prediction.confidence }}%
                                     </span>
                                 </LocalizedLink>

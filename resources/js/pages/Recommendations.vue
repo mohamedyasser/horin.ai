@@ -225,31 +225,27 @@ const sortedRecommendations = computed(() => {
 });
 
 // Helper functions
-const getRecommendationColor = (recommendation: string) => {
+const getRecommendationVariant = (recommendation: string): 'gain' | 'loss' | 'outline' => {
     switch (recommendation) {
         case 'STRONG_BUY':
-            return 'bg-green-600 text-white hover:bg-green-700';
         case 'BUY':
-            return 'bg-green-500 text-white hover:bg-green-600';
         case 'ACCUMULATE':
-            return 'bg-green-400 text-white hover:bg-green-500';
+            return 'gain';
         case 'HOLD':
-            return 'bg-yellow-500 text-white hover:bg-yellow-600';
+            return 'outline';
         case 'REDUCE':
-            return 'bg-orange-400 text-white hover:bg-orange-500';
         case 'SELL':
-            return 'bg-red-500 text-white hover:bg-red-600';
         case 'STRONG_SELL':
-            return 'bg-red-600 text-white hover:bg-red-700';
+            return 'loss';
         default:
-            return 'bg-muted text-muted-foreground';
+            return 'outline';
     }
 };
 
 const getScoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-600 dark:text-green-400';
-    if (score >= 40) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 70) return 'text-gain';
+    if (score >= 40) return 'text-foreground';
+    return 'text-loss';
 };
 
 const formatPriceChange = (change: string | null | undefined) => {
@@ -286,8 +282,8 @@ const goToPage = (page: number) => {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
-        <section class="border-b border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-7xl px-6 pt-20 pb-12 text-center">
                 <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                     {{ t('recommendations.title') }}
                 </h1>
@@ -310,8 +306,8 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Market Filter Bar -->
-        <section class="border-b border-border/40">
-            <div class="mx-auto max-w-7xl px-4 py-4">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-7xl px-6 py-4">
                 <FilterButtonBar
                     :model-value="selectedMarket"
                     :options="marketOptions"
@@ -322,7 +318,7 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mx-auto max-w-7xl px-6 py-8">
             <div class="grid gap-8 lg:grid-cols-4">
                 <!-- Recommendations Table -->
                 <div class="lg:col-span-3">
@@ -424,7 +420,7 @@ const goToPage = (page: number) => {
                     <Deferred data="recommendations">
                         <template #fallback>
                             <!-- Loading skeleton -->
-                            <div class="rounded-lg border border-border">
+                            <div class="rounded-md border border-border">
                                 <div class="animate-pulse space-y-4 p-4">
                                     <div v-for="i in 10" :key="i" class="flex items-center gap-4">
                                         <div class="h-10 w-20 rounded bg-muted" />
@@ -437,7 +433,7 @@ const goToPage = (page: number) => {
                             </div>
                         </template>
 
-                        <div class="rounded-lg border border-border">
+                        <div class="rounded-md border border-border">
                             <div class="overflow-x-auto">
                                 <table class="w-full">
                                     <thead>
@@ -495,15 +491,15 @@ const goToPage = (page: number) => {
                                                     {{ item.asset.market.code }}
                                                 </span>
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end text-sm">
+                                            <td dir="ltr" class="px-4 py-3 text-end text-sm tabular-nums">
                                                 {{ item.asset.currentPrice?.toFixed(2) ?? '-' }}
                                             </td>
                                             <td class="px-4 py-3 text-end">
                                                 <span
                                                     v-if="formatPriceChange(item.asset.priceChange) !== null"
                                                     dir="ltr"
-                                                    class="inline-flex items-center gap-0.5 text-sm font-medium"
-                                                    :class="formatPriceChange(item.asset.priceChange)! >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                                    class="inline-flex items-center gap-0.5 text-sm font-medium tabular-nums"
+                                                    :class="formatPriceChange(item.asset.priceChange)! >= 0 ? 'text-gain' : 'text-loss'"
                                                 >
                                                     <ArrowUpRight v-if="formatPriceChange(item.asset.priceChange)! >= 0" class="size-3" />
                                                     <ArrowDownRight v-else class="size-3" />
@@ -512,12 +508,12 @@ const goToPage = (page: number) => {
                                                 <span v-else class="text-sm text-muted-foreground">-</span>
                                             </td>
                                             <td class="px-4 py-3 text-center">
-                                                <Badge :class="getRecommendationColor(item.recommendation)">
+                                                <Badge :variant="getRecommendationVariant(item.recommendation)">
                                                     {{ t(`recommendations.actions.${item.recommendation}`) }}
                                                 </Badge>
                                             </td>
                                             <td dir="ltr" class="px-4 py-3 text-end">
-                                                <span :class="getScoreColor(item.score)" class="font-medium">
+                                                <span :class="getScoreColor(item.score)" class="font-medium tabular-nums">
                                                     {{ item.score.toFixed(1) }}
                                                 </span>
                                             </td>
@@ -583,7 +579,7 @@ const goToPage = (page: number) => {
                             <Card>
                                 <CardHeader class="pb-3">
                                     <CardTitle class="flex items-center gap-2 text-base">
-                                        <TrendingUp class="size-4 text-green-500" />
+                                        <TrendingUp class="size-4 text-foreground" />
                                         {{ t('sidebar.topBuySignals') }}
                                     </CardTitle>
                                 </CardHeader>
@@ -599,7 +595,7 @@ const goToPage = (page: number) => {
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingUp class="size-4 text-green-500" />
+                                    <TrendingUp class="size-4 text-foreground" />
                                     {{ t('sidebar.topBuySignals') }}
                                 </CardTitle>
                             </CardHeader>
@@ -608,7 +604,7 @@ const goToPage = (page: number) => {
                                     v-for="item in props.topBuySignals"
                                     :key="item.id"
                                     :href="`/assets/${item.asset.symbol}`"
-                                    class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    class="flex items-center justify-between hover:bg-muted -mx-2 px-2 py-1 rounded-md transition-colors"
                                 >
                                     <AssetDisplay
                                         :symbol="item.asset.symbol"
@@ -617,7 +613,7 @@ const goToPage = (page: number) => {
                                         :show-logo="false"
                                         size="sm"
                                     />
-                                    <Badge :class="getRecommendationColor(item.recommendation)" class="text-xs">
+                                    <Badge :variant="getRecommendationVariant(item.recommendation)" class="text-xs">
                                         {{ t(`recommendations.actions.${item.recommendation}`) }}
                                     </Badge>
                                 </LocalizedLink>
@@ -634,7 +630,7 @@ const goToPage = (page: number) => {
                             <Card>
                                 <CardHeader class="pb-3">
                                     <CardTitle class="flex items-center gap-2 text-base">
-                                        <TrendingDown class="size-4 text-red-500" />
+                                        <TrendingDown class="size-4 text-foreground" />
                                         {{ t('sidebar.topSellSignals') }}
                                     </CardTitle>
                                 </CardHeader>
@@ -650,7 +646,7 @@ const goToPage = (page: number) => {
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingDown class="size-4 text-red-500" />
+                                    <TrendingDown class="size-4 text-foreground" />
                                     {{ t('sidebar.topSellSignals') }}
                                 </CardTitle>
                             </CardHeader>
@@ -659,7 +655,7 @@ const goToPage = (page: number) => {
                                     v-for="item in props.topSellSignals"
                                     :key="item.id"
                                     :href="`/assets/${item.asset.symbol}`"
-                                    class="flex items-center justify-between hover:bg-muted/30 -mx-2 px-2 py-1 rounded transition-colors"
+                                    class="flex items-center justify-between hover:bg-muted -mx-2 px-2 py-1 rounded-md transition-colors"
                                 >
                                     <AssetDisplay
                                         :symbol="item.asset.symbol"
@@ -668,7 +664,7 @@ const goToPage = (page: number) => {
                                         :show-logo="false"
                                         size="sm"
                                     />
-                                    <Badge :class="getRecommendationColor(item.recommendation)" class="text-xs">
+                                    <Badge :variant="getRecommendationVariant(item.recommendation)" class="text-xs">
                                         {{ t(`recommendations.actions.${item.recommendation}`) }}
                                     </Badge>
                                 </LocalizedLink>

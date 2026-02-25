@@ -21,9 +21,9 @@ export function usePredictionFormatters() {
      * @returns Tailwind CSS classes for text color
      */
     const getConfidenceColor = (confidence: number): string => {
-        if (confidence >= 85) return 'text-green-600 dark:text-green-400';
-        if (confidence >= 70) return 'text-yellow-600 dark:text-yellow-400';
-        return 'text-red-600 dark:text-red-400';
+        if (confidence >= 85) return 'text-gain';
+        if (confidence >= 70) return 'text-foreground';
+        return 'text-loss';
     };
 
     /**
@@ -54,9 +54,7 @@ export function usePredictionFormatters() {
      * @returns Tailwind CSS classes for positive (green) or negative (red)
      */
     const getGainColor = (gain: number): string => {
-        return gain >= 0
-            ? 'text-green-600 dark:text-green-400'
-            : 'text-red-600 dark:text-red-400';
+        return gain >= 0 ? 'text-gain' : 'text-loss';
     };
 
     return {

@@ -117,8 +117,8 @@ const formatPriceChange = (pcp: string | undefined) => {
 const getChangeColor = (pcp: string | undefined) => {
     if (!pcp) return 'text-muted-foreground';
     const value = parseFloat(pcp);
-    if (value > 0) return 'text-green-600 dark:text-green-400';
-    if (value < 0) return 'text-red-600 dark:text-red-400';
+    if (value > 0) return 'text-gain';
+    if (value < 0) return 'text-loss';
     return 'text-muted-foreground';
 };
 </script>
@@ -130,8 +130,8 @@ const getChangeColor = (pcp: string | undefined) => {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
             <!-- Search Section -->
-            <section class="border-b border-border/40 bg-muted/30">
-                <div class="mx-auto max-w-4xl px-4 py-12">
+            <section class="border-b border-border">
+                <div class="mx-auto max-w-4xl px-6 pt-20 pb-12">
                     <div class="text-center mb-8">
                         <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                             {{ t('search.title') }}
@@ -142,13 +142,13 @@ const getChangeColor = (pcp: string | undefined) => {
                     </div>
 
                     <!-- Search Bar -->
-                    <div class="relative">
+                    <div class="relative max-w-2xl mx-auto">
                         <Search class="absolute start-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
                         <Input
                             v-model="searchQuery"
                             type="text"
                             :placeholder="t('search.searchPlaceholder')"
-                            class="h-14 ps-12 pe-12 text-lg rounded-xl shadow-sm"
+                            class="h-14 ps-12 pe-12 text-lg rounded-md"
                         />
                         <div v-if="isSearching" class="absolute end-4 top-1/2 -translate-y-1/2">
                             <Loader2 class="size-5 animate-spin text-muted-foreground" />
@@ -165,11 +165,11 @@ const getChangeColor = (pcp: string | undefined) => {
             </section>
 
             <!-- Results Section -->
-            <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mx-auto max-w-7xl px-6 py-8">
                 <Deferred data="results">
                     <template #fallback>
                         <!-- Loading skeleton -->
-                        <div class="rounded-lg border border-border">
+                        <div class="rounded-md border border-border">
                             <div class="animate-pulse space-y-4 p-4">
                                 <div v-for="i in 10" :key="i" class="flex items-center gap-4">
                                     <div class="h-4 w-20 rounded bg-muted" />
@@ -189,7 +189,7 @@ const getChangeColor = (pcp: string | undefined) => {
                     </div>
 
                     <!-- Results Table -->
-                    <div v-if="searchResults.length > 0" class="rounded-lg border border-border">
+                    <div v-if="searchResults.length > 0" class="rounded-md border border-border">
                         <div class="overflow-x-auto">
                             <table class="w-full">
                                 <thead>
@@ -218,7 +218,7 @@ const getChangeColor = (pcp: string | undefined) => {
                                     <tr
                                         v-for="result in searchResults"
                                         :key="result.id"
-                                        class="border-b border-border last:border-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                                        class="border-b border-border last:border-0 hover:bg-muted transition-colors cursor-pointer"
                                         @click="goToAsset(result.symbol)"
                                     >
                                         <td class="px-4 py-3 font-medium">
@@ -238,11 +238,11 @@ const getChangeColor = (pcp: string | undefined) => {
                                         <td class="px-4 py-3 text-sm text-muted-foreground">
                                             {{ result.sector?.name ?? '-' }}
                                         </td>
-                                        <td class="px-4 py-3 text-end font-medium">
+                                        <td class="px-4 py-3 text-end font-medium tabular-nums">
                                             {{ result.latestPrice?.last.toFixed(2) ?? '-' }}
                                         </td>
                                         <td class="px-4 py-3 text-end">
-                                            <span :class="getChangeColor(result.latestPrice?.pcp)" class="font-semibold">
+                                            <span :class="getChangeColor(result.latestPrice?.pcp)" class="font-semibold tabular-nums">
                                                 {{ formatPriceChange(result.latestPrice?.pcp) }}
                                             </span>
                                         </td>
