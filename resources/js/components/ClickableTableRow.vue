@@ -33,9 +33,9 @@ const handleKeydown = (event: KeyboardEvent) => {
         tabindex="0"
         :aria-label="ariaLabel"
         :class="[
-            'border-b border-border last:border-0 transition-colors cursor-pointer',
-            'hover:bg-muted/30 focus-visible:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-            active ? 'bg-muted/50' : '',
+            'border-b border-border last:border-0 transition-colors duration-150 cursor-pointer',
+            'hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none',
+            active ? 'bg-muted' : '',
             props.class,
         ]"
         @click="handleClick"
