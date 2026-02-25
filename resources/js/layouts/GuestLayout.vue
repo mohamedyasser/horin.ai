@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { Menu, X } from 'lucide-vue-next';
@@ -22,6 +22,10 @@ const page = usePage();
 
 const currentDir = computed(() => locale.value === 'ar' ? 'rtl' : 'ltr');
 const mobileMenuOpen = ref(false);
+const scrolled = ref(false);
+const onScroll = () => { scrolled.value = window.scrollY > 50; };
+onMounted(() => window.addEventListener('scroll', onScroll));
+onUnmounted(() => window.removeEventListener('scroll', onScroll));
 const isAuthenticated = computed(() => !!page.props.auth?.user);
 
 const authUrl = () => telegram.url();
@@ -42,14 +46,17 @@ withDefaults(defineProps<Props>(), {
 <template>
     <div class="min-h-screen bg-background" :dir="currentDir" :lang="locale">
         <!-- Header -->
-        <header class="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
+        <header
+            class="fixed inset-x-0 top-0 z-30 transition-all duration-300"
+            :class="scrolled ? 'bg-background/80 backdrop-blur-lg border-b border-border' : 'bg-transparent'"
+        >
+            <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
                 <div class="flex items-center gap-6">
                     <LocalizedLink href="/" class="flex items-center gap-2">
-                        <div class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                        <div class="flex size-8 items-center justify-center rounded-md bg-foreground text-background">
                             <AppLogoIcon class="size-5 fill-current" />
                         </div>
-                        <span class="text-lg font-semibold">Horin</span>
+                        <span class="text-lg font-bold tracking-tight">Horin</span>
                     </LocalizedLink>
 
                     <!-- Navigation Links -->
@@ -128,10 +135,10 @@ withDefaults(defineProps<Props>(), {
                 <SheetHeader class="text-start">
                     <SheetTitle>
                         <LocalizedLink href="/" class="flex items-center gap-2" @click="mobileMenuOpen = false">
-                            <div class="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                            <div class="flex size-8 items-center justify-center rounded-md bg-foreground text-background">
                                 <AppLogoIcon class="size-5 fill-current" />
                             </div>
-                            <span class="text-lg font-semibold">Horin</span>
+                            <span class="text-lg font-bold tracking-tight">Horin</span>
                         </LocalizedLink>
                     </SheetTitle>
                 </SheetHeader>
@@ -198,13 +205,13 @@ withDefaults(defineProps<Props>(), {
         </Sheet>
 
         <!-- Main Content -->
-        <main>
+        <main class="pt-16">
             <slot />
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-7xl px-4 py-6">
+        <footer class="border-t border-border">
+            <div class="mx-auto max-w-7xl px-6 py-8">
                 <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                     <p class="text-sm text-muted-foreground">
                         &copy; {{ new Date().getFullYear() }} Horin. {{ t('common.allRightsReserved') }}

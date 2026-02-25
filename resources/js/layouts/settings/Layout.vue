@@ -67,7 +67,9 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
                         variant="ghost"
                         :class="[
                             'w-full justify-start',
-                            { 'bg-muted': urlIsActive(item.href, currentPath) },
+                            urlIsActive(item.href, currentPath)
+                                ? 'bg-muted text-foreground font-medium'
+                                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
                         ]"
                         as-child
                     >
