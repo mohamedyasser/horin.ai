@@ -130,7 +130,7 @@ const saveSectors = (sectors: string[]) => {
                     />
                     <p
                         v-if="countrySaved"
-                        class="mt-2 text-sm text-green-600"
+                        class="mt-2 text-sm text-gain"
                     >
                         {{ t('settings.marketPreferences.saved') }}
                     </p>

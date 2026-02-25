@@ -22,9 +22,9 @@ const emit = defineEmits<{
         :disabled="disabled"
         :class="
             cn(
-                'flex flex-col items-center gap-2 rounded-lg border-2 p-4 text-center transition-all',
-                'hover:border-primary/50 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none',
-                selected ? 'border-primary bg-primary/5' : 'border-border',
+                'flex flex-col items-center gap-2 rounded-md border-2 p-4 text-center transition-all',
+                'hover:border-foreground/50 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none',
+                selected ? 'border-foreground bg-muted' : 'border-border',
                 disabled && 'cursor-not-allowed opacity-50',
             )
         "

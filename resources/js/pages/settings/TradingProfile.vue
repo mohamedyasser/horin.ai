@@ -181,7 +181,7 @@ const updateField = (field: string, value: string) => {
             <div class="flex items-center gap-4">
                 <span
                     v-if="recentlySaved"
-                    class="text-sm text-green-600"
+                    class="text-sm text-gain"
                 >
                     {{ t('settings.tradingProfile.saved') }}
                 </span>

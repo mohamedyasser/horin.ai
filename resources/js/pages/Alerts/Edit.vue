@@ -127,8 +127,8 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                         <ArrowLeft class="size-4 rtl:rotate-180" />
                     </Button>
                     <div class="flex items-center gap-3">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-primary/10">
-                            <component :is="TypeIcon" class="size-5 text-primary" />
+                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                            <component :is="TypeIcon" class="size-5 text-foreground" />
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold tracking-tight">
@@ -183,7 +183,7 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                                 </div>
                                 <div class="space-y-1">
                                     <Label class="text-muted-foreground">{{ t('alerts.fields.triggered_count') }}</Label>
-                                    <p class="font-medium">{{ alert.triggered_count }}</p>
+                                    <p class="font-medium tabular-nums">{{ alert.triggered_count }}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -456,11 +456,11 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <span class="text-muted-foreground">{{ t('alerts.fields.triggered_count') }}</span>
-                                    <span class="font-medium">{{ alert.triggered_count }}</span>
+                                    <span class="font-medium tabular-nums">{{ alert.triggered_count }}</span>
                                 </div>
                                 <div v-if="alert.last_triggered_at" class="flex justify-between">
                                     <span class="text-muted-foreground">{{ t('alerts.last_triggered') }}</span>
-                                    <span class="font-medium">{{ new Date(alert.last_triggered_at).toLocaleDateString(locale) }}</span>
+                                    <span class="font-medium tabular-nums">{{ new Date(alert.last_triggered_at).toLocaleDateString(locale) }}</span>
                                 </div>
                             </div>
                         </CardContent>

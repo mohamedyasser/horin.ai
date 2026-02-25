@@ -247,8 +247,8 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                             size="icon"
                                             class="z-10 shrink-0 rounded-full"
                                             :class="{
-                                                'bg-primary text-primary-foreground': state === 'active',
-                                                'border-primary text-primary': state === 'completed',
+                                                'bg-foreground text-background': state === 'active',
+                                                'border-foreground text-foreground': state === 'completed',
                                             }"
                                         >
                                             <Check v-if="state === 'completed'" class="size-4" />
@@ -274,7 +274,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
 
                                     <StepperSeparator
                                         v-if="step.step < steps.length"
-                                        class="absolute start-[18px] top-[40px] block h-[calc(100%-16px)] w-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary"
+                                        class="absolute start-[18px] top-[40px] block h-[calc(100%-16px)] w-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-foreground"
                                     />
                                 </StepperItem>
                             </Stepper>
@@ -299,9 +299,9 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     v-for="type in alertTypesList"
                                     :key="type"
                                     type="button"
-                                    class="flex flex-col items-center gap-3 rounded-xl border-2 p-6 transition-all hover:border-primary/50 hover:bg-accent/50"
+                                    class="flex flex-col items-center gap-3 rounded-md border-2 p-6 transition-all hover:border-foreground/50 hover:bg-muted/30"
                                     :class="{
-                                        'border-primary bg-primary/5 shadow-sm': form.type === type,
+                                        'border-foreground bg-muted': form.type === type,
                                         'border-border': form.type !== type,
                                     }"
                                     @click="handleTypeChange(type)"
@@ -309,7 +309,7 @@ const directions: AlertDirection[] = ['above', 'below', 'both', 'cross_up', 'cro
                                     <div
                                         class="flex size-12 items-center justify-center rounded-full"
                                         :class="{
-                                            'bg-primary/10 text-primary': form.type === type,
+                                            'bg-muted text-foreground': form.type === type,
                                             'bg-muted text-muted-foreground': form.type !== type,
                                         }"
                                     >

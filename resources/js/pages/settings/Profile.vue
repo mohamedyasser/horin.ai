@@ -108,7 +108,7 @@ const updateLanguage = (value: string) => {
 
                         <div
                             v-if="status === 'verification-link-sent'"
-                            class="mt-2 text-sm font-medium text-green-600"
+                            class="mt-2 text-sm font-medium text-gain"
                         >
                             {{ t('settings.profile.verificationSent') }}
                         </div>

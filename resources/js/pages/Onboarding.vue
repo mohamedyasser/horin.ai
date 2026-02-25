@@ -163,7 +163,7 @@ const submitStep = () => {
                 </div>
                 <div class="h-2 rounded-full bg-muted">
                     <div
-                        class="h-2 rounded-full bg-primary transition-all"
+                        class="h-2 rounded-full bg-foreground transition-all"
                         :style="{ width: `${(step / totalSteps) * 100}%` }"
                     />
                 </div>

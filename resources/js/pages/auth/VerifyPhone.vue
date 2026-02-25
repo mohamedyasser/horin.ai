@@ -69,7 +69,7 @@ onUnmounted(() => {
 
         <div
             v-if="status === 'verification-request-sent'"
-            class="mb-4 text-center text-sm font-medium text-green-600"
+            class="mb-4 text-center text-sm font-medium text-gain"
         >
             {{ t('auth.verifyPhone.requestSent') }}
         </div>

@@ -91,23 +91,23 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                            <Bell class="size-5 text-green-600 dark:text-green-400" />
+                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                            <Bell class="size-5 text-foreground" />
                         </div>
                         <div>
                             <p class="text-sm text-muted-foreground">{{ t('alerts.stats.active') }}</p>
-                            <p class="text-2xl font-bold">{{ stats.active }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ stats.active }}</p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                            <BellRing class="size-5 text-blue-600 dark:text-blue-400" />
+                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                            <BellRing class="size-5 text-foreground" />
                         </div>
                         <div>
                             <p class="text-sm text-muted-foreground">{{ t('alerts.stats.triggered_today') }}</p>
-                            <p class="text-2xl font-bold">{{ stats.triggered_today }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ stats.triggered_today }}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -118,7 +118,7 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
                         </div>
                         <div>
                             <p class="text-sm text-muted-foreground">{{ t('alerts.stats.total') }}</p>
-                            <p class="text-2xl font-bold">{{ stats.total }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ stats.total }}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -171,7 +171,7 @@ const filterOptions = ['all', 'active', 'triggered', 'paused', 'expired'] as con
                 >
                     {{ t('common.previous') }}
                 </Button>
-                <span dir="ltr" class="text-sm text-muted-foreground">
+                <span dir="ltr" class="text-sm tabular-nums text-muted-foreground">
                     {{ alerts.meta.currentPage }} / {{ alerts.meta.lastPage }}
                 </span>
                 <Button

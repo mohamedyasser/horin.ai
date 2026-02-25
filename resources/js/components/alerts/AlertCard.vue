@@ -105,14 +105,14 @@ const TypeIcon = computed(() => getTypeIcon(props.alert.type));
 </script>
 
 <template>
-    <Card class="transition-shadow hover:shadow-md">
+    <Card class="transition-colors hover:bg-muted/30">
         <CardContent class="p-4">
             <div class="flex items-start justify-between gap-4">
                 <!-- Left: Alert Info -->
                 <div class="flex items-start gap-4">
                     <!-- Icon -->
-                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <component :is="TypeIcon" class="size-5 text-primary" />
+                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
+                        <component :is="TypeIcon" class="size-5 text-foreground" />
                     </div>
 
                     <!-- Details -->
@@ -124,7 +124,7 @@ const TypeIcon = computed(() => getTypeIcon(props.alert.type));
                             <Badge :variant="getStatusVariant(alert.status)">
                                 {{ locale === 'ar' ? statusConfig.ar : statusConfig.en }}
                             </Badge>
-                            <Badge v-if="alert.is_snoozed" variant="outline" class="bg-yellow-50 dark:bg-yellow-900/20">
+                            <Badge v-if="alert.is_snoozed" variant="outline" class="bg-muted">
                                 {{ t('alerts.snoozed') }}
                             </Badge>
                         </div>

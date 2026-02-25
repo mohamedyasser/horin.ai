@@ -152,8 +152,8 @@ const snoozePresets = [
                         <ArrowLeft class="size-4 rtl:rotate-180" />
                     </Button>
                     <div class="flex items-center gap-3">
-                        <div class="flex size-12 items-center justify-center rounded-full bg-primary/10">
-                            <component :is="TypeIcon" class="size-6 text-primary" />
+                        <div class="flex size-12 items-center justify-center rounded-full bg-muted">
+                            <component :is="TypeIcon" class="size-6 text-foreground" />
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
@@ -212,7 +212,7 @@ const snoozePresets = [
                                 <Separator orientation="vertical" class="h-10" />
                                 <div>
                                     <p class="text-sm text-muted-foreground">{{ t('alerts.current_price') }}</p>
-                                    <p class="font-medium">{{ alert.asset.last_price }} {{ t('common.currency') }}</p>
+                                    <p class="font-medium tabular-nums">{{ alert.asset.last_price }} {{ t('common.currency') }}</p>
                                 </div>
                             </div>
 
@@ -269,24 +269,24 @@ const snoozePresets = [
                         <CardContent>
                             <div v-if="backtestResult" class="space-y-4">
                                 <div class="grid gap-4 sm:grid-cols-4">
-                                    <div class="rounded-lg bg-muted/50 p-3 text-center">
-                                        <p class="text-2xl font-bold">{{ backtestResult.trigger_count }}</p>
+                                    <div class="rounded-md bg-muted/50 p-3 text-center">
+                                        <p class="text-2xl font-bold tabular-nums">{{ backtestResult.trigger_count }}</p>
                                         <p class="text-xs text-muted-foreground">{{ t('alerts.backtest.triggers') }}</p>
                                     </div>
-                                    <div class="rounded-lg bg-muted/50 p-3 text-center">
-                                        <p class="text-2xl font-bold" :class="{ 'text-green-600': (backtestResult.avg_return_1d || 0) > 0, 'text-red-600': (backtestResult.avg_return_1d || 0) < 0 }">
+                                    <div class="rounded-md bg-muted/50 p-3 text-center">
+                                        <p class="text-2xl font-bold tabular-nums" :class="{ 'text-gain': (backtestResult.avg_return_1d || 0) > 0, 'text-loss': (backtestResult.avg_return_1d || 0) < 0 }">
                                             {{ backtestResult.avg_return_1d ? `${(backtestResult.avg_return_1d * 100).toFixed(1)}%` : '-' }}
                                         </p>
                                         <p class="text-xs text-muted-foreground">{{ t('alerts.backtest.avg_1d') }}</p>
                                     </div>
-                                    <div class="rounded-lg bg-muted/50 p-3 text-center">
-                                        <p class="text-2xl font-bold" :class="{ 'text-green-600': (backtestResult.avg_return_1w || 0) > 0, 'text-red-600': (backtestResult.avg_return_1w || 0) < 0 }">
+                                    <div class="rounded-md bg-muted/50 p-3 text-center">
+                                        <p class="text-2xl font-bold tabular-nums" :class="{ 'text-gain': (backtestResult.avg_return_1w || 0) > 0, 'text-loss': (backtestResult.avg_return_1w || 0) < 0 }">
                                             {{ backtestResult.avg_return_1w ? `${(backtestResult.avg_return_1w * 100).toFixed(1)}%` : '-' }}
                                         </p>
                                         <p class="text-xs text-muted-foreground">{{ t('alerts.backtest.avg_1w') }}</p>
                                     </div>
-                                    <div class="rounded-lg bg-muted/50 p-3 text-center">
-                                        <p class="text-2xl font-bold">
+                                    <div class="rounded-md bg-muted/50 p-3 text-center">
+                                        <p class="text-2xl font-bold tabular-nums">
                                             {{ backtestResult.win_rate ? `${(backtestResult.win_rate * 100).toFixed(0)}%` : '-' }}
                                         </p>
                                         <p class="text-xs text-muted-foreground">{{ t('alerts.backtest.win_rate') }}</p>
@@ -335,8 +335,8 @@ const snoozePresets = [
                                     class="flex items-center justify-between rounded-lg border p-3"
                                 >
                                     <div class="flex items-center gap-3">
-                                        <div class="flex size-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                                            <BellRing class="size-4 text-blue-600 dark:text-blue-400" />
+                                        <div class="flex size-8 items-center justify-center rounded-full bg-muted">
+                                            <BellRing class="size-4 text-foreground" />
                                         </div>
                                         <div>
                                             <p class="font-medium">
@@ -416,12 +416,12 @@ const snoozePresets = [
                             <div class="space-y-2">
                                 <div class="flex justify-between text-sm">
                                     <span class="text-muted-foreground">{{ t('alerts.fields.triggered_count') }}</span>
-                                    <span class="font-medium">{{ alert.triggered_count }}</span>
+                                    <span class="font-medium tabular-nums">{{ alert.triggered_count }}</span>
                                 </div>
                                 <div v-if="alert.max_triggers" class="space-y-1">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-muted-foreground">{{ t('alerts.fields.max_triggers') }}</span>
-                                        <span class="font-medium">{{ alert.triggered_count }}/{{ alert.max_triggers }}</span>
+                                        <span class="font-medium tabular-nums">{{ alert.triggered_count }}/{{ alert.max_triggers }}</span>
                                     </div>
                                     <Progress :model-value="(alert.triggered_count / alert.max_triggers) * 100" />
                                 </div>

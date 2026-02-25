@@ -83,34 +83,34 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                            <BellRing class="size-5 text-blue-600 dark:text-blue-400" />
+                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                            <BellRing class="size-5 text-foreground" />
                         </div>
                         <div>
                             <p class="text-sm text-muted-foreground">{{ t('alerts.history.stats.today') }}</p>
-                            <p class="text-2xl font-bold">{{ stats.today }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ stats.today }}</p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                            <Clock class="size-5 text-green-600 dark:text-green-400" />
+                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                            <Clock class="size-5 text-foreground" />
                         </div>
                         <div>
                             <p class="text-sm text-muted-foreground">{{ t('alerts.history.stats.this_week') }}</p>
-                            <p class="text-2xl font-bold">{{ stats.this_week }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ stats.this_week }}</p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
-                        <div class="flex size-10 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-                            <AlertTriangle class="size-5 text-orange-600 dark:text-orange-400" />
+                        <div class="flex size-10 items-center justify-center rounded-full bg-muted">
+                            <AlertTriangle class="size-5 text-foreground" />
                         </div>
                         <div>
                             <p class="text-sm text-muted-foreground">{{ t('alerts.history.stats.unacknowledged') }}</p>
-                            <p class="text-2xl font-bold">{{ stats.unacknowledged }}</p>
+                            <p class="text-2xl font-bold tabular-nums">{{ stats.unacknowledged }}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -122,8 +122,8 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                     <CardContent class="p-4">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex items-start gap-4">
-                                <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                    <BellRing class="size-5 text-primary" />
+                                <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
+                                    <BellRing class="size-5 text-foreground" />
                                 </div>
                                 <div class="space-y-1">
                                     <div class="flex flex-wrap items-center gap-2">
@@ -135,7 +135,7 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                                         </Badge>
                                     </div>
                                     <p class="text-sm text-muted-foreground">
-                                        {{ t('alerts.history.trigger_value') }}: <span dir="ltr">{{ item.trigger_value?.toFixed(2) || '-' }}</span>
+                                        {{ t('alerts.history.trigger_value') }}: <span dir="ltr" class="tabular-nums">{{ item.trigger_value?.toFixed(2) || '-' }}</span>
                                     </p>
                                     <p class="text-xs text-muted-foreground">
                                         {{ formatDate(item.triggered_at) }}
@@ -143,7 +143,7 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                <Badge v-if="item.acknowledged_at" variant="outline" class="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                                <Badge v-if="item.acknowledged_at" variant="outline" class="bg-muted text-foreground">
                                     <Check class="me-1 size-3" />
                                     {{ t('alerts.history.acknowledged') }}
                                 </Badge>
@@ -181,7 +181,7 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                 >
                     {{ t('common.previous') }}
                 </Button>
-                <span dir="ltr" class="text-sm text-muted-foreground">
+                <span dir="ltr" class="text-sm tabular-nums text-muted-foreground">
                     {{ history.meta.currentPage }} / {{ history.meta.lastPage }}
                 </span>
                 <Button

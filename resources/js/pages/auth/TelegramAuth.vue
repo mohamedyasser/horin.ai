@@ -51,7 +51,7 @@ onMounted(() => {
 
         <div
             v-if="errors?.telegram"
-            class="mb-4 text-center text-sm font-medium text-red-600"
+            class="mb-4 text-center text-sm font-medium text-destructive"
         >
             {{ errors.telegram }}
         </div>
