@@ -100,8 +100,8 @@ const recentlyUpdatedMarkets = computed(() =>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
-        <section class="border-b border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+        <section class="pt-20 pb-12">
+            <div class="mx-auto max-w-7xl px-6 text-center">
                 <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                     {{ t('markets.title') }}
                 </h1>
@@ -123,8 +123,8 @@ const recentlyUpdatedMarkets = computed(() =>
         </section>
 
         <!-- Filter Bar -->
-        <section class="border-b border-border/40">
-            <div class="mx-auto max-w-7xl px-4 py-4">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-7xl px-6 py-3">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                     <!-- Country Filter -->
                     <div class="flex flex-wrap items-center gap-2">
@@ -168,7 +168,7 @@ const recentlyUpdatedMarkets = computed(() =>
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mx-auto max-w-7xl px-6 py-8">
             <div class="grid gap-8 lg:grid-cols-4">
                 <!-- Markets Grid -->
                 <div class="lg:col-span-3">
@@ -180,11 +180,11 @@ const recentlyUpdatedMarkets = computed(() =>
                             :href="`/markets/${market.code}`"
                             class="block"
                         >
-                            <Card class="group h-full transition-shadow hover:shadow-md cursor-pointer">
+                            <Card class="group h-full hover:bg-muted/30 cursor-pointer transition-colors duration-200">
                                 <CardHeader class="pb-3">
                                     <div class="flex items-start justify-between">
                                         <div class="flex items-center gap-3">
-                                            <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                            <div class="flex size-10 items-center justify-center rounded-md bg-muted text-foreground">
                                                 <Building2 class="size-5" />
                                             </div>
                                             <div>
@@ -210,13 +210,13 @@ const recentlyUpdatedMarkets = computed(() =>
                                         </div>
                                         <div>
                                             <p class="text-muted-foreground">{{ t('markets.assets') }}</p>
-                                            <p class="font-medium">{{ market.assetCount }}</p>
+                                            <p class="font-medium tabular-nums">{{ market.assetCount }}</p>
                                         </div>
                                     </div>
 
                                     <div class="flex items-center justify-between border-t border-border pt-4">
                                         <div>
-                                            <p class="text-2xl font-bold">{{ market.predictionCount }}</p>
+                                            <p class="text-2xl font-bold tabular-nums">{{ market.predictionCount }}</p>
                                             <p class="text-xs text-muted-foreground">{{ t('markets.predictions') }}</p>
                                         </div>
                                         <span class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
@@ -247,7 +247,7 @@ const recentlyUpdatedMarkets = computed(() =>
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
-                                <TrendingUp class="size-4 text-green-500" />
+                                <TrendingUp class="size-4 text-foreground" />
                                 {{ t('markets.topMarkets') }}
                             </CardTitle>
                             <p class="text-xs text-muted-foreground">
@@ -267,7 +267,7 @@ const recentlyUpdatedMarkets = computed(() =>
                                         {{ market.country.name }}
                                     </span>
                                 </div>
-                                <span class="text-sm font-medium text-green-600 dark:text-green-400">
+                                <span class="text-sm font-medium tabular-nums text-foreground">
                                     {{ market.predictionCount }}
                                 </span>
                             </LocalizedLink>
@@ -278,7 +278,7 @@ const recentlyUpdatedMarkets = computed(() =>
                     <Card v-if="trendingMarket">
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
-                                <Flame class="size-4 text-orange-500" />
+                                <Flame class="size-4 text-foreground" />
                                 {{ t('markets.trendingMarket') }}
                             </CardTitle>
                             <p class="text-xs text-muted-foreground">
@@ -306,7 +306,7 @@ const recentlyUpdatedMarkets = computed(() =>
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
-                                <Clock class="size-4 text-blue-500" />
+                                <Clock class="size-4 text-foreground" />
                                 {{ t('markets.recentlyUpdated') }}
                             </CardTitle>
                             <p class="text-xs text-muted-foreground">

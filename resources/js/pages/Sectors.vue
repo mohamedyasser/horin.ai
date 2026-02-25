@@ -99,8 +99,8 @@ const trendingSector = computed(() =>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
             <!-- Hero Section -->
-            <section class="border-b border-border/40 bg-muted/30">
-                <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+            <section class="pt-20 pb-12">
+                <div class="mx-auto max-w-7xl px-6 text-center">
                     <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                         {{ t('sectors.title') }}
                     </h1>
@@ -122,8 +122,8 @@ const trendingSector = computed(() =>
             </section>
 
             <!-- Filter Bar -->
-            <section class="border-b border-border/40">
-                <div class="mx-auto max-w-7xl px-4 py-4">
+            <section class="border-b border-border">
+                <div class="mx-auto max-w-7xl px-6 py-3">
                     <div class="flex flex-wrap items-center justify-end gap-4">
                         <!-- Sort Dropdown -->
                         <DropdownMenu>
@@ -147,7 +147,7 @@ const trendingSector = computed(() =>
             </section>
 
             <!-- Main Content -->
-            <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mx-auto max-w-7xl px-6 py-8">
                 <div class="grid gap-8 lg:grid-cols-4">
                     <!-- Sectors Grid -->
                     <div class="lg:col-span-3">
@@ -183,7 +183,7 @@ const trendingSector = computed(() =>
                                         >
                                             <td class="px-4 py-4">
                                                 <div class="flex items-center gap-3">
-                                                    <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                                    <div class="flex size-10 items-center justify-center rounded-md bg-muted text-foreground">
                                                         <Layers class="size-5" />
                                                     </div>
                                                     <div>
@@ -194,12 +194,12 @@ const trendingSector = computed(() =>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="px-4 py-4 text-end">
+                                            <td class="px-4 py-4 text-end tabular-nums">
                                                 <span class="font-medium">{{ sector.assetCount }}</span>
                                                 <span class="ms-1 text-sm text-muted-foreground">{{ t('sectors.assets') }}</span>
                                             </td>
-                                            <td class="px-4 py-4 text-end">
-                                                <span class="font-medium text-primary">{{ sector.predictionCount }}</span>
+                                            <td class="px-4 py-4 text-end tabular-nums">
+                                                <span class="font-medium text-foreground">{{ sector.predictionCount }}</span>
                                                 <span class="ms-1 text-sm text-muted-foreground">{{ t('sectors.predictions') }}</span>
                                             </td>
                                             <td class="px-4 py-4">
@@ -243,7 +243,7 @@ const trendingSector = computed(() =>
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingUp class="size-4 text-green-500" />
+                                    <TrendingUp class="size-4 text-foreground" />
                                     {{ t('sectors.topSectors') }}
                                 </CardTitle>
                                 <p class="text-xs text-muted-foreground">
@@ -269,7 +269,7 @@ const trendingSector = computed(() =>
                         <Card v-if="trendingSector">
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <Target class="size-4 text-blue-500" />
+                                    <Target class="size-4 text-foreground" />
                                     {{ t('sectors.trendingSector') }}
                                 </CardTitle>
                                 <p class="text-xs text-muted-foreground">
@@ -283,7 +283,7 @@ const trendingSector = computed(() =>
                                 >
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
-                                            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                            <div class="flex size-10 items-center justify-center rounded-md bg-muted text-foreground">
                                                 <Layers class="size-5" />
                                             </div>
                                             <div>

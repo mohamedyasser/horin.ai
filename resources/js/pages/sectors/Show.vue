@@ -66,8 +66,8 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
             <!-- Sector Header Section -->
-            <section class="border-b border-border/40 bg-muted/30">
-                <div class="mx-auto max-w-7xl px-4 py-8">
+            <section class="pt-20 pb-8">
+                <div class="mx-auto max-w-7xl px-6">
                     <!-- Back Link -->
                     <LocalizedLink
                         href="/sectors"
@@ -80,7 +80,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                     <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <!-- Sector Info -->
                         <div class="flex items-start gap-4">
-                            <div class="flex size-16 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <div class="flex size-16 items-center justify-center rounded-md bg-muted text-foreground">
                                 <Layers class="size-8" />
                             </div>
                             <div>
@@ -106,12 +106,12 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                         <!-- Quick Stats -->
                         <div class="flex items-center gap-6">
                             <div class="text-center">
-                                <p class="text-2xl font-bold">{{ sector.assetCount }}</p>
-                                <p class="text-xs text-muted-foreground">{{ t('sectors.assets') }}</p>
+                                <p class="text-2xl font-bold tabular-nums">{{ sector.assetCount }}</p>
+                                <p class="text-xs text-muted-foreground uppercase tracking-wide">{{ t('sectors.assets') }}</p>
                             </div>
                             <div class="text-center">
-                                <p class="text-2xl font-bold">{{ sector.predictionCount }}</p>
-                                <p class="text-xs text-muted-foreground">{{ t('sectors.predictions') }}</p>
+                                <p class="text-2xl font-bold tabular-nums">{{ sector.predictionCount }}</p>
+                                <p class="text-xs text-muted-foreground uppercase tracking-wide">{{ t('sectors.predictions') }}</p>
                             </div>
                         </div>
                     </div>
@@ -131,7 +131,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
             </section>
 
             <!-- Main Content -->
-            <div class="mx-auto max-w-7xl px-4 py-8">
+            <div class="mx-auto max-w-7xl px-6 py-8">
                 <div class="grid gap-8 lg:grid-cols-4">
                     <!-- Assets Table -->
                     <div class="lg:col-span-3">
@@ -198,19 +198,19 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                                     </span>
                                                     <span v-else class="text-muted-foreground">-</span>
                                                 </td>
-                                                <td class="px-4 py-3 text-end text-sm">
+                                                <td class="px-4 py-3 text-end text-sm tabular-nums">
                                                     <template v-if="asset.latestPrice">
                                                         {{ asset.latestPrice.last.toFixed(2) }}
                                                         <span
                                                             class="ms-1 text-xs"
-                                                            :class="parseFloat(asset.latestPrice.pcp) >= 0 ? 'text-green-600' : 'text-red-600'"
+                                                            :class="parseFloat(asset.latestPrice.pcp) >= 0 ? 'text-gain' : 'text-loss'"
                                                         >
                                                             {{ asset.latestPrice.pcp }}%
                                                         </span>
                                                     </template>
                                                     <span v-else class="text-muted-foreground">-</span>
                                                 </td>
-                                                <td class="px-4 py-3 text-end text-sm font-medium">
+                                                <td class="px-4 py-3 text-end text-sm font-medium tabular-nums">
                                                     <template v-if="asset.latestPrediction">
                                                         {{ asset.latestPrediction.predictedPrice.toFixed(2) }}
                                                     </template>
@@ -222,7 +222,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                                     </span>
                                                     <span v-else class="text-muted-foreground">-</span>
                                                 </td>
-                                                <td class="px-4 py-3 text-end">
+                                                <td class="px-4 py-3 text-end tabular-nums">
                                                     <template v-if="asset.latestPrediction">
                                                         <span :class="getConfidenceColor(asset.latestPrediction.confidence)" class="font-medium">
                                                             {{ asset.latestPrediction.confidence }}%
@@ -288,22 +288,22 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <BarChart3 class="size-4 text-primary" />
+                                    <BarChart3 class="size-4 text-foreground" />
                                     {{ t('sectorDetail.stats.title') }}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent class="space-y-3">
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm text-muted-foreground">{{ t('sectorDetail.stats.totalAssets') }}</span>
-                                    <span class="font-medium">{{ sector.assetCount }}</span>
+                                    <span class="font-medium tabular-nums">{{ sector.assetCount }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm text-muted-foreground">{{ t('sectorDetail.stats.assetsWithPredictions') }}</span>
-                                    <span class="font-medium">{{ assetsWithPredictions.length }}</span>
+                                    <span class="font-medium tabular-nums">{{ assetsWithPredictions.length }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-sm text-muted-foreground">{{ t('sectors.predictions') }}</span>
-                                    <span class="font-medium">{{ sector.predictionCount }}</span>
+                                    <span class="font-medium tabular-nums">{{ sector.predictionCount }}</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -312,7 +312,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <TrendingUp class="size-4 text-green-500" />
+                                    <TrendingUp class="size-4 text-foreground" />
                                     {{ t('sectorDetail.topGainers') }}
                                 </CardTitle>
                                 <p class="text-xs text-muted-foreground">
@@ -339,7 +339,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span class="font-medium text-green-600 dark:text-green-400">
+                                        <span class="font-medium tabular-nums text-gain">
                                             {{ formatGain(calculateGainPercent(asset)) }}
                                         </span>
                                     </LocalizedLink>
@@ -354,7 +354,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                         <Card>
                             <CardHeader class="pb-3">
                                 <CardTitle class="flex items-center gap-2 text-base">
-                                    <Target class="size-4 text-blue-500" />
+                                    <Target class="size-4 text-foreground" />
                                     {{ t('sectorDetail.mostConfident') }}
                                 </CardTitle>
                                 <p class="text-xs text-muted-foreground">
@@ -381,7 +381,7 @@ const { assetsWithPredictions, topGainers, mostConfident, calculateGainPercent }
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span v-if="asset.latestPrediction" :class="getConfidenceColor(asset.latestPrediction.confidence)" class="font-medium">
+                                        <span v-if="asset.latestPrediction" :class="getConfidenceColor(asset.latestPrediction.confidence)" class="font-medium tabular-nums">
                                             {{ asset.latestPrediction.confidence }}%
                                         </span>
                                     </LocalizedLink>

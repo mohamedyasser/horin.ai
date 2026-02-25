@@ -203,8 +203,8 @@ const sortedPredictions = computed(() => {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
-        <section class="border-b border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+        <section class="pt-20 pb-12">
+            <div class="mx-auto max-w-7xl px-6 text-center">
                 <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                     {{ t('home.heroTitle') }}
                 </h1>
@@ -227,8 +227,8 @@ const sortedPredictions = computed(() => {
         </section>
 
         <!-- Market Filter Bar -->
-        <section class="border-b border-border/40">
-            <div class="mx-auto max-w-7xl px-4 py-4">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-7xl px-6 py-3">
                 <FilterButtonBar
                     :model-value="selectedMarket"
                     :options="marketOptions"
@@ -239,7 +239,7 @@ const sortedPredictions = computed(() => {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mx-auto max-w-7xl px-6 py-8">
             <div class="grid gap-8 lg:grid-cols-4">
                 <!-- Predictions Table -->
                 <div class="lg:col-span-3">
@@ -247,27 +247,27 @@ const sortedPredictions = computed(() => {
                     <div class="mb-4 flex items-center gap-4 border-b border-border">
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
-                            :class="activeTab === 'recommendations' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+                            :class="activeTab === 'recommendations' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
                             @click="activeTab = 'recommendations'"
                         >
                             {{ t('recommendations.title') }}
-                            <span v-if="activeTab === 'recommendations'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
+                            <span v-if="activeTab === 'recommendations'" class="absolute bottom-0 inset-x-0 h-0.5 bg-foreground" />
                         </button>
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
-                            :class="activeTab === 'predictions' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+                            :class="activeTab === 'predictions' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
                             @click="activeTab = 'predictions'"
                         >
                             {{ t('home.predictions') }}
-                            <span v-if="activeTab === 'predictions'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
+                            <span v-if="activeTab === 'predictions'" class="absolute bottom-0 inset-x-0 h-0.5 bg-foreground" />
                         </button>
                         <button
                             class="relative px-4 py-2 text-sm font-medium transition-colors"
-                            :class="activeTab === 'news' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'"
+                            :class="activeTab === 'news' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
                             @click="activeTab = 'news'"
                         >
                             {{ t('news.title') }}
-                            <span v-if="activeTab === 'news'" class="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />
+                            <span v-if="activeTab === 'news'" class="absolute bottom-0 inset-x-0 h-0.5 bg-foreground" />
                         </button>
                     </div>
 
@@ -431,20 +431,20 @@ const sortedPredictions = computed(() => {
                                             <td class="px-4 py-3 text-sm text-muted-foreground">
                                                 {{ prediction.asset.name }}
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end text-sm">
+                                            <td dir="ltr" class="px-4 py-3 text-end text-sm tabular-nums">
                                                 <template v-if="prediction.currentPrice">
                                                     {{ prediction.currentPrice.toFixed(2) }}
                                                 </template>
                                                 <span v-else class="text-muted-foreground">-</span>
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium">
+                                            <td dir="ltr" class="px-4 py-3 text-end text-sm font-medium tabular-nums">
                                                 {{ prediction.predictedPrice.toFixed(2) }}
                                             </td>
-                                            <td class="px-4 py-3 text-end">
+                                            <td class="px-4 py-3 text-end tabular-nums">
                                                 <span
                                                     dir="ltr"
                                                     class="inline-flex items-center gap-0.5 font-medium"
-                                                    :class="prediction.expectedGainPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                                                    :class="prediction.expectedGainPercent >= 0 ? 'text-gain' : 'text-loss'"
                                                 >
                                                     <ArrowUpRight v-if="prediction.expectedGainPercent >= 0" class="size-4" />
                                                     <ArrowDownRight v-else class="size-4" />
@@ -456,7 +456,7 @@ const sortedPredictions = computed(() => {
                                                     {{ prediction.horizonLabel }}
                                                 </span>
                                             </td>
-                                            <td dir="ltr" class="px-4 py-3 text-end">
+                                            <td dir="ltr" class="px-4 py-3 text-end tabular-nums">
                                                 <span :class="getConfidenceColor(prediction.confidence)" class="font-medium">
                                                     {{ prediction.confidence }}%
                                                 </span>
@@ -530,7 +530,7 @@ const sortedPredictions = computed(() => {
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
-                                <TrendingUp class="size-4 text-green-500" />
+                                <TrendingUp class="size-4 text-foreground" />
                                 {{ t('home.topMovers') }}
                             </CardTitle>
                         </CardHeader>
@@ -557,7 +557,7 @@ const sortedPredictions = computed(() => {
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span dir="ltr" class="font-medium text-green-600 dark:text-green-400">
+                                        <span dir="ltr" class="font-medium tabular-nums text-gain">
                                             {{ formatGain(mover.priceChangePercent) }}
                                         </span>
                                     </LocalizedLink>
@@ -570,7 +570,7 @@ const sortedPredictions = computed(() => {
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
-                                <Target class="size-4 text-blue-500" />
+                                <Target class="size-4 text-foreground" />
                                 {{ t('home.highestConfidence') }}
                             </CardTitle>
                         </CardHeader>
@@ -597,7 +597,7 @@ const sortedPredictions = computed(() => {
                                             :show-logo="false"
                                             size="sm"
                                         />
-                                        <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium">
+                                        <span dir="ltr" :class="getConfidenceColor(prediction.confidence)" class="font-medium tabular-nums">
                                             {{ prediction.confidence }}%
                                         </span>
                                     </LocalizedLink>
@@ -610,7 +610,7 @@ const sortedPredictions = computed(() => {
                     <Card>
                         <CardHeader class="pb-3">
                             <CardTitle class="flex items-center gap-2 text-base">
-                                <Clock class="size-4 text-orange-500" />
+                                <Clock class="size-4 text-foreground" />
                                 {{ t('home.recentUpdates') }}
                             </CardTitle>
                         </CardHeader>
