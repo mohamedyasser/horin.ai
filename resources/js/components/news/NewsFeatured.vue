@@ -29,14 +29,14 @@ const formattedDate = computed(() => {
 
 const scoreColor = computed(() => {
     const score = props.news.score ?? 0;
-    if (score >= 7) return 'text-green-600 dark:text-green-400';
-    if (score >= 4) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 7) return 'text-gain';
+    if (score >= 4) return 'text-foreground';
+    return 'text-loss';
 });
 </script>
 
 <template>
-    <Card class="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-background to-muted/30">
+    <Card class="overflow-hidden border border-border rounded-md">
         <CardContent class="p-0">
             <div class="grid gap-6 md:grid-cols-2">
                 <!-- Image -->
@@ -55,7 +55,7 @@ const scoreColor = computed(() => {
                         v-if="news.score"
                         class="absolute start-4 top-4 rounded-full bg-background/90 px-3 py-1 backdrop-blur-sm"
                     >
-                        <span class="text-sm font-bold" :class="scoreColor">
+                        <span class="text-sm font-bold tabular-nums" :class="scoreColor">
                             {{ news.score }}/10
                         </span>
                     </div>

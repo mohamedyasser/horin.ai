@@ -23,19 +23,19 @@ const actionConfig = computed(() => {
         case 'buy':
             return {
                 label: t('news.action.buy'),
-                class: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-100',
+                class: 'bg-gain-muted text-gain hover:bg-gain-muted',
                 icon: ShoppingCart,
             };
         case 'sell':
             return {
                 label: t('news.action.sell'),
-                class: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-400 hover:bg-rose-100',
+                class: 'bg-loss-muted text-loss hover:bg-loss-muted',
                 icon: TrendingDown,
             };
         case 'watch':
             return {
                 label: t('news.action.watch'),
-                class: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 hover:bg-amber-100',
+                class: 'bg-muted text-muted-foreground hover:bg-muted',
                 icon: Eye,
             };
         default:

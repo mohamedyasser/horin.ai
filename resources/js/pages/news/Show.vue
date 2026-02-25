@@ -63,16 +63,16 @@ const formattedDate = computed(() => {
 
 const scoreColor = computed(() => {
     const score = props.news.score ?? 0;
-    if (score >= 7) return 'text-green-600 dark:text-green-400';
-    if (score >= 4) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 7) return 'text-gain';
+    if (score >= 4) return 'text-foreground';
+    return 'text-loss';
 });
 
 const scoreBgColor = computed(() => {
     const score = props.news.score ?? 0;
-    if (score >= 7) return 'bg-green-100 dark:bg-green-900/30';
-    if (score >= 4) return 'bg-yellow-100 dark:bg-yellow-900/30';
-    return 'bg-red-100 dark:bg-red-900/30';
+    if (score >= 7) return 'bg-gain-muted';
+    if (score >= 4) return 'bg-muted';
+    return 'bg-loss-muted';
 });
 
 // Actions
@@ -145,8 +145,8 @@ const copyLink = async () => {
 
     <GuestLayout :can-login="canLogin" :can-register="canRegister">
         <!-- Back Navigation -->
-        <section class="border-b border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-4xl px-4 py-4">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-3xl px-6 py-4">
                 <LocalizedLink href="/news" class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <ChevronLeft class="me-1 size-4 rtl:-scale-x-100" />
                     {{ t('common.previous') }}
@@ -155,7 +155,7 @@ const copyLink = async () => {
         </section>
 
         <!-- Article Content -->
-        <article class="mx-auto max-w-4xl px-4 py-8">
+        <article class="mx-auto max-w-3xl px-6 py-8">
             <!-- Header -->
             <header class="mb-8">
                 <!-- Badges -->
@@ -170,7 +170,7 @@ const copyLink = async () => {
                     </span>
                     <div
                         v-if="news.score"
-                        class="rounded-full px-3 py-1 text-sm font-bold"
+                        class="rounded-full px-3 py-1 text-sm font-bold tabular-nums"
                         :class="[scoreBgColor, scoreColor]"
                     >
                         {{ news.score }}/10
@@ -207,7 +207,7 @@ const copyLink = async () => {
             </header>
 
             <!-- Featured Image -->
-            <div v-if="news.image_url" class="mb-8 overflow-hidden rounded-xl">
+            <div v-if="news.image_url" class="mb-8 overflow-hidden rounded-md">
                 <img
                     :src="news.image_url"
                     :alt="news.title"
@@ -221,14 +221,14 @@ const copyLink = async () => {
             </p>
 
             <!-- Content -->
-            <div class="prose prose-lg dark:prose-invert max-w-none mb-8" v-html="news.content"></div>
+            <div class="prose prose-lg dark:prose-invert max-w-none mb-8 leading-relaxed" v-html="news.content"></div>
 
             <!-- Risks & Opportunities -->
             <div v-if="news.risks?.length || news.opportunities?.length" class="mb-8 grid gap-6 md:grid-cols-2">
                 <!-- Risks -->
                 <Card v-if="news.risks?.length">
                     <CardHeader class="pb-3">
-                        <CardTitle class="flex items-center gap-2 text-red-600 dark:text-red-400">
+                        <CardTitle class="flex items-center gap-2 text-loss">
                             <AlertTriangle class="size-5" />
                             {{ t('news.risks') }}
                         </CardTitle>
@@ -236,7 +236,7 @@ const copyLink = async () => {
                     <CardContent>
                         <ul class="space-y-2">
                             <li v-for="(risk, index) in news.risks" :key="index" class="flex items-start gap-2 text-sm">
-                                <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-red-500"></span>
+                                <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-loss"></span>
                                 {{ risk }}
                             </li>
                         </ul>
@@ -246,7 +246,7 @@ const copyLink = async () => {
                 <!-- Opportunities -->
                 <Card v-if="news.opportunities?.length">
                     <CardHeader class="pb-3">
-                        <CardTitle class="flex items-center gap-2 text-green-600 dark:text-green-400">
+                        <CardTitle class="flex items-center gap-2 text-gain">
                             <TrendingUp class="size-5" />
                             {{ t('news.opportunities') }}
                         </CardTitle>
@@ -254,7 +254,7 @@ const copyLink = async () => {
                     <CardContent>
                         <ul class="space-y-2">
                             <li v-for="(opportunity, index) in news.opportunities" :key="index" class="flex items-start gap-2 text-sm">
-                                <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-green-500"></span>
+                                <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-gain"></span>
                                 {{ opportunity }}
                             </li>
                         </ul>
@@ -290,7 +290,7 @@ const copyLink = async () => {
                         variant="outline"
                         size="sm"
                         :disabled="isRating"
-                        :class="news.user_rating === true ? 'bg-green-100 dark:bg-green-900/30' : ''"
+                        :class="news.user_rating === true ? 'bg-gain-muted' : ''"
                         @click="rateNews(true)"
                     >
                         <ThumbsUp class="me-1 size-4" />
@@ -300,7 +300,7 @@ const copyLink = async () => {
                         variant="outline"
                         size="sm"
                         :disabled="isRating"
-                        :class="news.user_rating === false ? 'bg-red-100 dark:bg-red-900/30' : ''"
+                        :class="news.user_rating === false ? 'bg-loss-muted' : ''"
                         @click="rateNews(false)"
                     >
                         <ThumbsDown class="me-1 size-4" />
@@ -311,7 +311,7 @@ const copyLink = async () => {
                 <!-- Share & Bookmark -->
                 <div class="flex items-center gap-2">
                     <Button variant="outline" size="sm" @click="copyLink">
-                        <Check v-if="showCopied" class="me-1 size-4 text-green-600" />
+                        <Check v-if="showCopied" class="me-1 size-4 text-gain" />
                         <Copy v-else class="me-1 size-4" />
                         {{ showCopied ? t('news.share.copied') : t('news.share.copy') }}
                     </Button>
@@ -337,20 +337,20 @@ const copyLink = async () => {
         <!-- Related News -->
         <Deferred data="relatedNews">
             <template #fallback>
-                <section class="border-t border-border/40 bg-muted/30">
-                    <div class="mx-auto max-w-7xl px-4 py-12">
+                <section class="border-t border-border">
+                    <div class="mx-auto max-w-7xl px-6 py-12">
                         <h2 class="mb-6 text-xl font-semibold">{{ t('news.relatedAsset') }}</h2>
-                        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <Skeleton v-for="i in 3" :key="i" class="h-64" />
                         </div>
                     </div>
                 </section>
             </template>
 
-            <section v-if="relatedNews?.length" class="border-t border-border/40 bg-muted/30">
-                <div class="mx-auto max-w-7xl px-4 py-12">
+            <section v-if="relatedNews?.length" class="border-t border-border">
+                <div class="mx-auto max-w-7xl px-6 py-12">
                     <h2 class="mb-6 text-xl font-semibold">{{ t('news.relatedAsset') }}</h2>
-                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <NewsCard
                             v-for="item in relatedNews.slice(0, 3)"
                             :key="item.id"
@@ -364,8 +364,8 @@ const copyLink = async () => {
         <!-- Similar News -->
         <Deferred data="similarNews">
             <template #fallback>
-                <section class="border-t border-border/40">
-                    <div class="mx-auto max-w-7xl px-4 py-12">
+                <section class="border-t border-border">
+                    <div class="mx-auto max-w-7xl px-6 py-12">
                         <h2 class="mb-6 text-xl font-semibold">{{ t('news.latestNews') }}</h2>
                         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                             <Skeleton v-for="i in 4" :key="i" class="h-64" />
@@ -374,8 +374,8 @@ const copyLink = async () => {
                 </section>
             </template>
 
-            <section v-if="similarNews?.length" class="border-t border-border/40">
-                <div class="mx-auto max-w-7xl px-4 py-12">
+            <section v-if="similarNews?.length" class="border-t border-border">
+                <div class="mx-auto max-w-7xl px-6 py-12">
                     <h2 class="mb-6 text-xl font-semibold">{{ t('news.latestNews') }}</h2>
                     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                         <NewsCard

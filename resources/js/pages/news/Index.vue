@@ -182,8 +182,8 @@ const goToPage = (page: number) => {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
-        <section class="border-b border-border/40 bg-muted/30">
-            <div class="mx-auto max-w-7xl px-4 py-12 text-center">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-7xl px-6 pt-20 pb-12 text-center">
                 <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
                     {{ t('news.title') }}
                 </h1>
@@ -206,8 +206,8 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Sentiment Filter Bar -->
-        <section class="border-b border-border/40">
-            <div class="mx-auto max-w-7xl px-4 py-4">
+        <section class="border-b border-border">
+            <div class="mx-auto max-w-7xl px-6 py-4">
                 <FilterButtonBar
                     :model-value="selectedSentiment"
                     :options="sentimentOptions"
@@ -218,7 +218,7 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-4 py-8">
+        <div class="mx-auto max-w-7xl px-6 py-8">
             <!-- Featured News -->
             <section v-if="featured" class="mb-8">
                 <NewsFeatured :news="featured" />
@@ -347,7 +347,7 @@ const goToPage = (page: number) => {
             <div
                 v-if="newsList.length > 0"
                 :class="viewMode === 'grid'
-                    ? 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3'
+                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
                     : 'space-y-4'"
             >
                 <template v-for="item in newsList" :key="item.id">
@@ -379,7 +379,7 @@ const goToPage = (page: number) => {
                 >
                     {{ t('common.previous') }}
                 </Button>
-                <span dir="ltr" class="text-sm text-muted-foreground">
+                <span dir="ltr" class="text-sm tabular-nums text-muted-foreground">
                     {{ newsMeta.currentPage }} / {{ newsMeta.lastPage }}
                 </span>
                 <Button

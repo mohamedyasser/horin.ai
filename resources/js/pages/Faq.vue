@@ -38,7 +38,7 @@ const questions = [
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
-        <div class="mx-auto max-w-3xl px-4 py-12">
+        <div class="mx-auto max-w-3xl px-6 py-12">
             <h1 class="text-3xl font-bold tracking-tight">
                 {{ t('faq.title') }}
             </h1>

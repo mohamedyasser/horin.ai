@@ -24,14 +24,14 @@ const sentimentConfig = computed(() => {
             return {
                 label: t('news.sentiment.positive'),
                 variant: 'default' as const,
-                class: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100',
+                class: 'bg-gain-muted text-gain hover:bg-gain-muted',
                 icon: TrendingUp,
             };
         case 'negative':
             return {
                 label: t('news.sentiment.negative'),
                 variant: 'default' as const,
-                class: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-100',
+                class: 'bg-loss-muted text-loss hover:bg-loss-muted',
                 icon: TrendingDown,
             };
         case 'neutral':
@@ -39,7 +39,7 @@ const sentimentConfig = computed(() => {
             return {
                 label: t('news.sentiment.neutral'),
                 variant: 'default' as const,
-                class: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-100',
+                class: 'bg-muted text-muted-foreground hover:bg-muted',
                 icon: Minus,
             };
     }

@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
-        <div class="mx-auto max-w-3xl px-4 py-12">
+        <div class="mx-auto max-w-3xl px-6 py-12">
             <h1 class="text-3xl font-bold tracking-tight">
                 {{ t('methodology.title') }}
             </h1>
@@ -52,7 +52,7 @@ const props = withDefaults(defineProps<Props>(), {
                     </h2>
                     <ol class="mt-4 space-y-4">
                         <li v-for="(step, index) in ['collection', 'extraction', 'evaluation', 'prediction', 'confidence']" :key="step" class="flex gap-4">
-                            <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">{{ index + 1 }}</span>
+                            <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-foreground">{{ index + 1 }}</span>
                             <div>
                                 <p class="font-medium">{{ t(`methodology.sections.generated.steps.${step}.label`) }}</p>
                                 <p class="mt-1 text-sm text-muted-foreground">{{ t(`methodology.sections.generated.steps.${step}.value`) }}</p>
@@ -66,7 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
                     <h2 class="text-xl font-semibold">
                         {{ t('methodology.sections.horizons.title') }}
                     </h2>
-                    <div class="mt-4 overflow-hidden rounded-lg border border-border">
+                    <div class="mt-4 overflow-hidden rounded-md border border-border">
                         <table class="w-full text-sm">
                             <thead class="bg-muted/50">
                                 <tr>
@@ -103,7 +103,7 @@ const props = withDefaults(defineProps<Props>(), {
                     <h2 class="text-xl font-semibold">
                         {{ t('methodology.sections.factors.title') }}
                     </h2>
-                    <div class="mt-4 overflow-hidden rounded-lg border border-border">
+                    <div class="mt-4 overflow-hidden rounded-md border border-border">
                         <table class="w-full text-sm">
                             <thead class="bg-muted/50">
                                 <tr>
@@ -154,7 +154,7 @@ const props = withDefaults(defineProps<Props>(), {
                     </h2>
                     <ul class="mt-4 space-y-3">
                         <li v-for="item in ['compare', 'checkConfidence', 'followTrends', 'avoidOverreliance']" :key="item" class="flex gap-3">
-                            <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary"></span>
+                            <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-foreground"></span>
                             <div>
                                 <p class="font-medium">{{ t(`methodology.sections.safeUse.${item}.label`) }}</p>
                                 <p class="text-sm text-muted-foreground">{{ t(`methodology.sections.safeUse.${item}.value`) }}</p>

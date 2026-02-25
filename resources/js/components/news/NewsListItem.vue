@@ -28,20 +28,20 @@ const formattedDate = computed(() => {
 
 const scoreColor = computed(() => {
     const score = props.news.score ?? 0;
-    if (score >= 7) return 'text-green-600 dark:text-green-400';
-    if (score >= 4) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 7) return 'text-gain';
+    if (score >= 4) return 'text-foreground';
+    return 'text-loss';
 });
 </script>
 
 <template>
     <LocalizedLink :href="`/news/${news.slug}`" class="block group">
-        <Card class="overflow-hidden transition-all hover:shadow-lg hover:border-primary/50">
+        <Card class="overflow-hidden border border-border rounded-md hover:bg-muted/30 cursor-pointer transition-colors duration-200">
             <CardContent class="p-0">
                 <div class="flex gap-4 p-4">
                     <!-- Image -->
                     <div class="relative hidden shrink-0 sm:block">
-                        <div class="h-24 w-36 overflow-hidden rounded-lg">
+                        <div class="h-24 w-36 overflow-hidden rounded-md">
                             <img
                                 v-if="news.image_url"
                                 :src="news.image_url"
@@ -72,14 +72,14 @@ const scoreColor = computed(() => {
                                 v-if="news.score"
                                 class="rounded-full bg-muted px-2 py-0.5"
                             >
-                                <span class="text-xs font-bold" :class="scoreColor">
+                                <span class="text-xs font-bold tabular-nums" :class="scoreColor">
                                     {{ news.score }}/10
                                 </span>
                             </div>
                         </div>
 
                         <!-- Title -->
-                        <h3 class="mb-1 line-clamp-1 font-semibold group-hover:text-primary transition-colors">
+                        <h3 class="mb-1 line-clamp-1 font-semibold group-hover:text-foreground transition-colors">
                             {{ news.title }}
                         </h3>
 

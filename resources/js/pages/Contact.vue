@@ -26,7 +26,7 @@ const supportEmail = 'support@horin.com';
     </Head>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
-        <div class="mx-auto max-w-3xl px-4 py-12">
+        <div class="mx-auto max-w-3xl px-6 py-12">
             <h1 class="text-3xl font-bold tracking-tight">
                 {{ t('contact.title') }}
             </h1>
@@ -40,9 +40,9 @@ const supportEmail = 'support@horin.com';
 
                     <a
                         :href="`mailto:${supportEmail}`"
-                        class="mt-6 inline-flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-6 py-4 text-lg font-medium transition-colors hover:bg-muted"
+                        class="mt-6 inline-flex items-center gap-3 rounded-md border border-border px-6 py-4 text-lg font-medium transition-colors hover:bg-muted"
                     >
-                        <Mail class="size-5 text-primary" />
+                        <Mail class="size-5 text-foreground" />
                         {{ supportEmail }}
                     </a>
                 </section>
