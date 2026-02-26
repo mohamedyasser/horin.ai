@@ -410,7 +410,13 @@
         "topMovers": "الأكثر ارتفاعاً",
         "highestConfidence": "الأعلى ثقة",
         "recentUpdates": "آخر التحديثات",
-        "showingPredictions": "عرض {count} توقعات"
+        "showingPredictions": "عرض {count} توقعات",
+        "statPredictions": "توقعات",
+        "statAssets": "أصول",
+        "statMarkets": "أسواق",
+        "signals": "إشارات",
+        "buySignals": "شراء",
+        "sellSignals": "بيع"
     },
     "markets": {
         "title": "الأسواق",
@@ -478,6 +484,8 @@
         "table": {
             "symbol": "الرمز",
             "name": "الاسم",
+            "market": "السوق",
+            "sector": "القطاع",
             "lastPrice": "السعر الأخير",
             "predictedPrice": "السعر المتوقع",
             "gainPercent": "نسبة الربح",
@@ -1163,6 +1171,9 @@
     "recommendations": {
         "title": "التوصيات",
         "subtitle": "إشارات تداول مدعومة بالذكاء الاصطناعي لأسهم الشرق الأوسط",
+        "buyLabel": "شراء",
+        "holdLabel": "احتفاظ",
+        "sellLabel": "بيع",
         "noData": "لا توجد توصية متاحة",
         "noDataDescription": "في انتظار بيانات كافية لتوليد توصية.",
         "viewAnalysis": "عرض التحليل",

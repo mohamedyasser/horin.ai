@@ -410,7 +410,13 @@
         "topMovers": "Top Movers",
         "highestConfidence": "Highest Confidence",
         "recentUpdates": "Recent Updates",
-        "showingPredictions": "Showing {count} predictions"
+        "showingPredictions": "Showing {count} predictions",
+        "statPredictions": "Predictions",
+        "statAssets": "Assets",
+        "statMarkets": "Markets",
+        "signals": "Signals",
+        "buySignals": "Buy",
+        "sellSignals": "Sell"
     },
     "markets": {
         "title": "Markets",
@@ -478,6 +484,8 @@
         "table": {
             "symbol": "Symbol",
             "name": "Name",
+            "market": "Market",
+            "sector": "Sector",
             "lastPrice": "Last Price",
             "predictedPrice": "Predicted Price",
             "gainPercent": "Gain %",
@@ -1163,6 +1171,9 @@
     "recommendations": {
         "title": "Recommendations",
         "subtitle": "AI-powered trading signals for Middle East stocks",
+        "buyLabel": "Buy",
+        "holdLabel": "Hold",
+        "sellLabel": "Sell",
         "noData": "No recommendation available",
         "noDataDescription": "Waiting for sufficient market data to generate a recommendation.",
         "viewAnalysis": "View Analysis",
