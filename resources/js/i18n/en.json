@@ -1186,7 +1186,14 @@
             "HOLD": "Hold",
             "REDUCE": "Reduce",
             "SELL": "Sell",
-            "STRONG_SELL": "Strong Sell"
+            "STRONG_SELL": "Strong Sell",
+            "strong_buy": "Strong Buy",
+            "buy": "Buy",
+            "accumulate": "Accumulate",
+            "hold": "Hold",
+            "reduce": "Reduce",
+            "sell": "Sell",
+            "strong_sell": "Strong Sell"
         },
         "riskRewardLabels": {
             "excellent": "Excellent",

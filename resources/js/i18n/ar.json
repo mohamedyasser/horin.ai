@@ -1186,7 +1186,14 @@
             "HOLD": "احتفاظ",
             "REDUCE": "تقليص",
             "SELL": "بيع",
-            "STRONG_SELL": "بيع قوي"
+            "STRONG_SELL": "بيع قوي",
+            "strong_buy": "شراء قوي",
+            "buy": "شراء",
+            "accumulate": "تجميع",
+            "hold": "احتفاظ",
+            "reduce": "تقليص",
+            "sell": "بيع",
+            "strong_sell": "بيع قوي"
         },
         "riskRewardLabels": {
             "excellent": "ممتاز",
