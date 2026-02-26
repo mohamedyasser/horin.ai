@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $countries = Country::all();
-        $markets = Market::all();
+        $markets = Market::withoutGlobalScopes()->get();
         $sectors = Sector::all();
 
         if ($countries->isEmpty()) {

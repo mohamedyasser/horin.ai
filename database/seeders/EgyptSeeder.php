@@ -89,7 +89,7 @@ class EgyptSeeder extends Seeder
                 'name_ar' => 'البورصة المصرية',
                 'code' => 'EGX',
                 'timezone' => 'Africa/Cairo',
-                'is_active' => 0,
+                'is_active' => 1,
                 'asset_id' => '4beca6c9-36ed-4729-bfce-d76ad8afda60',
                 'tv_link' => 'stocks-egypt',
                 'trading_days' => '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]',

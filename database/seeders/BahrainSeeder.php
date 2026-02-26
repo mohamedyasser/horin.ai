@@ -89,7 +89,7 @@ class BahrainSeeder extends Seeder
                 'name_ar' => 'بورصة البحرين',
                 'code' => 'BHB',
                 'timezone' => 'Asia/Bahrain',
-                'is_active' => 0,
+                'is_active' => 1,
                 'asset_id' => '8c319bb7-b37d-4bbf-ad50-7a766c1c573d',
                 'tv_link' => 'stocks-bahrain',
                 'trading_days' => '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]',

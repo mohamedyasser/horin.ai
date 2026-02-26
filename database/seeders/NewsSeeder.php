@@ -23,7 +23,7 @@ class NewsSeeder extends Seeder
     {
         $users = User::all();
         $assets = Asset::where('type', 'stock')->get();
-        $markets = Market::all();
+        $markets = Market::withoutGlobalScopes()->get();
         $countries = Country::all();
         $sectors = Sector::all();
 
@@ -54,11 +54,9 @@ class NewsSeeder extends Seeder
     {
         $articles = collect();
 
-        // Create 40 articles spread across assets
-        $selectedAssets = $assets->random(min(20, $assets->count()));
-
-        foreach ($selectedAssets as $asset) {
-            $articleCount = rand(1, 3);
+        // Create 1-2 articles for EVERY stock asset to ensure full coverage
+        foreach ($assets as $asset) {
+            $articleCount = rand(1, 2);
 
             for ($i = 0; $i < $articleCount; $i++) {
                 $article = AssetNew::factory()->published()->create([
@@ -75,25 +73,27 @@ class NewsSeeder extends Seeder
             }
         }
 
-        // Create some general market news (no specific asset)
-        for ($i = 0; $i < 10; $i++) {
-            $country = $countries->random();
+        // Create general market news for each country (no specific asset)
+        foreach ($countries as $country) {
             $market = $markets->where('country_id', $country->id)->first();
+            $newsCount = rand(3, 6);
 
-            $article = AssetNew::factory()->create([
-                'asset_id' => null,
-                'market_id' => $market?->id,
-                'country_id' => $country->id,
-                'sector_id' => $sectors->isNotEmpty() ? $sectors->random()->id : null,
-                'source' => fake()->randomElement(['reuters', 'bloomberg', 'argaam']),
-                'resource_id' => fake()->unique()->uuid(),
-                'category' => fake()->randomElement(['Economic Update', 'Market Analysis', 'Regulatory News', 'IPO Watch']),
-                'reason' => fake()->sentence(),
-                'is_rewritten' => true,
-                'image_url' => 'news/'.fake()->uuid().'.jpg',
-            ]);
+            for ($i = 0; $i < $newsCount; $i++) {
+                $article = AssetNew::factory()->create([
+                    'asset_id' => null,
+                    'market_id' => $market?->id,
+                    'country_id' => $country->id,
+                    'sector_id' => $sectors->isNotEmpty() ? $sectors->random()->id : null,
+                    'source' => fake()->randomElement(['reuters', 'bloomberg', 'argaam']),
+                    'resource_id' => fake()->unique()->uuid(),
+                    'category' => fake()->randomElement(['Economic Update', 'Market Analysis', 'Regulatory News', 'IPO Watch']),
+                    'reason' => fake()->sentence(),
+                    'is_rewritten' => true,
+                    'image_url' => 'news/'.fake()->uuid().'.jpg',
+                ]);
 
-            $articles->push($article);
+                $articles->push($article);
+            }
         }
 
         return $articles;

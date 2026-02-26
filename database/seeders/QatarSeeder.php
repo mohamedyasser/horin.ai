@@ -89,7 +89,7 @@ class QatarSeeder extends Seeder
                 'name_ar' => 'بورصة قطر',
                 'code' => 'QSE',
                 'timezone' => 'Asia/Qatar',
-                'is_active' => 0,
+                'is_active' => 1,
                 'asset_id' => '224806ca-9619-453e-8d3f-28228a83df2f',
                 'tv_link' => 'stocks-qatar',
                 'trading_days' => '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]',

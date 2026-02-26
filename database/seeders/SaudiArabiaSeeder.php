@@ -89,7 +89,7 @@ class SaudiArabiaSeeder extends Seeder
                 'name_ar' => 'السوق المالية السعودية',
                 'code' => 'TASI',
                 'timezone' => 'Asia/Riyadh',
-                'is_active' => 0,
+                'is_active' => 1,
                 'asset_id' => '6b65cfa1-db65-44cd-82bc-a6d23ecffd53',
                 'tv_link' => 'stocks-ksa',
                 'trading_days' => '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]',

@@ -89,7 +89,7 @@ class KuwaitSeeder extends Seeder
                 'name_ar' => 'بورصة الكويت',
                 'code' => 'KSE',
                 'timezone' => 'Asia/Kuwait',
-                'is_active' => 0,
+                'is_active' => 1,
                 'asset_id' => '444b954f-5507-4693-8ad6-9bf7734c90c8',
                 'tv_link' => 'stocks-kuwait',
                 'trading_days' => '["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"]',
