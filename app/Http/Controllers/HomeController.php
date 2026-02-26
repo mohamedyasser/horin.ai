@@ -32,9 +32,10 @@ class HomeController extends Controller
             'totalSectors' => Sector::count(),
         ];
 
-        $markets = Market::with('country')
+        $markets = Market::with(['country' => fn ($q) => $q->withoutGlobalScopes()])
             ->withCount('assets')
             ->get()
+            ->filter(fn ($market) => $market->country !== null)
             ->map(fn ($market) => [
                 'id' => $market->id,
                 'name' => $market->name,
@@ -47,7 +48,8 @@ class HomeController extends Controller
                 'isOpen' => $market->isOpenNow(),
                 'assetCount' => $market->assets_count,
                 'predictionCount' => $predictionCountsByMarket->get($market->id, 0),
-            ]);
+            ])
+            ->values();
 
         $sectors = Sector::withCount('assets')
             ->get()
