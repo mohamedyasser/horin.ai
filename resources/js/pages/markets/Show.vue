@@ -80,12 +80,12 @@ const {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Market Header Section -->
-        <section class="pt-20 pb-8">
+        <section class="pt-10 pb-6">
             <div class="mx-auto max-w-7xl px-6">
                 <!-- Back Link -->
                 <LocalizedLink
                     href="/markets"
-                    class="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    class="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <component
                         :is="locale === 'ar' ? ChevronRight : ChevronLeft"
@@ -202,8 +202,8 @@ const {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
-            <div class="grid gap-8 lg:grid-cols-4">
+        <div class="mx-auto max-w-7xl px-6 py-6">
+            <div class="grid gap-6 lg:grid-cols-4">
                 <!-- Assets Table -->
                 <div class="lg:col-span-3">
                     <Deferred data="assets">

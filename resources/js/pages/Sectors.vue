@@ -103,17 +103,17 @@ const trendingSector = computed(() =>
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
-        <section class="pt-20 pb-12">
+        <section class="pt-10 pb-6">
             <div class="mx-auto max-w-7xl px-6 text-center">
-                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
                     {{ t('sectors.title') }}
                 </h1>
-                <p class="mt-3 text-lg text-muted-foreground">
+                <p class="mt-2 text-base text-muted-foreground">
                     {{ t('sectors.subtitle') }}
                 </p>
 
                 <!-- Search Bar -->
-                <div class="relative mx-auto mt-8 max-w-xl">
+                <div class="relative mx-auto mt-5 max-w-xl">
                     <Search
                         class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
                     />
@@ -121,7 +121,7 @@ const trendingSector = computed(() =>
                         v-model="searchQuery"
                         type="text"
                         :placeholder="t('sectors.searchPlaceholder')"
-                        class="h-12 ps-10 text-base"
+                        class="h-11 ps-10 text-base"
                     />
                 </div>
             </div>
@@ -153,8 +153,8 @@ const trendingSector = computed(() =>
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
-            <div class="grid gap-8 lg:grid-cols-4">
+        <div class="mx-auto max-w-7xl px-6 py-6">
+            <div class="grid gap-6 lg:grid-cols-4">
                 <!-- Sectors Grid -->
                 <div class="lg:col-span-3">
                     <!-- Table View -->

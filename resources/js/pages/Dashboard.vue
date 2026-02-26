@@ -88,7 +88,7 @@ const stats = computed(
     <Head :title="t('dashboard.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-6 p-6">
+        <div class="flex flex-col gap-4 p-4">
             <!-- Welcome -->
             <div>
                 <h1 class="text-lg font-semibold">
@@ -195,7 +195,7 @@ const stats = computed(
             </div>
 
             <!-- Two Column: Watchlist + Recent Alerts -->
-            <div class="grid gap-6 lg:grid-cols-3">
+            <div class="grid gap-4 lg:grid-cols-3">
                 <!-- Watchlist -->
                 <Card class="lg:col-span-2">
                     <CardHeader>
@@ -215,6 +215,11 @@ const stats = computed(
                                             class="pb-2 text-start text-xs font-medium tracking-wide text-muted-foreground uppercase"
                                         >
                                             {{ t('home.table.symbol') }}
+                                        </th>
+                                        <th
+                                            class="hidden pb-2 text-start text-xs font-medium tracking-wide text-muted-foreground uppercase sm:table-cell"
+                                        >
+                                            {{ t('home.table.name') }}
                                         </th>
                                         <th
                                             class="pb-2 text-end text-xs font-medium tracking-wide text-muted-foreground uppercase"
@@ -242,6 +247,9 @@ const stats = computed(
                                                 :show-logo="false"
                                                 size="sm"
                                             />
+                                        </td>
+                                        <td class="hidden py-2.5 sm:table-cell">
+                                            <span class="truncate text-sm text-muted-foreground">{{ item.name }}</span>
                                         </td>
                                         <td
                                             dir="ltr"
@@ -339,7 +347,7 @@ const stats = computed(
             </div>
 
             <!-- Bottom: Recent Predictions + Recommendations -->
-            <div class="grid gap-6 lg:grid-cols-2">
+            <div class="grid gap-4 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <CardTitle class="text-base font-semibold">
@@ -355,30 +363,27 @@ const stats = computed(
                                 v-for="prediction in props.recentPredictions"
                                 :key="prediction.id"
                                 :href="`/assets/${prediction.asset.symbol}`"
-                                class="-mx-2 flex items-center justify-between rounded-md px-2 py-1.5 transition-colors duration-150 hover:bg-muted/50"
+                                class="-mx-2 flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors duration-150 hover:bg-muted/50"
                             >
-                                <AssetDisplay
-                                    :symbol="prediction.asset.symbol"
-                                    :market-code="prediction.asset.market?.code"
-                                    :show-name="false"
-                                    :show-logo="false"
-                                    size="sm"
-                                />
-                                <span
-                                    dir="ltr"
-                                    class="text-sm font-medium tabular-nums"
-                                    :class="
-                                        prediction.expectedGainPercent >= 0
-                                            ? 'text-gain'
-                                            : 'text-loss'
-                                    "
-                                >
-                                    {{
-                                        formatGain(
-                                            prediction.expectedGainPercent,
-                                        )
-                                    }}
-                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-sm font-medium">{{ prediction.asset.symbol }}</span>
+                                        <span v-if="prediction.asset.market?.code" class="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">{{ prediction.asset.market.code }}</span>
+                                    </div>
+                                    <div class="truncate text-xs text-muted-foreground">{{ prediction.asset.name }}</div>
+                                </div>
+                                <div class="text-end">
+                                    <span
+                                        dir="ltr"
+                                        class="text-sm font-medium tabular-nums"
+                                        :class="prediction.expectedGainPercent >= 0 ? 'text-gain' : 'text-loss'"
+                                    >
+                                        {{ formatGain(prediction.expectedGainPercent) }}
+                                    </span>
+                                    <div class="text-[10px] tabular-nums text-muted-foreground">
+                                        {{ (prediction.confidence * 100).toFixed(0) }}%
+                                    </div>
+                                </div>
                             </LocalizedLink>
                         </div>
                         <div
@@ -409,28 +414,31 @@ const stats = computed(
                                 v-for="rec in props.recentRecommendations"
                                 :key="rec.id"
                                 :href="`/assets/${rec.asset.symbol}`"
-                                class="-mx-2 flex items-center justify-between rounded-md px-2 py-1.5 transition-colors duration-150 hover:bg-muted/50"
+                                class="-mx-2 flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors duration-150 hover:bg-muted/50"
                             >
-                                <AssetDisplay
-                                    :symbol="rec.asset.symbol"
-                                    :market-code="rec.asset.market?.code"
-                                    :show-name="false"
-                                    :show-logo="false"
-                                    size="sm"
-                                />
-                                <Badge
-                                    :variant="
-                                        rec.action === 'buy' ||
-                                        rec.action === 'strong_buy'
-                                            ? 'gain'
-                                            : rec.action === 'sell' ||
-                                                rec.action === 'strong_sell'
-                                              ? 'loss'
-                                              : 'outline'
-                                    "
-                                >
-                                    {{ rec.action }}
-                                </Badge>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-sm font-medium">{{ rec.asset.symbol }}</span>
+                                        <span v-if="rec.asset.market?.code" class="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">{{ rec.asset.market.code }}</span>
+                                    </div>
+                                    <div class="truncate text-xs text-muted-foreground">{{ rec.asset.name }}</div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span dir="ltr" class="text-xs tabular-nums text-muted-foreground">{{ rec.score?.toFixed(1) }}</span>
+                                    <Badge
+                                        :variant="
+                                            rec.action === 'buy' ||
+                                            rec.action === 'strong_buy'
+                                                ? 'gain'
+                                                : rec.action === 'sell' ||
+                                                    rec.action === 'strong_sell'
+                                                  ? 'loss'
+                                                  : 'outline'
+                                        "
+                                    >
+                                        {{ t(`recommendations.actions.${rec.action}`) }}
+                                    </Badge>
+                                </div>
                             </LocalizedLink>
                         </div>
                         <div

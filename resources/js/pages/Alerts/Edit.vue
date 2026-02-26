@@ -161,7 +161,7 @@ const TypeIcon = computed(() => getTypeIcon(alert.value.type));
     <Head :title="t('alerts.edit')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">

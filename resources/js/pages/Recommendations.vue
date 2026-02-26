@@ -259,6 +259,20 @@ const formatPriceChange = (change: string | null | undefined) => {
     return isNaN(numericValue) ? null : numericValue;
 };
 
+// Recommendation distribution
+const distribution = computed(() => {
+    const counts: Record<string, number> = {};
+    for (const rec of recommendations.value) {
+        const key = rec.recommendation;
+        counts[key] = (counts[key] || 0) + 1;
+    }
+    const total = recommendations.value.length;
+    const buyCount = (counts['STRONG_BUY'] || 0) + (counts['BUY'] || 0) + (counts['ACCUMULATE'] || 0);
+    const holdCount = counts['HOLD'] || 0;
+    const sellCount = (counts['REDUCE'] || 0) + (counts['SELL'] || 0) + (counts['STRONG_SELL'] || 0);
+    return { buyCount, holdCount, sellCount, total };
+});
+
 // Pagination
 const goToPage = (page: number) => {
     const currentParams = new URLSearchParams(window.location.search);
@@ -288,16 +302,16 @@ const goToPage = (page: number) => {
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
         <section class="border-b border-border">
-            <div class="mx-auto max-w-7xl px-6 pt-20 pb-12 text-center">
-                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div class="mx-auto max-w-7xl px-6 pt-10 pb-6 text-center">
+                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
                     {{ t('recommendations.title') }}
                 </h1>
-                <p class="mt-3 text-lg text-muted-foreground">
+                <p class="mt-2 text-base text-muted-foreground">
                     {{ t('recommendations.subtitle') }}
                 </p>
 
                 <!-- Search Bar -->
-                <div class="relative mx-auto mt-8 max-w-xl">
+                <div class="relative mx-auto mt-5 max-w-xl">
                     <Search
                         v-if="!isSearching"
                         class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
@@ -310,8 +324,30 @@ const goToPage = (page: number) => {
                         v-model="searchQuery"
                         type="text"
                         :placeholder="t('predictions.searchPlaceholder')"
-                        class="h-12 ps-10 text-base"
+                        class="h-11 ps-10 text-base"
                     />
+                </div>
+            </div>
+        </section>
+
+        <!-- Distribution Summary -->
+        <section v-if="distribution.total > 0" class="border-b border-border">
+            <div class="mx-auto flex max-w-7xl items-center justify-center gap-6 px-6 py-3 text-sm sm:gap-10">
+                <div class="flex items-center gap-1.5">
+                    <TrendingUp class="size-3.5 text-gain" />
+                    <span class="font-medium text-gain tabular-nums">{{ distribution.buyCount }}</span>
+                    <span class="text-xs text-muted-foreground">{{ t('recommendations.buyLabel') }}</span>
+                </div>
+                <div class="h-4 w-px bg-border" />
+                <div class="flex items-center gap-1.5">
+                    <span class="font-medium tabular-nums">{{ distribution.holdCount }}</span>
+                    <span class="text-xs text-muted-foreground">{{ t('recommendations.holdLabel') }}</span>
+                </div>
+                <div class="h-4 w-px bg-border" />
+                <div class="flex items-center gap-1.5">
+                    <TrendingDown class="size-3.5 text-loss" />
+                    <span class="font-medium text-loss tabular-nums">{{ distribution.sellCount }}</span>
+                    <span class="text-xs text-muted-foreground">{{ t('recommendations.sellLabel') }}</span>
                 </div>
             </div>
         </section>
@@ -329,8 +365,8 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
-            <div class="grid gap-8 lg:grid-cols-4">
+        <div class="mx-auto max-w-7xl px-6 py-6">
+            <div class="grid gap-6 lg:grid-cols-4">
                 <!-- Recommendations Table -->
                 <div class="lg:col-span-3">
                     <!-- Controls -->

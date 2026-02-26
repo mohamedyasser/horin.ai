@@ -164,9 +164,9 @@ const copyLink = async () => {
         </section>
 
         <!-- Article Content -->
-        <article class="mx-auto max-w-3xl px-6 py-8">
+        <article class="mx-auto max-w-3xl px-6 py-6">
             <!-- Header -->
-            <header class="mb-8">
+            <header class="mb-6">
                 <!-- Badges -->
                 <div class="mb-4 flex flex-wrap items-center gap-2">
                     <NewsSentimentBadge :sentiment="news.sentiment" />
@@ -187,7 +187,7 @@ const copyLink = async () => {
                 </div>
 
                 <!-- Title -->
-                <h1 class="mb-4 text-3xl leading-tight font-bold md:text-4xl">
+                <h1 class="mb-4 text-2xl leading-tight font-bold md:text-3xl">
                     {{ news.title }}
                 </h1>
 

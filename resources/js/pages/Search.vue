@@ -137,12 +137,12 @@ const getChangeColor = (pcp: string | undefined) => {
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Search Section -->
         <section class="border-b border-border">
-            <div class="mx-auto max-w-4xl px-6 pt-20 pb-12">
-                <div class="mb-8 text-center">
-                    <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div class="mx-auto max-w-4xl px-6 pt-10 pb-6">
+                <div class="mb-5 text-center">
+                    <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
                         {{ t('search.title') }}
                     </h1>
-                    <p class="mt-3 text-lg text-muted-foreground">
+                    <p class="mt-2 text-base text-muted-foreground">
                         {{ t('search.subtitle') }}
                     </p>
                 </div>
@@ -156,7 +156,7 @@ const getChangeColor = (pcp: string | undefined) => {
                         v-model="searchQuery"
                         type="text"
                         :placeholder="t('search.searchPlaceholder')"
-                        class="h-14 rounded-md ps-12 pe-12 text-lg"
+                        class="h-11 rounded-md ps-12 pe-12 text-base"
                     />
                     <div
                         v-if="isSearching"
@@ -178,7 +178,7 @@ const getChangeColor = (pcp: string | undefined) => {
         </section>
 
         <!-- Results Section -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
+        <div class="mx-auto max-w-7xl px-6 py-6">
             <Deferred data="results">
                 <template #fallback>
                     <!-- Loading skeleton -->

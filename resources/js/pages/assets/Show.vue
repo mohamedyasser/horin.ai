@@ -167,9 +167,9 @@ const isPredictionsOpen = ref(true);
     >
         <!-- Asset Header Section -->
         <section class="border-b border-border">
-            <div class="mx-auto max-w-7xl px-6 pt-20 pb-8">
+            <div class="mx-auto max-w-7xl px-6 pt-10 pb-6">
                 <!-- Back Links -->
-                <div class="mb-6 flex flex-wrap items-center gap-4">
+                <div class="mb-4 flex flex-wrap items-center gap-4">
                     <LocalizedLink
                         v-if="asset.market"
                         :href="`/markets/${asset.market.code}`"
@@ -303,8 +303,8 @@ const isPredictionsOpen = ref(true);
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
-            <div class="grid gap-8 lg:grid-cols-3">
+        <div class="mx-auto max-w-7xl px-6 py-6">
+            <div class="grid gap-6 lg:grid-cols-3">
                 <!-- Left Column - Main Content -->
                 <div class="space-y-6 lg:col-span-2">
                     <!-- Price Details Card -->

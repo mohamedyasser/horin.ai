@@ -72,10 +72,10 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
     <Head :title="t('alerts.history.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold tracking-tight">
+                <h1 class="text-lg font-bold tracking-tight">
                     {{ t('alerts.history.title') }}
                 </h1>
                 <p class="text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
                         <div
-                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                            class="flex size-8 items-center justify-center rounded-full bg-muted"
                         >
                             <BellRing class="size-5 text-foreground" />
                         </div>
@@ -105,7 +105,7 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
                         <div
-                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                            class="flex size-8 items-center justify-center rounded-full bg-muted"
                         >
                             <Clock class="size-5 text-foreground" />
                         </div>
@@ -122,7 +122,7 @@ const getTriggerTypeBadgeVariant = (triggerType: string) => {
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
                         <div
-                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                            class="flex size-8 items-center justify-center rounded-full bg-muted"
                         >
                             <AlertTriangle class="size-5 text-foreground" />
                         </div>

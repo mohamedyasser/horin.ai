@@ -78,11 +78,11 @@ const filterOptions = [
     <Head :title="t('alerts.title')" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
+        <div class="flex h-full flex-1 flex-col gap-4 p-4">
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">
+                    <h1 class="text-lg font-bold tracking-tight">
                         {{ t('alerts.title') }}
                     </h1>
                     <p class="text-sm text-muted-foreground">
@@ -102,7 +102,7 @@ const filterOptions = [
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
                         <div
-                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                            class="flex size-8 items-center justify-center rounded-full bg-muted"
                         >
                             <Bell class="size-5 text-foreground" />
                         </div>
@@ -119,7 +119,7 @@ const filterOptions = [
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
                         <div
-                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                            class="flex size-8 items-center justify-center rounded-full bg-muted"
                         >
                             <BellRing class="size-5 text-foreground" />
                         </div>
@@ -136,7 +136,7 @@ const filterOptions = [
                 <Card>
                     <CardContent class="flex items-center gap-4 p-4">
                         <div
-                            class="flex size-10 items-center justify-center rounded-full bg-muted"
+                            class="flex size-8 items-center justify-center rounded-full bg-muted"
                         >
                             <Activity class="size-5 text-muted-foreground" />
                         </div>

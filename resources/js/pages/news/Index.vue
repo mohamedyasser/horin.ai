@@ -205,16 +205,16 @@ const goToPage = (page: number) => {
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
         <section class="border-b border-border">
-            <div class="mx-auto max-w-7xl px-6 pt-20 pb-12 text-center">
-                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div class="mx-auto max-w-7xl px-6 pt-10 pb-6 text-center">
+                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
                     {{ t('news.title') }}
                 </h1>
-                <p class="mt-3 text-lg text-muted-foreground">
+                <p class="mt-2 text-base text-muted-foreground">
                     {{ t('news.subtitle') }}
                 </p>
 
                 <!-- Search Bar -->
-                <div class="relative mx-auto mt-8 max-w-xl">
+                <div class="relative mx-auto mt-5 max-w-xl">
                     <Search
                         v-if="!isSearching"
                         class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
@@ -227,7 +227,7 @@ const goToPage = (page: number) => {
                         v-model="searchQuery"
                         type="text"
                         :placeholder="t('news.searchPlaceholder')"
-                        class="h-12 ps-10 text-base"
+                        class="h-11 ps-10 text-base"
                     />
                 </div>
             </div>
@@ -246,7 +246,7 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
+        <div class="mx-auto max-w-7xl px-6 py-6">
             <!-- Featured News -->
             <section v-if="featured" class="mb-8">
                 <NewsFeatured :news="featured" />

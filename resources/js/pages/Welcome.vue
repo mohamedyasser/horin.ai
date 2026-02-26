@@ -44,8 +44,10 @@ import {
     Clock,
     Loader2,
     Search,
+    ShoppingCart,
     SlidersHorizontal,
     Target,
+    TrendingDown,
     TrendingUp,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -210,17 +212,17 @@ const sortedPredictions = computed(() => {
 
     <GuestLayout :can-login="props.canLogin" :can-register="props.canRegister">
         <!-- Hero Section -->
-        <section class="pt-20 pb-12">
+        <section class="pt-10 pb-6">
             <div class="mx-auto max-w-7xl px-6 text-center">
-                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">
+                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
                     {{ t('home.heroTitle') }}
                 </h1>
-                <p class="mt-3 text-lg text-muted-foreground">
+                <p class="mt-2 text-base text-muted-foreground">
                     {{ t('home.heroSubtitle') }}
                 </p>
 
                 <!-- Search Bar -->
-                <div class="relative mx-auto mt-8 max-w-xl">
+                <div class="relative mx-auto mt-5 max-w-xl">
                     <Search
                         v-if="!isSearching"
                         class="absolute start-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground"
@@ -233,8 +235,50 @@ const sortedPredictions = computed(() => {
                         v-model="searchQuery"
                         type="text"
                         :placeholder="t('home.searchPlaceholder')"
-                        class="h-12 ps-10 text-base"
+                        class="h-11 ps-10 text-sm"
                     />
+                </div>
+
+                <!-- KPI Stats -->
+                <div
+                    class="mx-auto mt-5 flex max-w-2xl items-center justify-center gap-6 text-sm sm:gap-10"
+                >
+                    <div class="text-center">
+                        <div
+                            class="text-lg font-bold tabular-nums"
+                        >
+                            {{ stats.totalPredictions?.toLocaleString() ?? '—' }}
+                        </div>
+                        <div class="text-xs text-muted-foreground">
+                            {{ t('home.statPredictions') }}
+                        </div>
+                    </div>
+                    <div
+                        class="h-6 w-px bg-border"
+                    />
+                    <div class="text-center">
+                        <div
+                            class="text-lg font-bold tabular-nums"
+                        >
+                            {{ stats.totalAssets?.toLocaleString() ?? '—' }}
+                        </div>
+                        <div class="text-xs text-muted-foreground">
+                            {{ t('home.statAssets') }}
+                        </div>
+                    </div>
+                    <div
+                        class="h-6 w-px bg-border"
+                    />
+                    <div class="text-center">
+                        <div
+                            class="text-lg font-bold tabular-nums"
+                        >
+                            {{ stats.totalMarkets ?? '—' }}
+                        </div>
+                        <div class="text-xs text-muted-foreground">
+                            {{ t('home.statMarkets') }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -252,8 +296,8 @@ const sortedPredictions = computed(() => {
         </section>
 
         <!-- Main Content -->
-        <div class="mx-auto max-w-7xl px-6 py-8">
-            <div class="grid gap-8 lg:grid-cols-4">
+        <div class="mx-auto max-w-7xl px-6 py-6">
+            <div class="grid gap-6 lg:grid-cols-4">
                 <!-- Predictions Table -->
                 <div class="lg:col-span-3">
                     <!-- Tab Buttons -->
@@ -747,30 +791,28 @@ const sortedPredictions = computed(() => {
                                         </div>
                                     </div>
                                 </template>
-                                <div class="space-y-3">
+                                <div class="space-y-2">
                                     <LocalizedLink
                                         v-for="mover in topMovers"
                                         :key="mover.id"
                                         :href="`/assets/${mover.symbol}`"
-                                        class="-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30"
+                                        class="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1.5 transition-colors hover:bg-muted/30"
                                     >
-                                        <AssetDisplay
-                                            :symbol="mover.symbol"
-                                            :market-code="mover.market.code"
-                                            :show-name="false"
-                                            :show-logo="false"
-                                            size="sm"
-                                        />
-                                        <span
-                                            dir="ltr"
-                                            class="font-medium text-gain tabular-nums"
-                                        >
-                                            {{
-                                                formatGain(
-                                                    mover.priceChangePercent,
-                                                )
-                                            }}
-                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-sm font-medium">{{ mover.symbol }}</span>
+                                                <span class="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">{{ mover.market.code }}</span>
+                                            </div>
+                                            <div class="truncate text-xs text-muted-foreground">{{ mover.name }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div dir="ltr" class="text-sm font-medium text-gain tabular-nums">
+                                                {{ formatGain(mover.priceChangePercent) }}
+                                            </div>
+                                            <div dir="ltr" class="text-xs tabular-nums text-muted-foreground">
+                                                {{ mover.currentPrice?.toFixed(2) }}
+                                            </div>
+                                        </div>
                                     </LocalizedLink>
                                 </div>
                             </Deferred>
@@ -802,7 +844,7 @@ const sortedPredictions = computed(() => {
                                         </div>
                                     </div>
                                 </template>
-                                <div class="space-y-3">
+                                <div class="space-y-2">
                                     <LocalizedLink
                                         v-for="prediction in [
                                             ...featuredPredictions,
@@ -814,28 +856,31 @@ const sortedPredictions = computed(() => {
                                             .slice(0, 5)"
                                         :key="prediction.id"
                                         :href="`/assets/${prediction.asset.symbol}`"
-                                        class="-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30"
+                                        class="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1.5 transition-colors hover:bg-muted/30"
                                     >
-                                        <AssetDisplay
-                                            :symbol="prediction.asset.symbol"
-                                            :market-code="
-                                                prediction.asset.market?.code
-                                            "
-                                            :show-name="false"
-                                            :show-logo="false"
-                                            size="sm"
-                                        />
-                                        <span
-                                            dir="ltr"
-                                            :class="
-                                                getConfidenceColor(
-                                                    prediction.confidence,
-                                                )
-                                            "
-                                            class="font-medium tabular-nums"
-                                        >
-                                            {{ prediction.confidence }}%
-                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-sm font-medium">{{ prediction.asset.symbol }}</span>
+                                                <span class="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">{{ prediction.asset.market?.code }}</span>
+                                            </div>
+                                            <div class="truncate text-xs text-muted-foreground">{{ prediction.asset.name }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div
+                                                dir="ltr"
+                                                :class="getConfidenceColor(prediction.confidence)"
+                                                class="text-sm font-medium tabular-nums"
+                                            >
+                                                {{ prediction.confidence }}%
+                                            </div>
+                                            <div
+                                                dir="ltr"
+                                                class="text-xs tabular-nums"
+                                                :class="prediction.expectedGainPercent >= 0 ? 'text-gain' : 'text-loss'"
+                                            >
+                                                {{ formatGain(prediction.expectedGainPercent) }}
+                                            </div>
+                                        </div>
                                     </LocalizedLink>
                                 </div>
                             </Deferred>
@@ -867,30 +912,81 @@ const sortedPredictions = computed(() => {
                                         </div>
                                     </div>
                                 </template>
-                                <div class="space-y-3">
+                                <div class="space-y-2">
                                     <LocalizedLink
                                         v-for="prediction in recentPredictions"
                                         :key="prediction.id"
                                         :href="`/assets/${prediction.asset.symbol}`"
-                                        class="-mx-2 flex items-center justify-between rounded px-2 py-1 transition-colors hover:bg-muted/30"
+                                        class="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1.5 transition-colors hover:bg-muted/30"
                                     >
-                                        <AssetDisplay
-                                            :symbol="prediction.asset.symbol"
-                                            :market-code="
-                                                prediction.asset.market?.code
-                                            "
-                                            :show-name="false"
-                                            :show-logo="false"
-                                            size="sm"
-                                        />
-                                        <span
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ prediction.horizonLabel }}
-                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-sm font-medium">{{ prediction.asset.symbol }}</span>
+                                                <span class="rounded bg-muted px-1 py-0.5 text-[10px] text-muted-foreground">{{ prediction.asset.market?.code }}</span>
+                                            </div>
+                                            <div class="truncate text-xs text-muted-foreground">{{ prediction.asset.name }}</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div dir="ltr" class="text-sm font-medium tabular-nums">
+                                                {{ prediction.predictedPrice?.toFixed(2) }}
+                                            </div>
+                                            <div class="text-xs text-muted-foreground">
+                                                {{ prediction.horizonLabel }}
+                                            </div>
+                                        </div>
                                     </LocalizedLink>
                                 </div>
                             </Deferred>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Buy/Sell Signals -->
+                    <Card v-if="topBuySignals.length || topSellSignals.length">
+                        <CardHeader class="pb-3">
+                            <CardTitle
+                                class="flex items-center gap-2 text-base"
+                            >
+                                <ShoppingCart class="size-4 text-foreground" />
+                                {{ t('home.signals') }}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <!-- Buy Signals -->
+                            <div v-if="topBuySignals.length" class="mb-3">
+                                <div class="mb-1.5 flex items-center gap-1 text-xs font-medium text-gain">
+                                    <TrendingUp class="size-3" />
+                                    {{ t('home.buySignals') }} ({{ topBuySignals.length }})
+                                </div>
+                                <div class="space-y-1">
+                                    <LocalizedLink
+                                        v-for="signal in topBuySignals.slice(0, 3)"
+                                        :key="signal.id"
+                                        :href="`/assets/${signal.asset?.symbol}`"
+                                        class="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1 transition-colors hover:bg-muted/30"
+                                    >
+                                        <span class="text-sm font-medium">{{ signal.asset?.symbol }}</span>
+                                        <span dir="ltr" class="text-xs font-medium tabular-nums text-gain">{{ signal.score?.toFixed(1) }}</span>
+                                    </LocalizedLink>
+                                </div>
+                            </div>
+                            <!-- Sell Signals -->
+                            <div v-if="topSellSignals.length">
+                                <div class="mb-1.5 flex items-center gap-1 text-xs font-medium text-loss">
+                                    <TrendingDown class="size-3" />
+                                    {{ t('home.sellSignals') }} ({{ topSellSignals.length }})
+                                </div>
+                                <div class="space-y-1">
+                                    <LocalizedLink
+                                        v-for="signal in topSellSignals.slice(0, 3)"
+                                        :key="signal.id"
+                                        :href="`/assets/${signal.asset?.symbol}`"
+                                        class="-mx-2 flex items-center justify-between gap-2 rounded px-2 py-1 transition-colors hover:bg-muted/30"
+                                    >
+                                        <span class="text-sm font-medium">{{ signal.asset?.symbol }}</span>
+                                        <span dir="ltr" class="text-xs font-medium tabular-nums text-loss">{{ signal.score?.toFixed(1) }}</span>
+                                    </LocalizedLink>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
