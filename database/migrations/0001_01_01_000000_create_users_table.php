@@ -15,7 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
             $table->string('name');
             $table->string('telegram_id')->unique()->nullable();
-
+            $table->string('telegram_username')->nullable();
+            $table->string('telegram_photo_url')->nullable();
             $table->enum('language', ['en', 'ar'])->default('ar');
             $table->enum('theme', ['light', 'dark', 'system'])->default('light');
             $table->foreignUuid('country_id')->nullable();
