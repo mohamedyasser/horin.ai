@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,12 +11,31 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call the AssetSeeder to seed countries, markets, sectors, and assets
         $this->call([
+            // Reference data
             CountrySeeder::class,
             SectorSeeder::class,
-            AssetSeeder::class,
-            CryptoSeeder::class,
+
+            // Per-country seeders (market indices, markets, and stock assets)
+            SaudiArabiaSeeder::class,
+            EgyptSeeder::class,
+//            KuwaitSeeder::class,
+//            UAESeeder::class,
+//            QatarSeeder::class,
+//            BahrainSeeder::class,
+
+            // Crypto assets
+//            CryptoSeeder::class,
+
+            // Alert templates
+            AlertTemplateSeeder::class,
+
+            // Generated data
+            UserSeeder::class,
+            MarketDataSeeder::class,
+            PortfolioSeeder::class,
+            AlertSeeder::class,
+            NewsSeeder::class,
         ]);
     }
 }
