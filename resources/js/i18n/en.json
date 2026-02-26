@@ -42,7 +42,12 @@
         "weeks": "weeks",
         "minutes": "minutes",
         "viewDetailsFor": "View details for",
-        "breadcrumb": "Breadcrumb"
+        "breadcrumb": "Breadcrumb",
+        "created": "Created",
+        "duplicate": "Duplicate",
+        "no": "No",
+        "view_all": "View All",
+        "yes": "Yes"
     },
     "auth": {
         "login": {
@@ -1263,7 +1268,22 @@
             "min_score": "Min Score",
             "prediction_direction": "Prediction Direction",
             "anomaly_types": "Anomaly Types",
-            "confirmation": "Confirmation Type"
+            "confirmation": "Confirmation Type",
+            "entry_price": "Entry Price",
+            "from_reference": "From Reference",
+            "gap_threshold_hint": "Minimum gap percentage to trigger",
+            "indicators": "Indicators",
+            "level": "Price Level",
+            "max_triggers": "Max Triggers",
+            "pattern_status": "Pattern Status",
+            "patterns": "Patterns",
+            "prediction_type": "Prediction Type",
+            "recommendations": "Recommendations",
+            "severity": "Severity",
+            "signal_types": "Signal Types",
+            "status": "Status",
+            "tolerance_percent": "Tolerance Percent",
+            "trigger_on": "Trigger On"
         },
         "direction": {
             "above": "Above",
@@ -1281,7 +1301,9 @@
         "52week": {
             "new_high": "New 52-Week High",
             "new_low": "New 52-Week Low",
-            "both": "Both High and Low"
+            "both": "Both High and Low",
+            "high": "52-Week High",
+            "low": "52-Week Low"
         },
         "priority": {
             "critical": "Critical",
@@ -1370,7 +1392,8 @@
             "4h": "Snooze for 4 hours",
             "1d": "Snooze for 1 day",
             "until_market_close": "Snooze until market close",
-            "until_market_open": "Snooze until market open"
+            "until_market_open": "Snooze until market open",
+            "title": "Snooze Alert"
         },
         "escalation": {
             "title": "Enable Escalation",
@@ -1504,7 +1527,35 @@
             "activate": "Activate"
         },
         "view_alert": "View Alert",
-        "acknowledge": "Acknowledge"
+        "acknowledge": "Acknowledge",
+        "pattern_status": {
+            "forming": "Forming",
+            "confirmed": "Confirmed",
+            "completed": "Completed"
+        },
+        "recommendation_trigger": {
+            "change": "Any Change",
+            "upgrade": "Upgrade",
+            "downgrade": "Downgrade"
+        },
+        "reference": {
+            "open": "Open Price",
+            "previous_close": "Previous Close"
+        },
+        "trigger_on": {
+            "enter": "Enter Zone",
+            "exit": "Exit Zone"
+        },
+        "delivery_channels_hint": "Choose how you want to receive notifications",
+        "edit": "Edit Alert",
+        "info": "Alert Info",
+        "info_description": "Overview of this alert's configuration",
+        "no_history": "No history yet",
+        "recent_history": "Recent History",
+        "snoozed_until": "Snoozed until",
+        "statistics": "Statistics",
+        "trigger_value": "Trigger Value",
+        "triggered_at": "Triggered At"
     },
     "news": {
         "title": "Market News",
@@ -1565,5 +1616,17 @@
             "copy": "Copy Link",
             "copied": "Link copied to clipboard"
         }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "mark_all_read": "Mark all as read",
+        "empty": "No notifications",
+        "view_all": "View All"
+    },
+    "time": {
+        "just_now": "Just now",
+        "minutes_ago": "{count} minutes ago",
+        "hours_ago": "{count} hours ago",
+        "days_ago": "{count} days ago"
     }
 }
